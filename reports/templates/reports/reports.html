@@ -1,0 +1,14 @@
+{%  extends 'base.html' %}
+{%  block title %}Reports Available{% endblock %}
+{%  block h1 %}Reports available{%  endblock %}
+{%  block content %}
+{% if latest_report_list %}
+    <ul>
+        {% for report in latest_report_list %}
+            <li><a href="{% url 'reports:detail' report.id %}">{{ report.report_title }}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No reports are available.</p>
+{% endif %}
+{% endblock %}

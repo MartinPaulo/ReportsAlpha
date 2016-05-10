@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block h1 %}About{% endblock %}
+
+{% block content %}
+    <table>
+    <t><th>Field</th><th>Value</th></t>
+        {% for key, value in details %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+/* Images from: http://alvinalexander.com/design/html-css-sketch-prototyping */
+
+li a {
+    color: green;
+}
+
+body {
+    background: url("images/bg-napkin.jpg");
+}
+
+body,
+h1, h2, h3,
+input[type="text"], input[type="password"], textarea, select,
+input.submit {
+    font-family: "Comic Sans MS", cursive;
+}
+
+/* for regular tables, show a border */
+table,
+table th,
+table td {
+    border: 2px dotted #bfbfbf;
+}
+
+table th,
+table td {
+    padding: 4px;
+}
+
+/* table header background (for 'report' pages) */
+table th {
+    background: url(images/th-bg-5-white-bg.png);
+}
+
+table.form input {
+    background-color: #f3f3f3;
+}
+
+/**
+ * FORMS
+ */
+input[type="submit"] {
+    background: url(images/diag-stripes-right-to-left.png);
+    border: dotted #888;
+}
+
+input[type="text"], textarea, input[type="email"] , select {
+    background: url(images/diag-stripes-right-to-left.png);
+    border: dotted #777;
+}

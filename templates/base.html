@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css" href="{% static 'reports/style.css' %}"/>
+    {%  block header_lines %}{%  endblock %}
+</head>
+<body>
+{% include 'nav.html' %}
+<h1>{%  block h1 %}{%  endblock %}</h1>
+{% block content %}{% endblock %}
+{% block footer %}
+    <hr />
+    <p>Thanks for looking at our reports...</p>
+{% endblock %}
+</body>
+</html>

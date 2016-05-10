@@ -1,0 +1,13 @@
+{%  extends 'base.html' %}
+{%  block title %}Results{% endblock %}
+{%  block h1 %}{{ report.report_title }}{%  endblock %}
+{% block content %}
+
+<ul>
+{% for choice in report.choice_set.all %}
+    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'reports:detail' report.id %}">Vote again?</a>
+{% endblock %}

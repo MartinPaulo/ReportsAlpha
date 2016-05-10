@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Search{% endblock %}
+
+{% block h1 %}Search{% endblock %}
+
+{% block content %}
+
+    {% if errors %}
+        <ul>
+            {% for error in errors %}
+                <li>{{  error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if query %}
+        <p>{{ query|capfirst }} not found...</p>
+    {% endif %}
+
+    <form action='' method="get">
+        <input type="text" name="q"/>
+        <input type="submit" value="Search"/>
+    </form>
+
+{% endblock %}

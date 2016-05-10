@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Search{% endblock %}
+
+{% block h1 %}Search{% endblock %}
+
+{% block content %}
+
+    <p>You searched for: <strong>{{ query }}</strong></p>
+
+    {% if reports %}
+        <p>Found {{ reports|length }} report{{ reports|pluralize }}</p>
+        <ul>
+            {% for report in reports %}
+                <li><a href="/reports/{{ report.id }}">{{ report.report_title }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

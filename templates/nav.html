@@ -1,0 +1,10 @@
+<div id="nav">
+    <a href="/">Home</a>
+    <a href="/reports/search">Search</a>
+    <a href="/contact">Contact Us</a>
+    <a href="/reports/about">About</a>
+    {% if user.is_authenticated %} <a href="/logout/?next=/">Logout</a> </p>
+    {% else %}
+        <a href="/login">Login</a>
+    {% endif %}
+</div>
