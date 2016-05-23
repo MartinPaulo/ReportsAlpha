@@ -26,7 +26,7 @@
         <svg></svg>
     </div>
 
-    <p>The <a href="{% url 'reports:csv' report.id %}">csv file</a> behind this graph</p>
+    <p>The <a href="{% url 'reports:csv' report.id %}">data file</a> behind this graph</p>
 
     <form action="{% url 'reports:vote' report.id %}" method="post">
         {% csrf_token %}
