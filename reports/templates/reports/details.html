@@ -2,7 +2,7 @@
 {% block title %}Report Details{% endblock %}
 {% block header_lines %}
     {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static 'reports/nv.d3.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css"/>
     <style>
 
         {# We want to fill the page with as much of the graph as is possible#}
@@ -22,6 +22,12 @@
 
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
+    <div class="row">
+        <div id="graph-buttons" class="btn-group pull-right">
+
+        </div>
+    </div>
+
     <div id="chart">
         <svg></svg>
     </div>
@@ -38,7 +44,8 @@
     </form>
 
     <script src="//d3js.org/d3.v3.js"></script>
-    <script src="//cdn.rawgit.com/novus/nvd3/v1.8.1/build/nv.d3.js"></script>
+    {#  From: https://cdnjs.com/libraries/nvd3 #}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.js"></script>
     {#    TODO: make the following a tag? Or work out how not to hardcode static path?#}
     <script src="/static/reports/{{ report.d3_file_name }}"></script>
     <script>
