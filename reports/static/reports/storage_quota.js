@@ -42,7 +42,6 @@ report.d3 = {
                     return d3.time.format('%Y-%m-%d')(new Date(d))
                 })
                 .axisLabel('Date');
-            ;
 
             chart.yAxis
                 .tickFormat(d3.format(',.2f'))
