@@ -36,4 +36,4 @@ report.d3 = {
             return chart;
         });
     }
-}
+};
