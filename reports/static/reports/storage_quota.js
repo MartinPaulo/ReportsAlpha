@@ -29,9 +29,8 @@ report.d3 = {
                 })
                 .useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
                 .rightAlignYAxis(true)      //Let's move the y-axis to the right side.
-                .showControls(true)       //Allow user to choose 'Stacked', 'Stream'
+                .showControls(false)       // Don't allow user to choose 'Stacked', 'Stream'
                 .clipEdge(true).yDomain([0, 100])
-                .controlOptions(['Stacked', 'Stream'])
                 .color(function (d) {
                     return schoolColors.hasOwnProperty(d['key']) ? schoolColors[d['key']] : 'black';
                 });
