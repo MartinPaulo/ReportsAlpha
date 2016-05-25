@@ -18,6 +18,14 @@ report.d3 = {
             'ABP': '#17becf'
         };
 
+        // one way of printing. downside is that css is not saved with the image...
+        var download = d3.select("body").append("a").attr("href", "#").attr("accesskey","p").html("Print");
+        download.on("click", function () {
+                d3.select(this)
+                    .attr("href", 'data:application/octet-stream;base64,' + btoa(d3.select("#chart svg").html()))
+                    .attr("download", "chart.svg");
+        });
+
         d3.json(jsonPath, function (error, data) {
             var chart = nv.models.stackedAreaChart()
                 .margin({right: 100})
@@ -55,5 +63,6 @@ report.d3 = {
 
             return chart;
         });
+
     }
-}
+};
