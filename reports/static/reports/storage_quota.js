@@ -32,7 +32,7 @@ report.d3 = {
                 .showControls(false)       // Don't allow user to choose 'Stacked', 'Stream'
                 .clipEdge(true).yDomain([0, 100])
                 .color(function (d) {
-                    return schoolColors.hasOwnProperty(d['key']) ? schoolColors[d['key']] : 'black';
+                    return d['key'] in schoolColors ? schoolColors[d['key']] : 'black';
                 });
 
             //Format x-axis labels with custom function.
