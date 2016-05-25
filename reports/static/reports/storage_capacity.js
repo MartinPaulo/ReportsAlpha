@@ -8,16 +8,16 @@ report.d3 = {
                 .margin({right: 100})
                 .x(function (d) {
                     return d[0]
-                })   //We can modify the data accessor functions...
+                })
                 .y(function (d) {
                     return d[1]
-                })   //...in case your data is formatted differently.
-                .useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
-                .rightAlignYAxis(true)      //Let's move the y-axis to the right side.
-                .showControls(true)       //Allow user to choose 'Stacked', 'Stream', 'Expanded' mode.
+                })
+                .useInteractiveGuideline(true)
+                .rightAlignYAxis(true)
+                .showControls(true)
+                .controlOptions(['Stacked', 'Expanded'])
                 .clipEdge(true);
 
-            //Format x-axis labels with custom function.
             chart.xAxis
                 .tickFormat(function (d) {
                     return d3.time.format('%Y-%m-%d')(new Date(d))
