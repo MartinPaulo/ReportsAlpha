@@ -1,6 +1,7 @@
 import os
 from wsgiref.util import FileWrapper
 
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
@@ -31,6 +32,12 @@ class DetailView(generic.DetailView):
         Excludes any reports that aren't published yet.
         """
         return Report.objects.filter(pub_date__lte=timezone.now())
+
+    # we override this to add the debug flag to the context (is there a better way?)
+    def get_context_data(self, **kwargs):
+        result = super().get_context_data(**kwargs)
+        result['debug'] = settings.DEBUG
+        return result
 
 
 class ResultsView(generic.DetailView):

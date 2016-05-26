@@ -37,8 +37,9 @@
         <svg></svg>
     </div>
 
-    <p>The <a href="{% url 'reports:csv' report.id %}">data file</a> behind this graph</p>
-
+    {% if debug %}
+        <p>The <a href="{% url 'reports:csv' report.id %}">data file</a> behind this graph</p>
+    {% endif %}
     <form action="{% url 'reports:vote' report.id %}" method="post">
         {% csrf_token %}
         {% for choice in report.choice_set.all %}
