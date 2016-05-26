@@ -28,7 +28,6 @@ report.d3 = {
                 .clipEdge(true).yDomain([0, 100])
                 .color(function (d) {
                     return utils.facultyColours.get(d['key']);
-                    //return d['key'] in utils.facultyColours ? utils.facultyColours[d['key']] : 'black';
                 });
 
             //Format x-axis labels with custom function.
