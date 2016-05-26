@@ -1,6 +1,8 @@
 /**
  * Created by mpaulo on 29/04/2016.
  */
+'use strict';
+
 var report = report || {};
 
 report.d3 = {

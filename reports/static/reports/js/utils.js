@@ -1,3 +1,5 @@
+'use strict';
+
 var utils = function () {
 
     var facultyColours = {
@@ -36,6 +38,10 @@ var utils = function () {
             });
     }
 
+    function findFrom() {
+        return 'year';
+    }
+
     function createDateButtons() {
         createButton('Year');
         createButton('6 Months', {target_id: 'six_months'});
@@ -58,5 +64,6 @@ var utils = function () {
         facultyColours: facultyColours,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
+        findFrom: findFrom
     }
 }();

@@ -1,3 +1,5 @@
+'use strict';
+
 var report = report || {};
 
 report.d3 = {

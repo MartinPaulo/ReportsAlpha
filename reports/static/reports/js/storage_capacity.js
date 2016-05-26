@@ -1,11 +1,17 @@
+'use strict';
+
 var report = report || {};
 
-report.d3 = {
-    render: function (csv_path) {
+report.d3 = function () {
 
-        utils.createDateButtons();
+    utils.createDateButtons();
 
-        d3.json(csv_path, function (error, data) {
+
+    var render = function (csv_path) {
+        
+        var data_path = csv_path + '?from=' + utils.findFrom();
+
+        d3.json(data_path, function (error, data) {
             var chart = nv.models.stackedAreaChart()
                 .margin({right: 100})
                 .x(function (d) {
@@ -37,5 +43,9 @@ report.d3 = {
 
             return chart;
         });
+    };
+
+    return {
+        render: render
     }
-};
+}();
