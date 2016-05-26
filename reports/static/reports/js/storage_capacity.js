@@ -8,8 +8,8 @@ report.d3 = function () {
 
 
     var render = function (csv_path) {
-        
-        var data_path = csv_path + '?from=' + utils.findFrom();
+
+        var data_path = '/reports/csv/3?from=' + utils.findFrom();
 
         d3.json(data_path, function (error, data) {
             var chart = nv.models.stackedAreaChart()
@@ -36,6 +36,7 @@ report.d3 = function () {
 
             d3.select('#chart svg')
                 .datum(data)
+                .transition().duration(500)
                 .call(chart);
 
             // Update chart when the window resizes
@@ -44,6 +45,10 @@ report.d3 = function () {
             return chart;
         });
     };
+
+    d3.select('#chart svg')[0][0].addEventListener('redraw', function (e) {
+        render();
+    }, false);
 
     return {
         render: render

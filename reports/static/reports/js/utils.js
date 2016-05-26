@@ -35,18 +35,21 @@ var utils = function () {
                     .classed('active', false);
                 d3.select('#' + target_id)
                     .attr('class', 'active');
+                var event = new Event('redraw');
+                d3.select('#chart svg')[0][0].dispatchEvent(event);
+
             });
     }
 
     function findFrom() {
-        return 'year';
+        return d3.select('#date-buttons .active').attr('id');
     }
 
     function createDateButtons() {
         createButton('Year');
-        createButton('6 Months', {target_id: 'six_months'});
-        createButton('3 Months', {target_id: 'three_months'});
-        createButton('1 Month', {target_id: 'one_month'});
+        createButton('6 Months', {target_id: 'sixMonths'});
+        createButton('3 Months', {target_id: 'threeMonths'});
+        createButton('1 Month', {target_id: 'oneMonth'});
         d3.select('#year')
             .on('click')();
     }
