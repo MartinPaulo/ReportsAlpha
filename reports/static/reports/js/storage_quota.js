@@ -5,19 +5,6 @@ report.d3 = {
 
     render: function (jsonPath) {
 
-        var schoolColors = {
-            'VCAMCM': '#1f77b4',
-            'VAS': '#ff7f0e',
-            'FoS': '#2ca02c',
-            'MDHS': '#d62728',
-            'MLS': '#9467bd',
-            'MSE': '#8c564b',
-            'MGSE': '#e377c2',
-            'FBE': '#7f7f7f',
-            'FoA': '#bcbd22',
-            'ABP': '#17becf'
-        };
-
         // one way of printing. downside is that css is not saved with the image...
         var download = d3.select("body").append("a").attr("href", "#").attr("accesskey","p").html("Print");
         download.on("click", function () {
@@ -40,7 +27,8 @@ report.d3 = {
                 .showControls(false)       // Don't allow user to choose 'Stacked', 'Stream'
                 .clipEdge(true).yDomain([0, 100])
                 .color(function (d) {
-                    return d['key'] in schoolColors ? schoolColors[d['key']] : 'black';
+                    return utils.facultyColours.get(d['key']);
+                    //return d['key'] in utils.facultyColours ? utils.facultyColours[d['key']] : 'black';
                 });
 
             //Format x-axis labels with custom function.
