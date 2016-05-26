@@ -44,7 +44,24 @@ input[type="submit"] {
     border: dotted #888;
 }
 
-input[type="text"], textarea, input[type="email"] , select {
+input[type="text"], textarea, input[type="email"], select {
     background: url(images/diag-stripes-right-to-left.png);
     border: dotted #777;
+}
+
+/* Button row */
+/* we have two types of button: date range selection, and data center selection */
+/* should the data center selection match the nvd3 selection style? */
+input[type="button"] {
+    background: url(images/diag-stripes-right-to-left.png);
+    border: dotted #888;
+}
+
+input[type="button"].active {
+    background: url(images/diag-stripes-left-to-right.png);
+    border: solid #888;
+}
+
+.pull-right {
+    float: right;
 }
