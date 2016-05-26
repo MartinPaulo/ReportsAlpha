@@ -53,7 +53,7 @@
     {#  From: https://cdnjs.com/libraries/nvd3 #}
     <script src="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.js"></script>
     {#    TODO: make the following a tag? Or work out how not to hardcode static path?#}
-    <script src="/static/reports/{{ report.d3_file_name }}"></script>
+    <script src="/static/reports/js/{{ report.d3_file_name }}"></script>
     <script>
         report.d3.render("{% url 'reports:csv' report.id %}")
     </script>
