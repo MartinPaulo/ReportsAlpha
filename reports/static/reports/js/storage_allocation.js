@@ -3,20 +3,10 @@ var report = report || {};
 report.d3 = {
 
     render: function (jsonPath) {
-        
-        utils.createButton('Year');
-        utils.createButton('6 Months', {target_id: 'six_months'});
-        utils.createButton('3 Months', {target_id: 'three_months'});
-        utils.createButton('1 Month', {target_id: 'one_month'});
-        d3.select('#year')
-            .on('click')();
 
-        utils.createButton('Total', {parent_id: 'graph-buttons'});
-        utils.createButton('Vault', {parent_id: 'graph-buttons'});
-        utils.createButton('Market', {parent_id: 'graph-buttons'});
-        utils.createButton('Compute', {parent_id: 'graph-buttons'});
-        d3.select('#total')
-            .on('click')();
+        utils.createDateButtons();
+        utils.createFacultyButtons();
+
 
         // d3.json(jsonPath, function (error, data) {
         //     var chart = nv.models.stackedAreaChart()

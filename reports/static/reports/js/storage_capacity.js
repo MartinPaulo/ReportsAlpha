@@ -3,6 +3,8 @@ var report = report || {};
 report.d3 = {
     render: function (csv_path) {
 
+        utils.createDateButtons();
+
         d3.json(csv_path, function (error, data) {
             var chart = nv.models.stackedAreaChart()
                 .margin({right: 100})

@@ -36,8 +36,27 @@ var utils = function () {
             });
     }
 
+    function createDateButtons() {
+        createButton('Year');
+        createButton('6 Months', {target_id: 'six_months'});
+        createButton('3 Months', {target_id: 'three_months'});
+        createButton('1 Month', {target_id: 'one_month'});
+        d3.select('#year')
+            .on('click')();
+    }
+
+    function createFacultyButtons() {
+        createButton('Total', {parent_id: 'graph-buttons'});
+        createButton('Vault', {parent_id: 'graph-buttons'});
+        createButton('Market', {parent_id: 'graph-buttons'});
+        createButton('Compute', {parent_id: 'graph-buttons'});
+        d3.select('#total')
+            .on('click')();
+    }
+
     return { // exports
         facultyColours: facultyColours,
-        createButton: createButton,
+        createDateButtons: createDateButtons,
+        createFacultyButtons: createFacultyButtons,
     }
 }();
