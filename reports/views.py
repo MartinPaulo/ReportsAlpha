@@ -84,7 +84,7 @@ def search(request):
 def csv(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
     download_name = report.download_name
-    filename = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/%s' % report.download_name
+    filename = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/fake_data/%s' % report.download_name
     file_extension = filename.split(".")[-1]
     # print("F %s E %s" % (filename, file_extension))
     mime_type = 'application/json' if file_extension == 'json' else 'text/csv'
