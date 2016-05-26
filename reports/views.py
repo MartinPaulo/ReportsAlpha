@@ -38,8 +38,6 @@ class ResultsView(generic.DetailView):
     template_name = 'reports/results.html'
 
 
-# https://github.com/UoM-ResPlat-DevOps/rdsi-reporting
-
 def vote(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
     try:
@@ -76,32 +74,15 @@ def search(request):
     return render(request, 'reports/search_form.html', {'errors': errors})
 
 
-def flattenjson(b, delim):
-    val = {}
-    for i in b.keys():
-        if isinstance(b[i], dict):
-            get = flattenjson(b[i], delim)
-            for j in get.keys():
-                val[i + delim + j] = get[j]
-        else:
-            val[i] = b[i]
-
-    return val
-
-
 def csv(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
     download_name = report.download_name
     filename = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/%s' % report.download_name
     file_extension = filename.split(".")[-1]
     # print("F %s E %s" % (filename, file_extension))
-    type = 'application/json' if file_extension == 'json' else 'text/csv'
-    # if file_extension == 'json':
-    #     json = open(filename, 'r').read()
-    #     csv_string = flattenjson(json, '_')
-    #     print("CSV: " + csv_string)
+    mime_type = 'application/json' if file_extension == 'json' else 'text/csv'
     wrapper = FileWrapper(open(filename))
-    response = HttpResponse(wrapper, content_type=type)
+    response = HttpResponse(wrapper, content_type=mime_type)
     # response['Content-Length'] = os.path.getsize(filename)
     # print("S %s" % os.path.getsize(filename))
     response['Content-Disposition'] = 'attachment; filename=%s' % download_name
