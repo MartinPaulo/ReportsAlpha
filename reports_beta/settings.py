@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+import logging
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,3 +127,9 @@ STATIC_URL = '/static/'
 
 LOGIN_REDIRECT_URL = '/'
 
+# from http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
+try:
+    from reports_beta.local_settings import *
+except ImportError as e:
+    logging.warn('Local settings file not found...')
+    pass
