@@ -67,18 +67,15 @@ def about(request):
 
 
 def search(request):
-    errors = []
-    if 'q' in request.GET:
-        q = request.GET['q']
-        if not q:
-            errors.append('Please enter a search term!')
-        else:
-            reports = Report.objects.filter(report_title__icontains=q)
-            if reports.count() > 0:
-                return render(request, 'reports/search_results.html', {'reports': reports, 'query': q})
-            else:
-                return render(request, 'reports/search_form.html', {'query': q})
-    return render(request, 'reports/search_form.html', {'errors': errors})
+    q = request.GET.get('q', None)
+    if not q:
+        errors = ['Please enter a search term!']
+        return render(request, 'reports/search_form.html', {'errors': errors})
+    reports = Report.objects.filter(report_title__icontains=q)
+    if reports.count() > 0:
+        return render(request, 'reports/search_results.html', {'reports': reports, 'query': q})
+    else:
+        return render(request, 'reports/search_form.html', {'query': q})
 
 
 def csv(request, report_id):
