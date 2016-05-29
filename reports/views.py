@@ -83,7 +83,7 @@ def search(request):
 
 def csv(request, report_id):
     report = get_object_or_404(Report, pk=report_id)
-    duration = request.GET['from']
+    duration = request.GET.get('from', '')
     download_name = report.download_name
     data_directory = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/fake_data/'
     try:
