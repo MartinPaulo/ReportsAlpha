@@ -25,7 +25,11 @@ report.d3 = function () {
                 .rightAlignYAxis(true)
                 .showControls(true)
                 .controlOptions(['Stacked', 'Expanded'])
-                .clipEdge(true);
+                .clipEdge(true)
+                .color(function (d) {
+                    return utils.storageColours.get(d['key']);
+                });
+;
 
             chart.xAxis
                 .tickFormat(function (d) {

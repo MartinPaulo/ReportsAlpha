@@ -2,6 +2,11 @@
 
 var utils = function () {
 
+    // mixin method to return colour value from colour classes
+    var getColour = function(key) {
+        return key in this && typeof this[key] === 'string' ? this[key] : 'black';
+    };
+
     var facultyColours = {
         'VCAMCM': '#1f77b4',
         'VAS': '#ff7f0e',
@@ -14,11 +19,16 @@ var utils = function () {
         'FoA': '#bcbd22',
         'ABP': '#17becf',
 
-        get: function (key) {
-            return key in facultyColours && typeof facultyColours[key] === 'string' ? facultyColours[key] : 'black';
-        }
+        get: getColour
     };
 
+    var storageColours = {
+        'Market': 'blue',
+        'Compute': 'lightblue',
+        'Vault': 'orange',
+
+        get: getColour
+    };
 
     // https://github.com/d3/d3/wiki/Selections
     function createButton(title, options) {
@@ -64,6 +74,7 @@ var utils = function () {
     }
 
     return { // exports
+        storageColours: storageColours,
         facultyColours: facultyColours,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
