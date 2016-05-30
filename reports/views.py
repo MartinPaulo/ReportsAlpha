@@ -63,7 +63,7 @@ def vote(request, report_id):
 
 def about(request):
     values = sorted(request.META.items())
-    return render(request, 'reports/about.html', {'details': values})
+    return render(request, 'reports/about.html', {'details': values, 'debug': settings.DEBUG})
 
 
 def search(request):
