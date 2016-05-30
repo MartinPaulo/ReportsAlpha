@@ -110,8 +110,7 @@ def data(request, path):
         data_directory = settings.FAKE_DATA_DIRECTORY
     except AttributeError:
         logging.warning('Fake data directory not set.')
-    if path.endswith('storage/capacity/'):
-        filename = data_directory + '%s%sStorageCapacity.json' % (path, duration)
+    filename = data_directory + '%s%s.json' % (path, duration)
     file_extension = filename.split(".")[-1]
     # print("F %s E %s" % (filename, file_extension))
     mime_type = 'application/json' if file_extension == 'json' else 'text/csv'
