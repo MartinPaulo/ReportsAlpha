@@ -38,7 +38,7 @@
     </div>
 
     {% if debug %}
-        <p>The <a href="{% url 'reports:csv' report.id %}">data file</a> behind this graph</p>
+        <p>The <a id="a_data" href="{% url 'reports:csv' report.id %}">data file</a> behind this graph</p>
     {% endif %}
     <form action="{% url 'reports:vote' report.id %}" method="post">
         {% csrf_token %}
@@ -56,7 +56,7 @@
     {#    TODO: make the following a tag? Or work out how not to hardcode static path?#}
     <script src="/static/reports/js/{{ report.d3_file_name }}"></script>
     <script>
-        report.d3.render("{% url 'reports:csv' report.id %}")
+        report.d3.render("{% url 'reports:csv' report.id %}");
     </script>
 
 {% endblock %}

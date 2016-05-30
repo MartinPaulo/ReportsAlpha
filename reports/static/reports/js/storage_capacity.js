@@ -6,10 +6,11 @@ report.d3 = function () {
 
     utils.createDateButtons();
 
+    var render = function () {
 
-    var render = function (csv_path) {
+        var data_path = '/reports/data/storage/capacity/?from=' + utils.findFrom();
 
-        var data_path = '/reports/csv/3?from=' + utils.findFrom();
+        document.getElementById('a_data').href = data_path;
 
         d3.json(data_path, function (error, data) {
             var chart = nv.models.stackedAreaChart()

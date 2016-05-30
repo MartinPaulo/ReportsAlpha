@@ -83,6 +83,8 @@ def csv(request, report_id):
     duration = request.GET.get('from', '')
     download_name = report.download_name
     data_directory = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/fake_data/'
+    if report_id is 3:
+        data_directory += 'storage/capacity'
     try:
         logging.info(settings.STATIC_URL)
         data_directory = settings.FAKE_DATA_DIRECTORY
@@ -96,5 +98,27 @@ def csv(request, report_id):
     response = HttpResponse(wrapper, content_type=mime_type)
     # response['Content-Length'] = os.path.getsize(filename)
     # print("S %s" % os.path.getsize(filename))
+    response['Content-Disposition'] = 'attachment; filename=%s' % download_name
+    return response
+
+
+def data(request, path):
+    duration = request.GET.get('from', '')
+    data_directory = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/fake_data/'
+    try:
+        logging.info(settings.STATIC_URL)
+        data_directory = settings.FAKE_DATA_DIRECTORY
+    except AttributeError:
+        logging.warning('Fake data directory not set.')
+    if path.endswith('storage/capacity/'):
+        filename = data_directory + '%s%sStorageCapacity.json' % (path, duration)
+    file_extension = filename.split(".")[-1]
+    # print("F %s E %s" % (filename, file_extension))
+    mime_type = 'application/json' if file_extension == 'json' else 'text/csv'
+    wrapper = FileWrapper(open(filename))
+    response = HttpResponse(wrapper, content_type=mime_type)
+    # response['Content-Length'] = os.path.getsize(filename)
+    # print("S %s" % os.path.getsize(filename))
+    download_name = 'data'
     response['Content-Disposition'] = 'attachment; filename=%s' % download_name
     return response
