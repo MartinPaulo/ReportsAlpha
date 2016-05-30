@@ -20,7 +20,7 @@ class IndexView(generic.ListView):
     def get_queryset(self):
         """Return the last five published questions: excluding those published in the future."""
         return Report.objects.filter(
-            pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
+            pub_date__lte=timezone.now()).order_by('-pub_date')[:10]
 
 
 class DetailView(generic.DetailView):
