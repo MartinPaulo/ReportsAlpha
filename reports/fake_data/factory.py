@@ -149,6 +149,14 @@ def get_faculty_value(duration, storage_type, lookup_field):
     return data
 
 
+def get_used_value(s, used_entry):
+    used_value = 0
+    for u in used_entry['values']:
+        if u[0] == s[0]:
+            return u[1]
+    return used_value
+
+
 def get_faculty_headroom(duration, storage_type):
     allocated_values = get_faculty_value(duration, storage_type, allocated)
     used_values = get_faculty_value(duration, storage_type, used)
@@ -160,14 +168,6 @@ def get_faculty_headroom(duration, storage_type):
             s[1] -= used_value
         i += 1
     return allocated_values
-
-
-def get_used_value(s, used_entry):
-    used_value = 0
-    for u in used_entry['values']:
-        if u[0] == s[0]:
-            return u[1]
-    return used_value
 
 
 def get(path, duration, storage_type):
