@@ -1,12 +1,111 @@
-apt-get update
-apt-get upgrade
-apt-get install git
-git clone https://github.com/MartinPaulo/ReportsAlpha.git
-apt-get install python3-pip
-pip3 install --upgrade pip
-cd ReportsAlpha/
-pip3 install -r requirements.txt
-echo "FAKE_DATA_DIRECTORY = '/home/ubuntu/ReportsAlpha/reports/static/fake_data/'" > reports_beta/local_settings.py
-sed -i -e 's/DEBUG = True/DEBUG = False/g' reports_beta/settings.py
-sed -i -e 's/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \[\x27\*\x27]/g' reports_beta/settings.py
-python3 manage.py runserver 115.146.89.135:80
+# Juno Release
+heat_template_version: 2014-10-16
+
+
+description: 'Install Reporting APP on a single Ubuntu  16.06 instance. '
+
+
+parameters:
+
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of an existing KeyPair to enable SSH access to the instances.
+    constraints:
+      - custom_constraint: nova.keypair
+        description: Must be an existing KeyPair
+
+  image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for compute instance
+    default: 0b13ecb7-6c8a-49c9-8be9-f249937cbc8e
+    constraints:
+      - custom_constraint: glance.image
+        description: Must be a valid Ubuntu image
+
+  instance_type:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used.
+    default: m2.tiny
+    constraints:
+      - custom_constraint: nova.flavor
+        description: Must be a valid NeCTAR flavour
+
+  availability_zone:
+    type: string
+    label: Availability Zone
+    description: Physical location of the server.
+    default: melbourne
+    constraints:
+      - allowed_values: [ monash, melbourne, QRIScloud, NCI, intersect, pawsey, sa, tasmania ]
+        description: Value must be one of monash, melbourne, QRIScloud, NCI, intersect, pawsey, sa, tasmania.
+
+
+resources:
+
+    # Use this when we do not have Neutron networking.
+    # http://docs.openstack.org/developer/heat/template_guide/cfn.html#AWS::EC2::SecurityGroup
+    web_security_group:
+        type: AWS::EC2::SecurityGroup
+        properties:
+            GroupDescription: Web server access rules.
+            SecurityGroupIngress:
+                - {IpProtocol: icmp, FromPort: '-1', ToPort: '-1', CidrIp : 0.0.0.0/0}
+                - {IpProtocol: tcp, FromPort: '22', ToPort: '22', CidrIp: 0.0.0.0/0}
+                - {IpProtocol: tcp, FromPort: '80', ToPort: '80', CidrIp: 0.0.0.0/0}
+                - {IpProtocol: tcp, FromPort: '443', ToPort: '443', CidrIp: 0.0.0.0/0}
+
+    app_server:
+        type: OS::Nova::Server
+        properties:
+            key_name: { get_param: key_name }
+            image: { get_param: image_id }
+            flavor: { get_param: instance_type }
+            availability_zone: {get_param: availability_zone}
+            security_groups:
+                - { get_resource: web_security_group }
+            user_data_format: RAW
+            user_data:
+                str_replace:
+                  template: |
+                    #!/bin/bash
+                    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                    echo "Begin: run user_data bash script. "
+                    echo "Database port: DB_PORT"
+                    apt-get update
+                    apt-get -y upgrade
+                    #apt-get -y install apache2
+                    apt-get -y install git
+                    apt-get -y install python3-pip
+                    pip3 install --upgrade pip
+                    git clone https://github.com/MartinPaulo/ReportsAlpha.git
+                    cd /ReportsAlpha/
+                    pip3 install -r requirements.txt
+                    echo "FAKE_DATA_DIRECTORY = '/ReportsAlpha/reports/static/fake_data/'" > reports_beta/local_settings.py
+                    #sed -i -e 's/DEBUG = True/DEBUG = False/g' reports_beta/settings.py
+                    #sed -i -e 's/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \[\x27\*\x27]/g' reports_beta/settings.py
+                    #python3 manage.py runserver 115.146.89.135:80
+
+                    echo "127.0.0.1  `hostname`" >> /etc/hosts
+                    #/etc/init.d/apache2 restart
+                    echo "End: run user_data bash script. "
+                    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+                  params:
+                    DB_PORT: { get_param: instance_type }
+
+outputs:
+
+    instance_ip:
+        description: The IP address of the deployed instance
+        value: { get_attr: [app_server, first_address] }
+
+    website_url:
+        description: URL for the application
+        value:
+            list_join: ['', ['http://', get_attr: [app_server, first_address]]]
+
+
+
+
