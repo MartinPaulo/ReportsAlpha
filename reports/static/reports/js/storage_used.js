@@ -8,7 +8,7 @@ report.d3 = function () {
 
     var render = function () {
 
-        var data_path = '/reports/data/storage/allocated/?from=' + utils.findFrom();
+        var data_path = '/reports/data/storage/used/?from=' + utils.findFrom();
 
         document.getElementById('a_data').href = data_path;
 
