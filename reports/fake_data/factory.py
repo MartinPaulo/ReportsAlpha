@@ -4,7 +4,7 @@ MONTH = 1475323200000
 THREE_MONTHS = 1470052800000
 SIX_MONTHS = 1462104000000
 
-raw_data = [
+faculty_quota = [
     {"key": "VCAMCM",
      "values": [[1451649600000, 0], [1454328000000, 5.0], [1456833600000, 5.0], [1459512000000, 5.0],
                 [1462104000000, 5.0], [1464782400000, 5.0], [1467374400000, 5.0], [1470052800000, 5.0],
@@ -119,7 +119,7 @@ used = [
 
 
 def get_faculty_quota():
-    return raw_data
+    return faculty_quota
 
 
 def lookup_value(date, storage_type, lookup_field):
@@ -132,7 +132,7 @@ def lookup_value(date, storage_type, lookup_field):
 
 
 def get_faculty_value(duration, storage_type, lookup_field):
-    data = copy.deepcopy(raw_data)
+    data = copy.deepcopy(faculty_quota)
     for entry in data:
         new_values = []
         for s in entry['values']:
