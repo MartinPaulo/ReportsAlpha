@@ -82,13 +82,48 @@ allocated = [
     }
 ]
 
+used = [
+    {
+        "key": "total",
+        "values": [
+            [1451649600000, 462.82], [1454328000000, 542.62], [1456833600000, 572.16], [1459512000000, 605.32],
+            [1462104000000, 605.32], [1464782400000, 632.99], [1467374400000, 637.43], [1470052800000, 686.26],
+            [1472731200000, 711.90], [1475323200000,  734.82], [1478001600000,  751.94], [1480593600000,  868.61]
+        ]
+    },
+    {
+        "key": "market",
+        "values": [
+            [1451649600000, 124.48], [1454328000000, 136.55], [1456833600000, 145.4], [1459512000000, 157],
+            [1462104000000, 165.5], [1464782400000, 170.60], [1467374400000, 175.67], [1470052800000, 180.5],
+            [1472731200000, 196.40], [1475323200000, 200], [1478001600000, 230.35], [1480593600000, 264.35]
+        ]
+    },
+    {
+        "key": "vault",
+        "values": [
+            [1451649600000, 288], [1454328000000, 335.67], [1456833600000, 350.2], [1459512000000, 368.32],
+            [1462104000000, 370.5], [1464782400000, 380.33], [1467374400000, 420.6], [1470052800000, 440.10],
+            [1472731200000, 445.20], [1475323200000, 455.50], [1478001600000, 497.88], [1480593600000, 497.88]
+        ]
+    },
+    {
+        "key": "compute",
+        "values": [
+            [1451649600000, 50.34], [1454328000000, 70.4], [1456833600000, 76.56], [1459512000000, 80],
+            [1462104000000, 96.99], [1464782400000, 86.50], [1467374400000, 89.99], [1470052800000, 91.3],
+            [1472731200000, 93.22], [1475323200000, 96.44], [1478001600000, 96.44], [1480593600000, 106.38]
+        ]
+    }
+]
+
 
 def get_faculty_quota():
     return raw_data
 
 
-def get_quota(date, storage_type):
-    for entry in allocated:
+def lookup_value(date, storage_type, lookup_field):
+    for entry in lookup_field:
         if entry['key'] == storage_type:
             for s in entry['values']:
                 if s[0] == date:
@@ -96,13 +131,13 @@ def get_quota(date, storage_type):
     return 0
 
 
-def get_faculty_allocated(duration, storage_type):
+def get_faculty_value(duration, storage_type, lookup_field):
     data = copy.deepcopy(raw_data)
     for entry in data:
         new_values = []
         for s in entry['values']:
-            quota = get_quota(s[0], storage_type)
-            s[1] = quota/s[1] if s[1] != 0 else 0
+            quota = lookup_value(s[0], storage_type, lookup_field)
+            s[1] = quota / s[1] if s[1] != 0 else 0
             if (duration == 'oneMonth') and s[0] > MONTH:
                 new_values.append(s)
             elif (duration == 'threeMonths') and s[0] > THREE_MONTHS:
@@ -119,5 +154,7 @@ def get(path, duration, storage_type):
     if path.endswith('quota/'):
         quota = get_faculty_quota()
     elif path.endswith('faculty_allocated/'):
-        quota = get_faculty_allocated(duration, storage_type)
+        quota = get_faculty_value(duration, storage_type, allocated)
+    elif path.endswith('faculty_used/'):
+        quota = get_faculty_value(duration, storage_type, used)
     return quota
