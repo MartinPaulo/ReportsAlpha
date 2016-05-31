@@ -11,6 +11,8 @@ from django.utils import timezone
 from django.views import generic
 
 from .models import Report, Choice
+from django.http import JsonResponse
+from reports.fake_data import factory
 
 
 class IndexView(generic.ListView):
@@ -121,3 +123,10 @@ def data(request, path):
     download_name = 'data'
     response['Content-Disposition'] = 'attachment; filename=%s' % download_name
     return response
+
+
+def manufactured(request, path):
+    duration = request.GET.get('from', 'year')
+    storage_type = request.GET.get('type', 'total')
+    quota = factory.get(path, duration, storage_type)
+    return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})

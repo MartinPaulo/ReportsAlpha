@@ -4,18 +4,12 @@ var report = report || {};
 
 report.d3 = function () {
 
+    utils.createFacultyButtons();
+    utils.createDateButtons();
 
     var render = function () {
 
-        // one way of printing. downside is that css is not saved with the image...
-        var download = d3.select("body").append("a").attr("href", "#").attr("accesskey", "p").html("Print");
-        download.on("click", function () {
-            d3.select(this)
-                .attr("href", 'data:application/octet-stream;base64,' + btoa(d3.select("#chart svg").html()))
-                .attr("download", "chart.svg");
-        });
-
-        var data_path = '/reports/manufactured/storage/quota/';
+        var data_path = '/reports/manufactured/faculty_allocated/?from=' + utils.findFrom() + '&type=' + utils.findType();
         
         document.getElementById('a_data').href = data_path;
 
@@ -31,7 +25,6 @@ report.d3 = function () {
                 .useInteractiveGuideline(true)    //Tooltips which show all data points. Very nice!
                 .rightAlignYAxis(true)      //Let's move the y-axis to the right side.
                 .showControls(false)       // Don't allow user to choose 'Stacked', 'Stream'
-                .clipEdge(true).yDomain([0, 100])
                 .color(function (d) {
                     return utils.facultyColours.get(d['key']);
                 });
@@ -45,7 +38,7 @@ report.d3 = function () {
 
             chart.yAxis
                 .tickFormat(d3.format(',.2f'))
-                .axisLabel('Percentage (%)');
+                .axisLabel('TB');
 
             d3.select('#chart svg')
                 .datum(data)
@@ -58,6 +51,11 @@ report.d3 = function () {
         });
 
     };
+
+    d3.select('#chart svg')[0][0].addEventListener('redraw', function (e) {
+        render();
+    }, false);
+
     return {
         render: render
     }

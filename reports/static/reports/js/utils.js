@@ -3,7 +3,7 @@
 var utils = function () {
 
     // mixin method to return colour value from colour classes
-    var getColour = function(key) {
+    var getColour = function (key) {
         return key in this && typeof this[key] === 'string' ? this[key] : 'black';
     };
 
@@ -55,6 +55,10 @@ var utils = function () {
         return d3.select('#date-buttons .active').attr('id');
     }
 
+    function findType() {
+        return d3.select('#graph-buttons .active').attr('id');
+    }
+
     function createDateButtons() {
         createButton('Year');
         createButton('6 Months', {target_id: 'sixMonths'});
@@ -78,6 +82,7 @@ var utils = function () {
         facultyColours: facultyColours,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
-        findFrom: findFrom
+        findFrom: findFrom,
+        findType: findType
     }
 }();
