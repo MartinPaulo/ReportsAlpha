@@ -88,7 +88,7 @@ used = [
         "values": [
             [1451649600000, 462.82], [1454328000000, 542.62], [1456833600000, 572.16], [1459512000000, 605.32],
             [1462104000000, 605.32], [1464782400000, 632.99], [1467374400000, 637.43], [1470052800000, 686.26],
-            [1472731200000, 711.90], [1475323200000,  734.82], [1478001600000,  751.94], [1480593600000,  868.61]
+            [1472731200000, 711.90], [1475323200000, 734.82], [1478001600000, 751.94], [1480593600000, 868.61]
         ]
     },
     {
@@ -136,8 +136,8 @@ def get_faculty_value(duration, storage_type, lookup_field):
     for entry in data:
         new_values = []
         for s in entry['values']:
-            quota = lookup_value(s[0], storage_type, lookup_field)
-            s[1] = quota / s[1] if s[1] != 0 else 0
+            value = lookup_value(s[0], storage_type, lookup_field)
+            s[1] = value / s[1] if s[1] != 0 else 0
             if (duration == 'oneMonth') and s[0] > MONTH:
                 new_values.append(s)
             elif (duration == 'threeMonths') and s[0] > THREE_MONTHS:
@@ -149,6 +149,27 @@ def get_faculty_value(duration, storage_type, lookup_field):
     return data
 
 
+def get_faculty_headroom(duration, storage_type):
+    allocated_values = get_faculty_value(duration, storage_type, allocated)
+    used_values = get_faculty_value(duration, storage_type, used)
+    i = 0
+    for entry in allocated_values:
+        used_entry = used_values[i]
+        for s in entry['values']:
+            used_value = get_used_value(s, used_entry)
+            s[1] -= used_value
+        i += 1
+    return allocated_values
+
+
+def get_used_value(s, used_entry):
+    used_value = 0
+    for u in used_entry['values']:
+        if u[0] == s[0]:
+            return u[1]
+    return used_value
+
+
 def get(path, duration, storage_type):
     quota = {}
     if path.endswith('quota/'):
@@ -157,4 +178,6 @@ def get(path, duration, storage_type):
         quota = get_faculty_value(duration, storage_type, allocated)
     elif path.endswith('faculty_used/'):
         quota = get_faculty_value(duration, storage_type, used)
+    elif path.endswith('faculty_headroom/'):
+        quota = get_faculty_headroom(duration, storage_type)
     return quota
