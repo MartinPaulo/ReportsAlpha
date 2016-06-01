@@ -10,7 +10,7 @@ report.d3 = function () {
 
         var data_path = '/reports/data/storage/allocated/?from=' + utils.findFrom();
 
-        document.getElementById('a_data').href = data_path;
+        d3.select('#a_data').attr('href', data_path);
 
         d3.json(data_path, function (error, data) {
             var chart = nv.models.stackedAreaChart()
