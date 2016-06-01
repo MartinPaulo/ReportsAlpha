@@ -28,7 +28,7 @@ parameters:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used.
-    default: m2.tiny
+    default: m1.small
     constraints:
       - custom_constraint: nova.flavor
         description: Must be a valid NeCTAR flavour
@@ -52,10 +52,18 @@ resources:
         properties:
             GroupDescription: Web server access rules.
             SecurityGroupIngress:
-                - {IpProtocol: icmp, FromPort: '-1', ToPort: '-1', CidrIp : 0.0.0.0/0}
                 - {IpProtocol: tcp, FromPort: '22', ToPort: '22', CidrIp: 0.0.0.0/0}
                 - {IpProtocol: tcp, FromPort: '80', ToPort: '80', CidrIp: 0.0.0.0/0}
-                - {IpProtocol: tcp, FromPort: '443', ToPort: '443', CidrIp: 0.0.0.0/0}
+
+    wait_condition:
+      type: OS::Heat::WaitCondition
+      properties:
+        handle: { get_resource: wait_handle }
+        count: 1
+        timeout: 600
+
+    wait_handle:
+      type: OS::Heat::WaitConditionHandle
 
     app_server:
         type: OS::Nova::Server
@@ -68,32 +76,54 @@ resources:
                 - { get_resource: web_security_group }
             user_data_format: RAW
             user_data:
-                str_replace:
-                  template: |
-                    #!/bin/bash
-                    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-                    echo "Begin: run user_data bash script. "
-                    echo "Database port: DB_PORT"
-                    apt-get update
-                    apt-get -y upgrade
-                    #apt-get -y install apache2
-                    apt-get -y install git
-                    apt-get -y install python3-pip
-                    pip3 install --upgrade pip
-                    git clone https://github.com/MartinPaulo/ReportsAlpha.git
-                    cd /ReportsAlpha/
-                    pip3 install -r requirements.txt
-                    echo "FAKE_DATA_DIRECTORY = '/ReportsAlpha/reports/static/fake_data/'" > reports_beta/local_settings.py
-                    #sed -i -e 's/DEBUG = True/DEBUG = False/g' reports_beta/settings.py
-                    #sed -i -e 's/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \[\x27\*\x27]/g' reports_beta/settings.py
-                    #python3 manage.py runserver 115.146.89.135:80
-
-                    echo "127.0.0.1  `hostname`" >> /etc/hosts
-                    #/etc/init.d/apache2 restart
-                    echo "End: run user_data bash script. "
-                    echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
-                  params:
-                    DB_PORT: { get_param: instance_type }
+              str_replace:
+                params:
+                  wc_notify: {get_attr: ['wait_handle', 'curl_cli'] }
+                template: |
+                  #!/bin/bash
+                  echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+                  echo "Beginning run of user_data script. "
+                  # useful links:
+                  #   http://stackoverflow.com/questions/20913125/mod-wsgi-for-correct-version-of-python3
+                  #   https://www.digitalocean.com/community/tutorials/how-to-serve-django-applications-with-apache-and-mod_wsgi-on-ubuntu-16-04
+                  #   https://www.digitalocean.com/community/tutorials/how-to-run-django-with-mod_wsgi-and-apache-with-a-virtualenv-python-environment-on-a-debian-vps
+                  apt-get update
+                  sleep 3 # ?
+                  apt-get -y upgrade
+                  apt-get -y install python3-pip apache2 libapache2-mod-wsgi-py3
+                  apt-get -y install git
+                  git clone https://github.com/MartinPaulo/ReportsAlpha.git
+                  cd ReportsAlpha/
+                  pip3 install -r requirements.txt
+                  python3 manage.py collectstatic --no-input
+                  echo "FAKE_DATA_DIRECTORY = '/ReportsAlpha/static/fake_data/'" > reports_beta/local_settings.py
+                  sed -i -e 's/DEBUG = True/DEBUG = False/g' reports_beta/settings.py
+                  sed -i -e 's/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \[\x27\*\x27]/g' reports_beta/settings.py
+                  chmod 664 db.sqlite3
+                  chown :www-data db.sqlite3
+                  chown :www-data /ReportsAlpha/
+                  sed -i.bak '/serve-cgi-bin.conf/a  \
+                      Alias /static /ReportsAlpha/static \
+                      <Directory /ReportsAlpha/static> \
+                          Require all granted \
+                      </Directory> \
+                       \
+                      <Directory /ReportsAlpha> \
+                          <Files wsgi.py> \
+                              Require all granted \
+                          </Files> \
+                      </Directory> \
+                      \
+                      WSGIDaemonProcess ReportsAlpha python-home=/usr/bin/python3 python-path=/ReportsAlpha \
+                      WSGIProcessGroup ReportsAlpha \
+                      WSGIScriptAlias / /ReportsAlpha/reports_beta/wsgi.py' /etc/apache2/sites-available/000-default.conf
+                  ufw allow 'Apache Full'
+                  echo "127.0.0.1  `hostname`" >> /etc/hosts
+                  systemctl restart apache2
+                  # notify heat that we are done here
+                  wc_notify --data-binary '{"status": "SUCCESS"}'
+                  echo "End: run user_data bash script. "
+                  echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 
 outputs:
 
