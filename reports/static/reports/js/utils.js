@@ -77,9 +77,54 @@ var utils = function () {
             .on('click')();
     }
 
+    function getStorageChart(options) {
+        options = options || {};
+        var colours = ('useFacultyColours' in options && options.useFacultyColours)? facultyColours: storageColours;
+        return function (error, data) {
+
+            var chart = nv.models.stackedAreaChart()
+                .margin({right: 100})
+                .x(function (d) {
+                    return d[0]
+                })
+                .y(function (d) {
+                    return d[1]
+                })
+                .useInteractiveGuideline(true)  // Tooltips which show the data points. Very nice!
+                .rightAlignYAxis(true)          // Move the y-axis to the right side.
+                .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
+                .clipEdge(true)
+                .noData('No Data available')
+                .color(function (d) {
+                    return colours.get(d['key']);
+                });
+
+            chart.xAxis
+                .tickFormat(function (d) {
+                    return d3.time.format('%Y-%m-%d')(new Date(d))
+                })
+                .axisLabel('Date');
+
+            chart.yAxis
+                .tickFormat(d3.format(',.2f'))
+                .axisLabel('TB');
+
+            d3.select('#chart svg')
+                .datum(data)
+                .transition().duration(500)
+                .call(chart);
+
+            // Update chart when the window resizes
+            nv.utils.windowResize(chart.update);
+
+            return chart;
+        };
+    }
+
     return { // exports
         storageColours: storageColours,
         facultyColours: facultyColours,
+        getStorageChart: getStorageChart,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
         findFrom: findFrom,
