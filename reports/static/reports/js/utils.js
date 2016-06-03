@@ -82,6 +82,7 @@ var utils = function () {
         var colours = ('useFacultyColours' in options && options.useFacultyColours)? facultyColours: storageColours;
         return function (error, data) {
 
+            // for examples of these options see: http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
             var chart = nv.models.stackedAreaChart()
                 .margin({right: 100})
                 .x(function (d) {
