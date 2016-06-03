@@ -122,8 +122,6 @@ var utils = function () {
     }
 
     return { // exports
-        storageColours: storageColours,
-        facultyColours: facultyColours,
         getStorageChart: getStorageChart,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
