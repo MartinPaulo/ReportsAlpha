@@ -2,7 +2,46 @@
 
 var utils = function () {
 
-    // mixin method to return colour value from colour classes
+    var facultyNames = [
+        // http://about.unimelb.edu.au/governance-and-leadership/faculties#
+        ['VCAMCM', 'Victorian College of the Arts and Melbourne Conservatorium of Music'],
+        ['VAS', 'Veterinary and Agricultural Sciences'],
+        ['FoS', 'Faculty of Science'],
+        ['MDHS', 'Medicine, Dentistry and Health Sciences'],
+        ['MLS', 'Melbourne Law School'],
+        ['MSE', 'Melbourne School of Engineering'],
+        ['MGSE', 'Melbourne Graduate School of Education'],
+        ['FBE', 'Faculty of Business and Economics'],
+        ['FoA', 'Faculty of Arts'],
+        ['ABP', 'Architecture, Building and Planning']
+    ];
+
+    function generateFacultyKey() {
+        var headings = ['Abbreviation', 'Meaning'];
+        var table = d3.select('body').append('table');
+        table.append("thead").append('tr')
+            .selectAll('th')
+            .data(headings)
+            .enter()
+            .append('th')
+            .text(function (column) {
+                return column;
+            });
+        table.append("tbody").selectAll('tr')
+            .data(facultyNames)
+            .enter()
+            .append('tr')
+            .selectAll('td')
+            .data(function (row) {
+                return row;
+            })
+            .enter()
+            .append('td').text(function (column) {
+            return column;
+        });
+    }
+
+    /* mixin method to return colour value from colour classes */
     var getColour = function (key) {
         return key in this && typeof this[key] === 'string' ? this[key] : 'black';
     };
@@ -30,7 +69,7 @@ var utils = function () {
         get: getColour
     };
 
-    // https://github.com/d3/d3/wiki/Selections
+// https://github.com/d3/d3/wiki/Selections
     function createButton(title, options) {
         options = options || {};
         var target_id = options.target_id || title.toLowerCase();
@@ -79,7 +118,7 @@ var utils = function () {
 
     function getStorageChart(options) {
         options = options || {};
-        var colours = ('useFacultyColours' in options && options.useFacultyColours)? facultyColours: storageColours;
+        var colours = ('useFacultyColours' in options && options.useFacultyColours) ? facultyColours : storageColours;
         return function (error, data) {
 
             // for examples of these options see: http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
@@ -123,10 +162,12 @@ var utils = function () {
     }
 
     return { // exports
+        generateFacultyKey: generateFacultyKey,
         getStorageChart: getStorageChart,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
         findFrom: findFrom,
         findType: findType
     }
-}();
+}
+();

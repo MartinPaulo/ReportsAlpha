@@ -17,6 +17,8 @@ report.d3 = function () {
         render();
     }, false);
 
+    utils.generateFacultyKey();
+    
     return {
         render: render
     }
