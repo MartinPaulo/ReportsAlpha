@@ -164,18 +164,24 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
         },
+        'production_logfile': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/flow_reports_production.log',
+            'formatter': 'simple'
+        },
         'development_logfile': {
             'level': 'DEBUG',
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
-            'filename': '/tmp/flow_reports_dev.log',
+            'filename': '/var/log/flow_reports_dev.log',
             'formatter': 'verbose'
-        },
-
+        }
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'development_logfile'],
+            'handlers': ['console', 'development_logfile', 'production_logfile'],
         },
         'py.warnings': {
             'handlers': ['console', 'development_logfile'],
@@ -183,12 +189,6 @@ LOGGING = {
     }
 }
 
-if not DEBUG:
-    LOGGING.get('handlers')['production_logfile'] = {
-        'level': 'ERROR',
-        'filters': ['require_debug_false'],
-        'class': 'logging.FileHandler',
-        'filename': '/var/log/flow_reports_production.log',
-        'formatter': 'simple'
-    }
-    LOGGING.get('loggers').get('django').get('handlers').append('production_logfile')
+if DEBUG:
+    LOGGING.get('handlers').get('production_logfile')['filename'] = '/tmp/flow_reports_production.log'
+    LOGGING.get('handlers').get('development_logfile')['filename'] = '/tmp/flow_reports_dev.log'
