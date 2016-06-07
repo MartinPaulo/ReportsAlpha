@@ -168,14 +168,14 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'logging.FileHandler',
-            'filename': '/var/log/flow_reports_production.log',
+            'filename': '/var/log/flow_reports/production.log',
             'formatter': 'simple'
         },
         'development_logfile': {
             'level': 'DEBUG',
             'filters': ['require_debug_true'],
             'class': 'logging.FileHandler',
-            'filename': '/var/log/flow_reports_dev.log',
+            'filename': '/var/log/flow_reports/dev.log',
             'formatter': 'verbose'
         }
     },
