@@ -6,18 +6,21 @@
 
 var report = report || {};
 
-report.d3 = {
+report.d3 = function () {
 
-    render: function (csv_path) {
+    var render = function () {
+
+        var csv_path = '/reports/data/usage';
+        d3.select('#a_data').attr('href', csv_path);
 
         d3.json(csv_path, function (error, data) {
             if (error) throw error;
 
             nv.addGraph(function () {
                 var chart = nv.models.lineChart()
-                        .x(getXValue)
-                        .y(getYValue)
-                        .useInteractiveGuideline(true);
+                    .x(getXValue)
+                    .y(getYValue)
+                    .useInteractiveGuideline(true);
 
                 chart.dispatch.on('renderEnd', function () {
                     console.log('render complete: cumulative line with guide line');
@@ -76,5 +79,9 @@ report.d3 = {
                 return series;
             });
         };
+    };
+
+    return {
+        render: render
     }
-}
+}();

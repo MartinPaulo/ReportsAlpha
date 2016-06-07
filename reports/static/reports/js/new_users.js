@@ -5,9 +5,12 @@
 
 var report = report || {};
 
-report.d3 = {
+report.d3 = function () {
 
-    render: function (csv_path) {
+    var render = function () {
+
+        var csv_path = '/reports/data/NewUsers?format=csv';
+        d3.select('#a_data').attr('href', csv_path);
 
         d3.csv(csv_path, function (error, data) {
             if (error) throw error;
@@ -67,5 +70,9 @@ report.d3 = {
             console.log(result);
             return result;
         }
+    };
+
+    return {
+        render: render
     }
-};
+}();

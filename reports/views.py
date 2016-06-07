@@ -1,10 +1,10 @@
 import logging
+import os
 from wsgiref.util import FileWrapper
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import generic
@@ -57,43 +57,13 @@ def search(request):
         return render(request, 'reports/search_form.html', {'query': q})
 
 
-def csv(request, report_id):
-    report = get_object_or_404(Report, pk=report_id)
-    duration = request.GET.get('from', '')
-    download_name = report.download_name
-    data_directory = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/fake_data/'
-    if report_id is 3:
-        data_directory += 'storage/capacity'
-    try:
-        logging.info(settings.STATIC_URL)
-        data_directory = settings.FAKE_DATA_DIRECTORY
-    except AttributeError:
-        logging.warning('Fake data directory not set.')
-    filename = data_directory + '%s%s' % (duration, report.download_name)
-    file_extension = filename.split(".")[-1]
-    # print("F %s E %s" % (filename, file_extension))
-    mime_type = 'application/json' if file_extension == 'json' else 'text/csv'
-    wrapper = FileWrapper(open(filename))
-    response = HttpResponse(wrapper, content_type=mime_type)
-    # response['Content-Length'] = os.path.getsize(filename)
-    # print("S %s" % os.path.getsize(filename))
-    response['Content-Disposition'] = 'attachment; filename=%s' % download_name
-    return response
-
-
 def data(request, path):
     duration = request.GET.get('from', '')
-    data_directory = '/Users/mpaulo/PycharmProjects/ReportsBeta/reports/static/fake_data/'
-    try:
-        logging.info(settings.STATIC_URL)
-        data_directory = settings.FAKE_DATA_DIRECTORY
-    except AttributeError:
-        logging.warning('Fake data directory not set.')
-    filename = data_directory + '%s%s.json' % (path, duration)
-    file_extension = filename.split(".")[-1]
-    # print("F %s E %s" % (filename, file_extension))
-    mime_type = 'application/json' if file_extension == 'json' else 'text/csv'
-    wrapper = FileWrapper(open(filename))
+    data_format = request.GET.get('format', 'json')
+    filename = '%s%s.%s' % (path, duration, data_format)
+    file_path = os.path.join(settings.BASE_DIR, 'reports', 'static', 'fake_data', filename)
+    mime_type = 'application/json' if data_format == 'json' else 'text/csv'
+    wrapper = FileWrapper(open(file_path))
     response = HttpResponse(wrapper, content_type=mime_type)
     # response['Content-Length'] = os.path.getsize(filename)
     # print("S %s" % os.path.getsize(filename))

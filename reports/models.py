@@ -9,7 +9,6 @@ from django.utils import timezone
 class Report(models.Model):
     report_title = models.CharField(max_length=100)
     pub_date = models.DateTimeField('date published')
-    download_name = models.CharField(max_length=100, default='report.csv')
     d3_file_name = models.CharField(max_length=100, default='new_users.js')
 
     def __str__(self):
