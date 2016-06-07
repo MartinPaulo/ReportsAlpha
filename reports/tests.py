@@ -12,31 +12,31 @@ from .models import Report
 # Create your tests here.
 
 class ReportMethodTests(TestCase):
-    def test_was_published_recently_with_future_question(self):
+    def test_was_published_recently_with_future_report(self):
         """
-        was_published_recently() should return False for questions whose pub_date is in the future
+        was_published_recently() should return False for reports whose pub_date is in the future
         """
         time = timezone.now() + datetime.timedelta(days=30)
         future_report = Report(pub_date=time, report_title='Test Report')
         self.assertEqual(future_report.was_published_recently(), False)
 
-    def test_was_published_recently_with_old_question(self):
+    def test_was_published_recently_with_old_report(self):
         """
-        was_published_recently() should return False for questions whose
+        was_published_recently() should return False for reports whose
         pub_date is older than 1 day.
         """
         time = timezone.now() - datetime.timedelta(days=30)
-        old_question = Report(pub_date=time)
-        self.assertEqual(old_question.was_published_recently(), False)
+        old_report = Report(pub_date=time)
+        self.assertEqual(old_report.was_published_recently(), False)
 
-    def test_was_published_recently_with_recent_question(self):
+    def test_was_published_recently_with_recent_report(self):
         """
-        was_published_recently() should return True for questions whose
+        was_published_recently() should return True for reports whose
         pub_date is within the last day.
         """
         time = timezone.now() - datetime.timedelta(hours=1)
-        recent_question = Report(pub_date=time)
-        self.assertEqual(recent_question.was_published_recently(), True)
+        recent_report = Report(pub_date=time)
+        self.assertEqual(recent_report.was_published_recently(), True)
 
 
 def create_report(report_title, days):
@@ -60,7 +60,7 @@ class ReportViewTests(TestCase):
         self.assertContains(response, "No reports are available.")
         self.assertQuerysetEqual(response.context['latest_report_list'], [])
 
-    def test_index_view_with_a_past_question(self):
+    def test_index_view_with_a_past_report(self):
         """
         reports with a pub_date in the past should be displayed on the
         index page.
