@@ -65,6 +65,11 @@ resources:
     wait_handle:
       type: OS::Heat::WaitConditionHandle
 
+    secret_key:
+      type: OS::Heat::RandomString
+      properties:
+        length: 50
+
     app_server:
         type: OS::Nova::Server
         properties:
@@ -79,6 +84,7 @@ resources:
               str_replace:
                 params:
                   wc_notify: {get_attr: ['wait_handle', 'curl_cli'] }
+                  NEW_KEY: {get_attr: ['secret_key', 'value']}
                 template: |
                   #!/bin/bash
                   echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
@@ -88,7 +94,15 @@ resources:
                   #   https://www.digitalocean.com/community/tutorials/how-to-serve-django-applications-with-apache-and-mod_wsgi-on-ubuntu-16-04
                   #   https://www.digitalocean.com/community/tutorials/how-to-run-django-with-mod_wsgi-and-apache-with-a-virtualenv-python-environment-on-a-debian-vps
                   apt-get update
-                  sleep 3 # ?
+                  # It would appear that the image we have chosen has:
+                  # package_update: true
+                  # package_upgrade: true
+                  # set for userdata. Hence if we try to run apt-get upgrade it
+                  # occasionally finds the lockfile stops it from running: and
+                  # aborts the whole install :( Hence we wait...
+                  while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+                    sleep 1
+                  done
                   apt-get -y upgrade
                   apt-get -y install python3-pip apache2 libapache2-mod-wsgi-py3
                   apt-get -y install git
@@ -98,7 +112,8 @@ resources:
                   python3 manage.py collectstatic --no-input
                   echo "FAKE_DATA_DIRECTORY = '/ReportsAlpha/static/fake_data/'" > reports_beta/local_settings.py
                   sed -i -e 's/DEBUG = True/DEBUG = False/g' reports_beta/settings.py
-                  sed -i -e 's/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \[\x27\*\x27]/g' reports_beta/settings.py
+                  sed -i -e "s/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \['\*']/g" reports_beta/settings.py
+                  sed -i -e "s/SECRET_KEY.*/SECRET_KEY='NEW_KEY'/g" reports_beta/settings.py
                   chmod 664 db.sqlite3
                   chown :www-data db.sqlite3
                   chown :www-data /ReportsAlpha/
