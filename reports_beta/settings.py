@@ -16,6 +16,7 @@ import logging
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# https://github.com/dobarkod/django-source-revision/issues/1
 SOURCE_REVISION_COMMANDS = [
     'git --git-dir=%s/.git rev-parse --short HEAD' % BASE_DIR,  # for git
 ]
