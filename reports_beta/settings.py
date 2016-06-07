@@ -132,7 +132,7 @@ LOGIN_REDIRECT_URL = '/'
 try:
     from reports_beta.local_settings import *
 except ImportError as e:
-    logging.warn('Local settings file not found...')
+    logging.warning('Local machine settings file not found...')
     pass
 
 # see http://www.webforefront.com/django/setupdjangologging.html
@@ -190,5 +190,6 @@ LOGGING = {
 }
 
 if DEBUG:
+    logging.warning('Overwriting logging output files...')
     LOGGING.get('handlers').get('production_logfile')['filename'] = '/tmp/flow_reports_production.log'
     LOGGING.get('handlers').get('development_logfile')['filename'] = '/tmp/flow_reports_dev.log'
