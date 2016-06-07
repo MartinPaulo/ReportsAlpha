@@ -67,8 +67,7 @@ def data(request, path):
     response = HttpResponse(wrapper, content_type=mime_type)
     # response['Content-Length'] = os.path.getsize(filename)
     # print("S %s" % os.path.getsize(filename))
-    download_name = 'data'
-    response['Content-Disposition'] = 'attachment; filename=%s' % download_name
+    response['Content-Disposition'] = 'attachment; filename=%s' % filename
     return response
 
 

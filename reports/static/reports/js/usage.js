@@ -10,10 +10,10 @@ report.d3 = function () {
 
     var render = function () {
 
-        var csv_path = '/reports/data/usage';
-        d3.select('#a_data').attr('href', csv_path);
+        var data_path = '/reports/data/usage';
+        d3.select('#a_data').attr('href', data_path);
 
-        d3.json(csv_path, function (error, data) {
+        d3.json(data_path, function (error, data) {
             if (error) throw error;
 
             nv.addGraph(function () {
