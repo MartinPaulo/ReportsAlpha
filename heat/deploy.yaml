@@ -11,6 +11,7 @@ parameters:
     type: string
     label: Key Name
     description: Name of an existing KeyPair to enable SSH access to the instances.
+    default: new_mbp
     constraints:
       - custom_constraint: nova.keypair
         description: Must be an existing KeyPair
@@ -28,7 +29,7 @@ parameters:
     type: string
     label: Instance Type
     description: Type of instance (flavor) to be used.
-    default: m1.small
+    default: m2.tiny
     constraints:
       - custom_constraint: nova.flavor
         description: Must be a valid NeCTAR flavour
@@ -114,8 +115,8 @@ resources:
                   sed -i -e 's/DEBUG = True/DEBUG = False/g' reports_beta/settings.py
                   sed -i -e "s/ALLOWED_HOSTS = \[]/ALLOWED_HOSTS = \['\*']/g" reports_beta/settings.py
                   sed -i -e "s/SECRET_KEY.*/SECRET_KEY='NEW_KEY'/g" reports_beta/settings.py
-                  chmod 664 db.sqlite3
-                  chown :www-data db.sqlite3
+                  chmod 664 db/db.sqlite3
+                  chown www-data -R db
                   chown :www-data /ReportsAlpha/
                   sed -i.bak '/serve-cgi-bin.conf/a  \
                       Alias /static /ReportsAlpha/static \
@@ -133,6 +134,9 @@ resources:
                       WSGIProcessGroup ReportsAlpha \
                       WSGIScriptAlias / /ReportsAlpha/reports_beta/wsgi.py' /etc/apache2/sites-available/000-default.conf
                   ufw allow 'Apache Full'
+                  # Prepare logging directory
+                  mkdir /var/log/flow_reports
+                  chown www-data:www-data /var/log/flow_reports
                   echo "127.0.0.1  `hostname`" >> /etc/hosts
                   systemctl restart apache2
                   # notify heat that we are done here
