@@ -134,3 +134,61 @@ try:
 except ImportError as e:
     logging.warn('Local settings file not found...')
     pass
+
+# see http://www.webforefront.com/django/setupdjangologging.html
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'formatters': {
+        'simple': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'development_logfile': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/flow_reports_dev.log',
+            'formatter': 'verbose'
+        },
+
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'development_logfile'],
+        },
+        'py.warnings': {
+            'handlers': ['console', 'development_logfile'],
+        },
+    }
+}
+
+if not DEBUG:
+    LOGGING.get('handlers')['production_logfile'] = {
+        'level': 'ERROR',
+        'filters': ['require_debug_false'],
+        'class': 'logging.FileHandler',
+        'filename': '/var/log/flow_reports_production.log',
+        'formatter': 'simple'
+    }
+    LOGGING.get('loggers').get('django').get('handlers').append('production_logfile')
