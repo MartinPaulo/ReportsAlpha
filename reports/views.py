@@ -2,17 +2,15 @@ import logging
 from wsgiref.util import FileWrapper
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import generic
 
-from .models import Report, Choice
-from django.http import JsonResponse
 from reports.fake_data import factory
+from .models import Report
 
 
 class IndexView(generic.ListView):
@@ -40,27 +38,6 @@ class DetailView(generic.DetailView):
         result = super().get_context_data(**kwargs)
         result['debug'] = settings.DEBUG
         return result
-
-
-class ResultsView(generic.DetailView):
-    model = Report
-    template_name = 'reports/results.html'
-
-
-def vote(request, report_id):
-    report = get_object_or_404(Report, pk=report_id)
-    try:
-        selected_choice = report.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'reports/details.html', {
-            'report': report,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        selected_choice.votes += 1
-        selected_choice.save()
-        return HttpResponseRedirect(reverse('reports:results', args=(report.id,)))
 
 
 def about(request):

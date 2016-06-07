@@ -39,14 +39,6 @@
 
     {% if debug %}
         <p>The <a id="a_data" href="{% url 'reports:csv' report.id %}">data file</a> behind this graph</p>
-    <form action="{% url 'reports:vote' report.id %}" method="post">
-        {% csrf_token %}
-        {% for choice in report.choice_set.all %}
-            <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}"/>
-            <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br/>
-        {% endfor %}
-        <input type="submit" value="Vote"/>
-    </form>
     {% endif %}
 
     <script src="//d3js.org/d3.v3.js"></script>

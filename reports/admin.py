@@ -1,21 +1,15 @@
 from django.contrib import admin
-from .models import Choice, Report
+
+from .models import Report
 
 
 # Register your models here.
 
-
-class ChoiceInline(admin.TabularInline):
-    model = Choice
-    extra = 3
-
-
 class ReportAdmin(admin.ModelAdmin):
     fieldsets = [
-        ('Date information', {'fields': ['pub_date'], 'classes': ['collapse']}),
+        ('Date information', {'fields': ['pub_date'], }),
         ('Report information', {'fields': ['report_title', 'download_name', 'd3_file_name']}),
     ]
-    inlines = [ChoiceInline]
     list_display = ('report_title', 'pub_date', 'was_published_recently')
     list_filter = ['pub_date']
     search_fields = ['report_title']
