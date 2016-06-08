@@ -20,7 +20,7 @@ parameters:
     type: string
     label: Image ID
     description: Image to be used for compute instance
-    default: 0b13ecb7-6c8a-49c9-8be9-f249937cbc8e
+    default: 37c839bb-6773-469b-9153-ca8752bf64b5    #0b13ecb7-6c8a-49c9-8be9-f249937cbc8e
     constraints:
       - custom_constraint: glance.image
         description: Must be a valid Ubuntu image
@@ -95,12 +95,8 @@ resources:
                   #   https://www.digitalocean.com/community/tutorials/how-to-serve-django-applications-with-apache-and-mod_wsgi-on-ubuntu-16-04
                   #   https://www.digitalocean.com/community/tutorials/how-to-run-django-with-mod_wsgi-and-apache-with-a-virtualenv-python-environment-on-a-debian-vps
                   apt-get update
-                  # It would appear that the image we have chosen has:
-                  # package_update: true
-                  # package_upgrade: true
-                  # set for userdata. Hence if we try to run apt-get upgrade it
-                  # occasionally finds the lockfile stops it from running: and
-                  # aborts the whole install :( Hence we wait...
+                  # It would appear that ubuntu 16.04 automatically runs unattended-upgrades on boot:
+                  # hence our script sometimes clashes with it. Hence we wait if we find it running...
                   while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
                     sleep 1
                   done
