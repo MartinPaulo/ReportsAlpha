@@ -4,7 +4,7 @@ from . import views
 
 app_name = 'reports'
 urlpatterns = [
-    url(r'^$', views.IndexView.as_view(), name='reports'),
+    url(r'^$', views.BrowseView.as_view(), name='reports'),
     url(r'^data/(.*)', views.data, name='data'),
     url(r'^manufactured/(.*)', views.manufactured, name='manufactured'),
     url(r'^about/$', views.about, name='about'),
