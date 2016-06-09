@@ -3,13 +3,11 @@ from django.db import models
 from django.utils import timezone
 
 
-# super user: mpaulo password: /stupidDjango
-
-
 class Report(models.Model):
     report_title = models.CharField(max_length=100)
     pub_date = models.DateTimeField('date published')
-    d3_file_name = models.CharField(max_length=100, default='new_users.js')
+    d3_file_name = models.CharField(max_length=100, default='.js')
+    description = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.report_title
