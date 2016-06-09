@@ -1,5 +1,7 @@
 import copy
 
+from reports.fake_data import cloud
+
 MONTH = 1475323200000
 THREE_MONTHS = 1470052800000
 SIX_MONTHS = 1462104000000
@@ -170,14 +172,16 @@ def get_faculty_headroom(duration, storage_type):
     return allocated_values
 
 
-def get(path, duration, storage_type):
+def get(path, duration, category):
     quota = {}
     if path.endswith('quota/'):
         quota = get_faculty_quota()
     elif path.endswith('faculty_allocated/'):
-        quota = get_faculty_value(duration, storage_type, allocated)
+        quota = get_faculty_value(duration, category, allocated)
     elif path.endswith('faculty_used/'):
-        quota = get_faculty_value(duration, storage_type, used)
+        quota = get_faculty_value(duration, category, used)
     elif path.endswith('faculty_headroom/'):
-        quota = get_faculty_headroom(duration, storage_type)
+        quota = get_faculty_headroom(duration, category)
+    elif path.endswith('cloud_uptime/'):
+        quota = cloud.get_uptime(duration, category)
     return quota
