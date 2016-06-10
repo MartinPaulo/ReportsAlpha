@@ -49,10 +49,8 @@ def uptime():
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
     if not hasattr(uptime, 'data'):
-        noble_park = generate_uptime(get_empty_set('noble park'))
-        queensbury_1 = generate_uptime(get_empty_set('queensbury 1'))
-        queensbury_2 = generate_uptime(get_empty_set('queensbury 2'))
-        uptime.data = [noble_park, queensbury_1, queensbury_2]
+        uptime.data = [generate_uptime(get_empty_set(center))
+                       for center in ['noble park', 'queensbury 1', 'queensbury 2']]
     return uptime.data
 
 
