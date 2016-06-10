@@ -4,6 +4,8 @@ var report = report || {};
 
 report.d3 = function () {
 
+    // Some thoughts on uptime: http://uptime.netcraft.com/accuracy.html#uptime
+    
     utils.createDateButtons();
 
     var render = function () {
