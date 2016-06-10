@@ -184,4 +184,6 @@ def get(path, duration, category):
         quota = get_faculty_headroom(duration, category)
     elif path.endswith('cloud_uptime/'):
         quota = cloud.get_uptime(duration, category)
+    elif path.endswith('cloud_active_users/'):
+        quota = cloud.get_active_users(duration, category)
     return quota
