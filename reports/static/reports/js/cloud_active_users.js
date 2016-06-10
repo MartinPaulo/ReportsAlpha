@@ -4,6 +4,17 @@ var report = report || {};
 
 report.d3 = function () {
 
+    var datacenterColours = {
+        'queensbury 1': 'chocolate',
+        'queensbury 2': 'green',
+        'noble park': 'blue',
+        'other data centers': 'lightblue'
+    };
+
+    var getColour = function (key) {
+        return key in datacenterColours && typeof datacenterColours[key] === 'string' ? datacenterColours[key] : 'black';
+    };
+
     // Some thoughts on uptime: http://uptime.netcraft.com/accuracy.html#uptime
 
     utils.createDateButtons();
@@ -14,22 +25,21 @@ report.d3 = function () {
         d3.json(data_path, function (data) {
             nv.addGraph(function () {
                 var chart = nv.models.stackedAreaChart()
-                        .x(function (d) {
-                            return d[0]
-                        })
-                        .y(function (d) {
-                            return d[1]
-                        })
-                        .color(d3.scale.category10().range())
-                        .useInteractiveGuideline(true)
-                        .rightAlignYAxis(true)          // Move the y-axis to the right side.
-                        .noData('No Data available')
-                        .margin({right: 75})
-                        //.clipEdge(true)
-                        //.reduceXTicks(true)   //If 'false', every single x-axis tick label will be rendered.
-                        //.groupSpacing(0.1)    //Distance between each group of bars.
-                        .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
-                    ;
+                    .x(function (d) {
+                        return d[0]
+                    })
+                    .y(function (d) {
+                        return d[1]
+                    })
+                    .useInteractiveGuideline(true)
+                    .rightAlignYAxis(true)          // Move the y-axis to the right side.
+                    .noData('No Data available')
+                    .margin({right: 75})
+                    .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
+                    .color(function (d) {
+                        return getColour(d['key']);
+                    })
+                ;
 
                 chart.yAxis
                     .tickFormat(d3.format('4d'))

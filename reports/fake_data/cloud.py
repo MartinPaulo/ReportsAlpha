@@ -5,7 +5,7 @@ from random import randint
 
 
 def get_empty_set(key_value):
-    return {"key": key_value, "values": []}
+    return {'key': key_value, 'values': []}
 
 
 def get_days_in_month(month):
@@ -28,7 +28,7 @@ def generate_uptime(target_set):
             if randint(1, 120) == 60:
                 total_days = 0
             timestamp = get_time_stamp(day, month)
-            target_set["values"].append([timestamp, total_days])
+            target_set['values'].append([timestamp, total_days])
     return target_set
 
 
@@ -39,9 +39,9 @@ def generate_active_users(target_set):
         days_in_month = get_days_in_month(month)
         for day in range(1, days_in_month + 1):
             total_days += 1
-            new_users = randint(300 + total_days // 3, 600 + total_days // 3)
+            new_users = randint(250 + total_days // 4, 450 + total_days // 4)
             timestamp = get_time_stamp(day, month)
-            target_set["values"].append([timestamp, new_users])
+            target_set['values'].append([timestamp, new_users])
     return target_set
 
 
@@ -49,20 +49,19 @@ def uptime():
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
     if not hasattr(uptime, 'data'):
-        noble_park = generate_uptime(get_empty_set("noble park"))
-        queensbury_1 = generate_uptime(get_empty_set("queensbury 1"))
-        queensbury_2 = generate_uptime(get_empty_set("queensbury 2"))
+        noble_park = generate_uptime(get_empty_set('noble park'))
+        queensbury_1 = generate_uptime(get_empty_set('queensbury 1'))
+        queensbury_2 = generate_uptime(get_empty_set('queensbury 2'))
         uptime.data = [noble_park, queensbury_1, queensbury_2]
     return uptime.data
 
 
 def active_users():
     if not hasattr(active_users, 'data'):
-        noble_park = generate_active_users(get_empty_set("noble park"))
-        queensbury_1 = generate_active_users(get_empty_set("queensbury 1"))
-        queensbury_2 = generate_active_users(get_empty_set("queensbury 2"))
-        active_users.data = [noble_park, queensbury_1, queensbury_2]
+        active_users.data = [generate_active_users(get_empty_set(center))
+                             for center in ['noble park', 'queensbury 1', 'queensbury 2', 'other data centers']]
     return active_users.data
+
 
 MONTH = get_time_stamp(get_days_in_month(11), 11)
 THREE_MONTHS = get_time_stamp(get_days_in_month(8), 8)

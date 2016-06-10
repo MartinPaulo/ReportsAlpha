@@ -8,6 +8,17 @@ report.d3 = function () {
     
     utils.createDateButtons();
 
+    var datacenterColours = {
+        'queensbury 1': 'chocolate',
+        'queensbury 2': 'green',
+        'noble park': 'blue',
+        'other data centers': 'lightblue'
+    };
+
+    var getColour = function (key) {
+        return key in datacenterColours && typeof datacenterColours[key] === 'string' ? datacenterColours[key] : 'black';
+    };
+
     var render = function () {
         var data_path = '/reports/manufactured/cloud_uptime/?from=' + utils.findFrom();
         d3.select('#a_data').attr('href', data_path);
@@ -20,7 +31,6 @@ report.d3 = function () {
                         .y(function (d) {
                             return d[1]
                         })
-                        .color(d3.scale.category10().range())
                         .useInteractiveGuideline(true)
                         //.rightAlignYAxis(true)          // Move the y-axis to the right side.
                         .noData('No Data available')
@@ -28,6 +38,9 @@ report.d3 = function () {
                         .reduceXTicks(true)   //If 'false', every single x-axis tick label will be rendered.
                         .groupSpacing(0.1)    //Distance between each group of bars.
                         .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
+                    .color(function (d) {
+                        return getColour(d['key']);
+                    })
                     ;
 
                 chart.yAxis
