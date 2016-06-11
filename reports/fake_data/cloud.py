@@ -12,11 +12,11 @@ def get_days_in_month(month):
     return calendar.monthrange(2015, month)[1]
 
 
-def get_time_stamp(day, month):
-    dt = datetime(2015, month, day)
-    epoch = datetime.utcfromtimestamp(0)
-    timestamp = int((dt - epoch).total_seconds()) * 1000
-    return timestamp
+EPOCH = datetime.utcfromtimestamp(0)
+
+
+def get_day_as_time_stamp(day, month):
+    return int((datetime(2015, month, day) - EPOCH).total_seconds()) * 1000
 
 
 def generate_uptime(target_set):
@@ -27,7 +27,7 @@ def generate_uptime(target_set):
             total_days += 1
             if randint(1, 120) == 60:
                 total_days = 0
-            timestamp = get_time_stamp(day, month)
+            timestamp = get_day_as_time_stamp(day, month)
             target_set['values'].append([timestamp, total_days])
     return target_set
 
@@ -40,7 +40,7 @@ def generate_active_users(target_set):
         for day in range(1, days_in_month + 1):
             total_days += 1
             new_users = randint(250 + total_days // 4, 450 + total_days // 4)
-            timestamp = get_time_stamp(day, month)
+            timestamp = get_day_as_time_stamp(day, month)
             target_set['values'].append([timestamp, new_users])
     return target_set
 
@@ -61,9 +61,9 @@ def active_users():
     return active_users.data
 
 
-MONTH = get_time_stamp(get_days_in_month(11), 11)
-THREE_MONTHS = get_time_stamp(get_days_in_month(8), 8)
-SIX_MONTHS = get_time_stamp(get_days_in_month(5), 5)
+MONTH = get_day_as_time_stamp(get_days_in_month(11), 11)
+THREE_MONTHS = get_day_as_time_stamp(get_days_in_month(8), 8)
+SIX_MONTHS = get_day_as_time_stamp(get_days_in_month(5), 5)
 
 
 def determine(sample, duration):
