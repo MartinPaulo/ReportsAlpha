@@ -79,7 +79,6 @@ def determine(sample, duration):
 
 
 def filter_by_duration(duration, target):
-    print(target)
     for entry in target:
         entry['values'][:] = [sample for sample in entry['values'] if determine(sample, duration)]
     return target
