@@ -16,15 +16,24 @@ class BrowseView(generic.ListView):
     template_name = 'reports/reports.html'
     context_object_name = 'latest_report_list'
 
+    def __init__(self):
+        self.selected_set = ''
+
     def get_queryset(self):
         """Return the last 11 published reports: excluding those published in the future."""
         reports = Report.objects.filter(pub_date__lte=timezone.now())
-        selected_set = self.request.GET.get('set', '')
-        if selected_set == 'cloud':
+        self.selected_set = self.request.GET.get('set', '')
+        if self.selected_set == 'cloud':
             reports = reports.filter(report_title__startswith='Cloud')
-        elif selected_set == 'storage':
+        elif self.selected_set == 'storage':
             reports = reports.filter(report_title__startswith='Storage')
         return reports.order_by('report_title')[:11]
+
+    # we override this to add the selected set to the context (is there a better way?)
+    def get_context_data(self, **kwargs):
+        result = super().get_context_data(**kwargs)
+        result['set'] = self.selected_set
+        return result
 
 
 class DetailView(generic.DetailView):
@@ -41,6 +50,7 @@ class DetailView(generic.DetailView):
     def get_context_data(self, **kwargs):
         result = super().get_context_data(**kwargs)
         result['debug'] = settings.DEBUG
+        result['set'] = self.request.GET.get('set', '')
         return result
 
 

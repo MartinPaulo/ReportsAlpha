@@ -40,6 +40,7 @@
     {% if debug %}
         <p>The <a id="a_data" href="">data file</a> behind this graph</p>
     {% endif %}
+    <a href="/reports/?set={{ set }}">Back {% if not set%}to all reports {% endif %}...</a>
 
     <script src="//d3js.org/d3.v3.js"></script>
     {#  From: https://cdnjs.com/libraries/nvd3 #}
