@@ -55,6 +55,8 @@ def uptime():
 
 
 def active_users():
+    # we don't want to recalculate this on every load, so we attach it as an attribute to the function
+    # if it hasn't been calculated...
     if not hasattr(active_users, 'data'):
         active_users.data = [generate_active_users(get_empty_set(center))
                              for center in ['noble park', 'queensbury 1', 'queensbury 2', 'other data centers']]
