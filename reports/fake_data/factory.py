@@ -173,17 +173,19 @@ def get_faculty_headroom(duration, storage_type):
 
 
 def get(path, duration, category):
-    quota = {}
+    result = {}
     if path.endswith('quota/'):
-        quota = get_faculty_quota()
+        result = get_faculty_quota()
     elif path.endswith('faculty_allocated/'):
-        quota = get_faculty_value(duration, category, allocated)
+        result = get_faculty_value(duration, category, allocated)
     elif path.endswith('faculty_used/'):
-        quota = get_faculty_value(duration, category, used)
+        result = get_faculty_value(duration, category, used)
     elif path.endswith('faculty_headroom/'):
-        quota = get_faculty_headroom(duration, category)
+        result = get_faculty_headroom(duration, category)
     elif path.endswith('cloud_uptime/'):
-        quota = cloud.get_uptime(duration, category)
+        result = cloud.get_uptime(duration, category)
     elif path.endswith('cloud_active_users/'):
-        quota = cloud.get_active_users(duration, category)
-    return quota
+        result = cloud.get_active_users(duration, category)
+    elif path.endswith('cloud_capacity/'):
+        result = cloud.get_cloud_capacity(duration, category)
+    return result
