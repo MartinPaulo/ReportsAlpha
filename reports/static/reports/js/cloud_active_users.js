@@ -5,10 +5,10 @@ var report = report || {};
 report.d3 = function () {
 
     var datacenterColours = {
-        'queensbury 1': 'chocolate',
-        'queensbury 2': 'green',
-        'noble park': 'blue',
-        'other data centers': 'lightblue'
+        'QH2': 'chocolate',
+        'QH2-UoM': 'green',
+        'NP': 'blue',
+        'Other data centers': 'lightblue'
     };
 
     var getColour = function (key) {

@@ -50,7 +50,7 @@ def uptime():
     # if it hasn't been calculated...
     if not hasattr(uptime, 'data'):
         uptime.data = [generate_uptime(get_empty_set(center))
-                       for center in ['noble park', 'queensbury 1', 'queensbury 2']]
+                       for center in ['NP', 'QH2', 'QH2-UoM']]
     return uptime.data
 
 
@@ -59,7 +59,7 @@ def active_users():
     # if it hasn't been calculated...
     if not hasattr(active_users, 'data'):
         active_users.data = [generate_active_users(get_empty_set(center))
-                             for center in ['noble park', 'queensbury 1', 'queensbury 2', 'other data centers']]
+                             for center in ['NP', 'QH2', 'QH2-UoM', 'Other data centers']]
     return active_users.data
 
 
