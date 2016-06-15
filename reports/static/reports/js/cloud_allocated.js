@@ -7,7 +7,7 @@ report.d3 = function () {
     utils.createDateButtons();
 
     var render = function () {
-        var data_path = '/reports/manufactured/cloud_capacity/?from=' + utils.findFrom();
+        var data_path = '/reports/manufactured/cloud_allocated/?from=' + utils.findFrom();
         d3.select('#a_data').attr('href', data_path);
         d3.json(data_path, function (error, data) {
 
@@ -26,7 +26,7 @@ report.d3 = function () {
                 .clipEdge(true)
                 .noData('No Data available')
                 .color(function (d) {
-                    return utils.cellColours.get(d['key']);
+                    return utils.facultyColors.get(d['key']);
                 });
 
             chart.xAxis
@@ -37,7 +37,7 @@ report.d3 = function () {
 
             chart.yAxis
                 .tickFormat(d3.format('4d'))
-                .axisLabel("Cores");
+                .axisLabel("VCPU's");
 
             d3.select('#chart svg')
                 .datum(data)
@@ -55,7 +55,10 @@ report.d3 = function () {
         render();
     }, false);
 
+    utils.generateFacultyKey();
+
     return {
         render: render
     }
 }();
+

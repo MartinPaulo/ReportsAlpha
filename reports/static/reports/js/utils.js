@@ -177,7 +177,8 @@ var utils = function () {
         createFacultyButtons: createFacultyButtons,
         findFrom: findFrom,
         findType: findType,
-        cellColours: cellColours
+        cellColours: cellColours,
+        facultyColors: facultyColours
     }
 }
 ();
