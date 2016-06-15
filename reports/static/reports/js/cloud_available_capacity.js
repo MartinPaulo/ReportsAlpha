@@ -38,7 +38,7 @@ report.d3 = function () {
     }
 
     var render = function () {
-        var data_path = '/reports/manufactured/cloud_capacity/?from=' + utils.findFrom() + '&type=' + findSize();
+        var data_path = '/reports/manufactured/cloud_available_capacity/?from=' + utils.findFrom() + '&type=' + findSize();
         d3.select('#a_data').attr('href', data_path);
         d3.json(data_path, function (data) {
             nv.addGraph(function () {

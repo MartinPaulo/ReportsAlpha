@@ -80,7 +80,7 @@ def smooth_triangle(data, degree, drop_vals=False):
     return smoothed
 
 
-def generate_capacity(target_set, category):
+def generate_available_capacity(target_set, category):
     data = numpy.random.random(365)  # a year of data
     data = numpy.array(data * get_free(category), dtype=int)
     # for i in range(100):
@@ -114,14 +114,14 @@ def active_users():
     return copy.deepcopy(active_users.data)
 
 
-def capacity(category):
+def available_capacity(category):
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
-    if not hasattr(capacity, category):
-        data = [generate_capacity(get_empty_set(center), category)
+    if not hasattr(available_capacity, category):
+        data = [generate_available_capacity(get_empty_set(center), category)
                 for center in ['NP', 'QH2', 'QH2-UoM']]
-        setattr(capacity, category, data)
-    return copy.deepcopy(getattr(capacity, category))
+        setattr(available_capacity, category, data)
+    return copy.deepcopy(getattr(available_capacity, category))
 
 
 MONTH = get_day_as_time_stamp(get_days_in_month(11), 11)
@@ -153,5 +153,5 @@ def get_active_users(duration, category):
     return filter_by_duration(duration, active_users())
 
 
-def get_cloud_capacity(duration, category):
-    return filter_by_duration(duration, capacity(category))
+def get_cloud_available_capacity(duration, category):
+    return filter_by_duration(duration, available_capacity(category))

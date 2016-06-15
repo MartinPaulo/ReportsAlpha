@@ -186,6 +186,8 @@ def get(path, duration, category):
         result = cloud.get_uptime(duration, category)
     elif path.endswith('cloud_active_users/'):
         result = cloud.get_active_users(duration, category)
+    elif path.endswith('cloud_available_capacity/'):
+        result = cloud.get_cloud_available_capacity(duration, category)
     elif path.endswith('cloud_capacity/'):
-        result = cloud.get_cloud_capacity(duration, category)
+        result = cloud.get_cloud_available_capacity(duration, category)
     return result
