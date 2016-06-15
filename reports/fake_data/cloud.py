@@ -47,6 +47,32 @@ def generate_active_users(target_set):
     return target_set
 
 
+def get_data_center_capacity(center):
+    return {
+        "NP": 1800,
+        "QH2": 2656,
+        "QH2-UoM": 2176,
+    }[center]
+
+
+def generate_capacity(target_set, center):
+    total_days = 0
+    for month in range(1, 13):
+        days_in_month = get_days_in_month(month)
+        for day in range(1, days_in_month + 1):
+            total_days += 1
+            value = get_data_center_capacity(center)
+            if month < 4 and center == 'NP':
+                value -= 200
+            if month < 5 and center == 'QH2':
+                value -= 600
+            if month < 8 and center == 'QH2-UoM':
+                value -= 500
+            timestamp = get_day_as_time_stamp(day, month)
+            target_set['values'].append([timestamp, value])
+    return target_set
+
+
 def get_free(category):
     return {
         "768": 1800,
@@ -74,7 +100,7 @@ def smooth_triangle(data, degree, drop_vals=False):
         smoothed.append(sum(point) / sum(triangle))
     if drop_vals:
         return smoothed
-    #smoothed += smoothed[0] * (degree + degree / 2)
+    # smoothed += smoothed[0] * (degree + degree / 2)
     while len(smoothed) < len(data):
         smoothed = numpy.append(smoothed, smoothed[::-1])
     return smoothed
@@ -100,8 +126,7 @@ def uptime():
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
     if not hasattr(uptime, 'data'):
-        uptime.data = [generate_uptime(get_empty_set(center))
-                       for center in ['NP', 'QH2', 'QH2-UoM']]
+        uptime.data = [generate_uptime(get_empty_set(center)) for center in ['NP', 'QH2', 'QH2-UoM']]
     return copy.deepcopy(uptime.data)
 
 
@@ -122,6 +147,14 @@ def available_capacity(category):
                 for center in ['NP', 'QH2', 'QH2-UoM']]
         setattr(available_capacity, category, data)
     return copy.deepcopy(getattr(available_capacity, category))
+
+
+def capacity():
+    # we don't want to recalculate this on every load, so we attach it as an attribute to the function
+    # if it hasn't been calculated...
+    if not hasattr(capacity, 'data'):
+        capacity.data = [generate_capacity(get_empty_set(center), center) for center in ['NP', 'QH2', 'QH2-UoM']]
+    return copy.deepcopy(capacity.data)
 
 
 MONTH = get_day_as_time_stamp(get_days_in_month(11), 11)
@@ -155,3 +188,7 @@ def get_active_users(duration, category):
 
 def get_cloud_available_capacity(duration, category):
     return filter_by_duration(duration, available_capacity(category))
+
+
+def get_cloud_capacity(duration, category):
+    return filter_by_duration(duration, capacity())

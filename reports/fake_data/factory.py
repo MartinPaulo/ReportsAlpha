@@ -189,5 +189,5 @@ def get(path, duration, category):
     elif path.endswith('cloud_available_capacity/'):
         result = cloud.get_cloud_available_capacity(duration, category)
     elif path.endswith('cloud_capacity/'):
-        result = cloud.get_cloud_available_capacity(duration, category)
+        result = cloud.get_cloud_capacity(duration, category)
     return result
