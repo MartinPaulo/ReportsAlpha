@@ -4,17 +4,6 @@ var report = report || {};
 
 report.d3 = function () {
 
-    var datacenterColours = {
-        'QH2': 'chocolate',
-        'QH2-UoM': 'green',
-        'NP': 'blue',
-        'Other data centers': 'lightblue'
-    };
-
-    var getColour = function (key) {
-        return key in datacenterColours && typeof datacenterColours[key] === 'string' ? datacenterColours[key] : 'black';
-    };
-
     // Some thoughts on uptime: http://uptime.netcraft.com/accuracy.html#uptime
 
     utils.createDateButtons();
@@ -37,7 +26,7 @@ report.d3 = function () {
                     .margin({right: 75})
                     .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
                     .color(function (d) {
-                        return getColour(d['key']);
+                        return utils.cellColours.get(d['key']);
                     })
                 ;
 

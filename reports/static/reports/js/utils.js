@@ -69,6 +69,15 @@ var utils = function () {
         get: getColour
     };
 
+    var cellColours = {
+        'QH2': 'chocolate',
+        'QH2-UoM': 'green',
+        'NP': 'blue',
+        'Other data centers': 'lightblue',
+
+        get: getColour
+    };
+
 // https://github.com/d3/d3/wiki/Selections
     function createButton(title, options) {
         options = options || {};
@@ -167,7 +176,8 @@ var utils = function () {
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
         findFrom: findFrom,
-        findType: findType
+        findType: findType,
+        cellColours: cellColours
     }
 }
 ();
