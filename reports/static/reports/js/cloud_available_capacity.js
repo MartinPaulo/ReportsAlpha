@@ -7,29 +7,40 @@ report.d3 = function () {
 
     utils.createDateButtons();
 
-    var sizes = ["768", "2048", "4096", "6144", "8192", "12288", "16384", "32768", "49152", "65536"];
-    var parent_id = 'graph-buttons';
+    var flavors = [
+        ['m2.tiny', '768'],
+        ['m2.xsmall', '2048'],
+        ['m2.small', '4096'],
+        ['m2.medium', '6144'],
+        ['m2.large', '12288'],
+        ['m2.xlarge', '49152'],
+        ['m1.small', '4096'],
+        ['m1.medium', '8192'],
+        ['m1.large', '16384'],
+        ['m1.xlarge', '32768'],
+        ['m1.xxlarge', '65536']
+    ];
 
     function changeSize(e) {
         render();
     }
 
-    var select = d3.select('#' + parent_id)
-            .append('label').text('Size: ')
+    var select = d3.select('#' + 'graph-buttons')
+            .append('label').text('Flavor: ')
             .attr('for', 'size_select')
             .append('select')
             .attr('class', 'select')
             .attr('id', 'size_select')
             .on('change', changeSize)
             .selectAll('option')
-            .data(sizes)
+            .data(flavors)
             .enter()
             .append('option')
             .text(function (d) {
-                return d + 'MB';
+                return d[0];
             })
             .attr('value', function (d) {
-                return d;
+                return d[1];
             })
         ;
 
