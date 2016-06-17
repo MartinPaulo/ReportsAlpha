@@ -93,9 +93,7 @@ var utils = function () {
                     .classed('active', false);
                 d3.select('#' + target_id)
                     .attr('class', 'active');
-                var event = new Event('redraw');
-                d3.select('#chart svg')[0][0].dispatchEvent(event);
-
+                d3.select('#chart svg')[0][0].dispatchEvent(new Event('redraw'));
             });
     }
 
@@ -180,5 +178,4 @@ var utils = function () {
         cellColours: cellColours,
         facultyColors: facultyColours
     }
-}
-();
+}();
