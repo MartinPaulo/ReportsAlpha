@@ -48,7 +48,7 @@ def generate_active_users(target_set):
 
 
 def get_data_center_capacity(center):
-    return {
+    return { # physical cores
         "NP": 1800,  # vcpu's 3672
         "QH2": 2656,  # vcpu's 5312
         "QH2-UoM": 2176,  # vcpu's 4352
@@ -73,8 +73,8 @@ def generate_capacity(target_set, center):
     return target_set
 
 
-def generate_allocated(target_set):
-    start_value = randint(10, 1300)
+def generate_allocated(target_set, divider=1):
+    start_value = randint(10, 800) // divider
     total_days = 0
     for month in range(1, 13):
         days_in_month = get_days_in_month(month)
@@ -179,6 +179,13 @@ def allocated():
                           ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE', 'MGSE', 'FBE', 'FoA', 'ABP']]
     return copy.deepcopy(allocated.data)
 
+def used():
+    # we don't want to recalculate this on every load, so we attach it as an attribute to the function
+    # if it hasn't been calculated...
+    if not hasattr(used, 'data'):
+        used.data = [generate_allocated(get_empty_set(center), 2) for center in
+                          ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE', 'MGSE', 'FBE', 'FoA', 'ABP']]
+    return copy.deepcopy(used.data)
 
 MONTH = get_day_as_time_stamp(get_days_in_month(11), 11)
 THREE_MONTHS = get_day_as_time_stamp(get_days_in_month(8), 8)
@@ -219,3 +226,7 @@ def get_cloud_capacity(duration, category):
 
 def get_cloud_allocated(duration):
     return filter_by_duration(duration, allocated())
+
+
+def get_cloud_used(duration):
+    return filter_by_duration(duration, used())

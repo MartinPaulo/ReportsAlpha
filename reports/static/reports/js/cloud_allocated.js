@@ -6,8 +6,27 @@ report.d3 = function () {
 
     utils.createDateButtons();
 
+    function addRadioButton(caption, checked) {
+        d3.select('#graph-buttons')
+            .append('label')
+            .text(caption)
+            .insert('input')
+            .attr('type', 'radio')
+            .attr('name', 'allocated-used')
+            .attr('value', caption.toLowerCase())
+            .property('checked', checked)
+            .on('click', function () {
+                d3.select('#chart svg')[0][0].dispatchEvent(new Event('redraw'));
+            })
+        ;
+    }
+
+    addRadioButton('Allocated', true);
+    addRadioButton('Used', false);
+
     var render = function () {
-        var data_path = '/reports/manufactured/cloud_allocated/?from=' + utils.findFrom();
+        var source = d3.select('input[name="allocated-used"]:checked').node().value.toLowerCase();
+        var data_path = '/reports/manufactured/cloud_' + source + '/?from=' + utils.findFrom();
         d3.select('#a_data').attr('href', data_path);
         d3.json(data_path, function (error, data) {
 
