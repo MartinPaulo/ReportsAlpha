@@ -47,27 +47,33 @@ def generate_active_users(target_set):
     return target_set
 
 
+# def get_data_center_capacity(center):
+#     return {  # physical cores
+#         "NP": 1800,  # vcpu's 3672
+#         "QH2": 2656,  # vcpu's 5312
+#         "QH2-UoM": 2176,  # vcpu's 4352
+#     }[center]
+
 def get_data_center_capacity(center):
-    return { # physical cores
-        "NP": 1800,  # vcpu's 3672
-        "QH2": 2656,  # vcpu's 5312
-        "QH2-UoM": 2176,  # vcpu's 4352
+    return {
+        'NeCTAR Contribution': 2000,
+        'UoM Contribution': 3000,
+        'Co-investment': 1000,
     }[center]
 
-
-def generate_capacity(target_set, center):
+def generate_capacity(target_set, source):
     total_days = 0
     for month in range(1, 13):
         days_in_month = get_days_in_month(month)
         for day in range(1, days_in_month + 1):
             total_days += 1
-            value = get_data_center_capacity(center)
-            if month < 4 and center == 'NP':
+            value = get_data_center_capacity(source)
+            if month < 4 and source == 'NeCTAR Contribution':
                 value -= 200
-            if month < 5 and center == 'QH2':
+            if month < 7 and source == 'UoM Contribution':
                 value -= 600
-            if month < 8 and center == 'QH2-UoM':
-                value -= 500
+            if source == 'Co-investment':
+                value -= 500 - 50 * month
             timestamp = get_day_as_time_stamp(day, month)
             target_set['values'].append([timestamp, value])
     return target_set
@@ -167,7 +173,8 @@ def capacity():
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
     if not hasattr(capacity, 'data'):
-        capacity.data = [generate_capacity(get_empty_set(center), center) for center in ['NP', 'QH2', 'QH2-UoM']]
+        capacity.data = [generate_capacity(get_empty_set(source), source) for source in
+                         ['NeCTAR Contribution', 'UoM Contribution', 'Co-investment']]
     return copy.deepcopy(capacity.data)
 
 
@@ -179,13 +186,15 @@ def allocated():
                           ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE', 'MGSE', 'FBE', 'FoA', 'ABP']]
     return copy.deepcopy(allocated.data)
 
+
 def used():
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
     if not hasattr(used, 'data'):
         used.data = [generate_allocated(get_empty_set(center), 2) for center in
-                          ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE', 'MGSE', 'FBE', 'FoA', 'ABP']]
+                     ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE', 'MGSE', 'FBE', 'FoA', 'ABP']]
     return copy.deepcopy(used.data)
+
 
 MONTH = get_day_as_time_stamp(get_days_in_month(11), 11)
 THREE_MONTHS = get_day_as_time_stamp(get_days_in_month(8), 8)

@@ -6,6 +6,14 @@ report.d3 = function () {
 
     utils.createDateButtons();
 
+    function getColour(key) {
+        switch (key) {
+            case 'NeCTAR Contribution': return 'orange';
+            case 'UoM Contribution': return 'blue';
+            default: return 'lightblue';
+        }
+    }
+
     var render = function () {
         var data_path = '/reports/manufactured/cloud_capacity/?from=' + utils.findFrom();
         d3.select('#a_data').attr('href', data_path);
@@ -13,21 +21,22 @@ report.d3 = function () {
 
             // for examples of these options see: http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
             var chart = nv.models.stackedAreaChart()
-                .margin({right: 100})
-                .x(function (d) {
-                    return d[0]
-                })
-                .y(function (d) {
-                    return d[1]
-                })
-                .useInteractiveGuideline(true)  // Tooltips which show the data points. Very nice!
-                .rightAlignYAxis(true)          // Move the y-axis to the right side.
-                .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
-                .clipEdge(true)
-                .noData('No Data available')
-                .color(function (d) {
-                    return utils.cellColours.get(d['key']);
-                });
+                    .margin({right: 100})
+                    .x(function (d) {
+                        return d[0]
+                    })
+                    .y(function (d) {
+                        return d[1]
+                    })
+                    .useInteractiveGuideline(true)  // Tooltips which show the data points. Very nice!
+                    .rightAlignYAxis(true)          // Move the y-axis to the right side.
+                    .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
+                    .clipEdge(true)
+                    .noData('No Data available')
+                    .color(function (d) {
+                        return getColour(d['key']);
+                    })
+                ;
 
             chart.xAxis
                 .tickFormat(function (d) {
