@@ -61,6 +61,7 @@ def get_data_center_capacity(center):
         'Co-investment': 1000,
     }[center]
 
+
 def generate_capacity(target_set, source):
     total_days = 0
     for month in range(1, 13):
@@ -154,8 +155,8 @@ def active_users():
     # we don't want to recalculate this on every load, so we attach it as an attribute to the function
     # if it hasn't been calculated...
     if not hasattr(active_users, 'data'):
-        active_users.data = [generate_active_users(get_empty_set(center))
-                             for center in ['NP', 'QH2', 'QH2-UoM', 'Other data centers']]
+        active_users.data = [generate_active_users(get_empty_set(user))
+                             for user in ['UoM', 'Others @ UoM', 'UoM elsewhere']]
     return copy.deepcopy(active_users.data)
 
 
