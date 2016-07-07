@@ -7,16 +7,20 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import generic
+from openpyxl.utils import get_column_letter
+from openpyxl.writer.excel import save_virtual_workbook
 
 from reports.fake_data import factory
 from .models import Report
+from openpyxl import Workbook
 
 
 class BrowseView(generic.ListView):
     template_name = 'reports/reports.html'
     context_object_name = 'latest_report_list'
 
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.selected_set = ''
 
     def get_queryset(self):
@@ -90,3 +94,17 @@ def manufactured(request, path):
     storage_type = request.GET.get('type', 'total')
     quota = factory.get(path, duration, storage_type)
     return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})
+
+
+def xlsx(request, path):
+    wb = Workbook(encoding='utf-8')
+    ws = wb.worksheets[0]
+    ws.title = 'range names'
+    for col_idx in range(1, 20):
+        col = get_column_letter(col_idx)
+        for row in range(1, 40):
+            ws.cell('%s%s' % (col, row)).value = '%s%s' % (col, row)
+    ws = wb.create_sheet()
+    ws.title = 'Pi'
+    ws.cell('F5').value = 3.14
+    return HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
