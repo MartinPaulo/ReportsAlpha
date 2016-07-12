@@ -3,3 +3,4 @@ django-source-revision
 numpy
 ldap3
 openpyxl
+mysqlclient
