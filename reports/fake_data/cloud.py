@@ -156,7 +156,7 @@ def active_users():
     # if it hasn't been calculated...
     if not hasattr(active_users, 'data'):
         active_users.data = [generate_active_users(get_empty_set(user))
-                             for user in ['UoM', 'Others @ UoM', 'UoM elsewhere']]
+                             for user in ['UoM', 'Both @ UoM and elsewhere', 'UoM elsewhere', 'Others @ UoM']]
     return copy.deepcopy(active_users.data)
 
 

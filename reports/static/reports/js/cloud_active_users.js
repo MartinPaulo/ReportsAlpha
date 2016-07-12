@@ -10,8 +10,9 @@ report.d3 = function () {
 
     function userColours(key) {
         console.log('key: ' + key);
-        if (key == 'UoM') return 'blue';
+        if (key == 'UoM') return 'darkblue';
         else if (key == 'Others @ UoM') return 'brown';
+        else if (key == 'Both @ UoM and elsewhere') return 'blue';
         else return 'lightblue';
     }
 
@@ -66,26 +67,26 @@ report.d3 = function () {
     var projectUsage = [{
         key: "Top Twenty Users",
         values: [
-            ['Parrot squawk', 140],
-            ['Soniti', 96],
-            ['Exhibili', 94],
-            ['Fmpse', 89],
-            ['Borgward', 75],
-            ['Fullsome', 60],
-            ['Flighty', 55],
-            ['Aardvark', 46],
-            ['Fonesca', 45],
-            ['XL',40],
-            ['VB', 36],
-            ['DB', 35],
-            ['Castle', 34],
-            ['Lion', 34],
-            ['Windhoek', 30],
-            ['Black', 20],
-            ['Ice', 19],
-            ['Coopers', 18],
-            ['Amstel', 13],
-            ['Adair', 10]
+            ['vSpartan', 3536],
+            ['Matlab_DCS', 1939],
+            ['GenomicsVL', 1728],
+            ['CoEPP-Tier3', 1218],
+            ['Endo_VL', 632],
+            ['GPaaS', 576],
+            ['MeG-LIDAR', 510],
+            ['InfectiousDiseases', 472],
+            ['UoM_Genomic_Adaptation', 455],
+            ['UoM_iDDSS', 434],
+            ['Unimelb_Peter_Mac_Research_Dropbox', 370],
+            ['AURIN', 272],
+            ['TbPc2', 256],
+            ['Melbourne_Genomics_Health_Alliance', 245],
+            ['Myzus_persicea_transcriptomics', 224],
+            ['UoM_NGSDA', 192],
+            ['OpenAPI', 176],
+            ['GenomicsVL_Devt', 174],
+            ['Thylacine_Genome_Project', 168],
+            ['Unimelb_VM_Co-resident_Attacks', 164]
         ]
     }
     ];
@@ -95,7 +96,7 @@ report.d3 = function () {
     function generateTopTwenty() {
         d3.select('#extra_title')
             .insert('h3')
-            .text('The top 20 users')
+            .text('The top 20 users as at xx/yy/zzzz')
         ;
         nv.addGraph(function () {
             var chart = nv.models.discreteBarChart()
@@ -111,7 +112,7 @@ report.d3 = function () {
                 ;
             chart.yAxis
                 .tickFormat(d3.format('4d'))
-                .axisLabel('TB');
+                .axisLabel("VM's");
 
             d3.select('#extra svg')
                 .datum(projectUsage)
