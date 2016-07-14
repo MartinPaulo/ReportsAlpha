@@ -110,20 +110,6 @@ def manufactured(request, path):
     return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})
 
 
-def xlsx(request, path):
-    wb = Workbook(encoding='utf-8')
-    ws = wb.worksheets[0]
-    ws.title = 'range names'
-    for col_idx in range(1, 20):
-        col = get_column_letter(col_idx)
-        for row in range(1, 40):
-            ws.cell('%s%s' % (col, row)).value = '%s%s' % (col, row)
-    ws = wb.create_sheet()
-    ws.title = 'Pi'
-    ws.cell('F5').value = 3.14
-    return HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-
-
 def get_start_date(duration):
     if duration == 'oneMonth':
         return date.today() - relativedelta(months=1)
