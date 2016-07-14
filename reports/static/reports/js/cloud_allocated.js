@@ -5,7 +5,6 @@ var report = report || {};
 report.d3 = function () {
 
     utils.createDateButtons();
-
     function addRadioButton(caption, checked) {
         d3.select('#graph-buttons')
             .append('label')
@@ -21,14 +20,36 @@ report.d3 = function () {
         ;
     }
 
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
     addRadioButton('Allocated', true);
     addRadioButton('Used', false);
 
     var render = function () {
         var source = d3.select('input[name="allocated-used"]:checked').node().value.toLowerCase();
-        var data_path = '/reports/manufactured/cloud_' + source + '/?from=' + utils.findFrom();
+        var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=Cloud' + capitalizeFirstLetter(source);
         d3.select('#a_data').attr('href', data_path);
-        d3.json(data_path, function (error, data) {
+        d3.csv(data_path, function (error, csv) {
+            if (error) {
+                console.log("Error on loading data: " + error);
+                return;
+            }
+            csv.sort(function (a, b) {
+                return new Date(a['date']) - new Date(b['date']);
+            });
+            var nvd3_data = [];
+            var faculties = [
+                "FoA", "VAS", "FBE", "MSE", "MGSE", "MDHS", "FoS", "ABP", "MLS", "VCAMCM", "Other", "Unknown"];
+            for (var i = 0; i < faculties.length; i++) {
+                var o = {};
+                o.key = faculties[i];
+                o.values = csv.map(function (d) {
+                    return [new Date(d["date"]).getTime(), parseInt(d[faculties[i].toLowerCase()])];
+                });
+                nvd3_data.push(o)
+            }
 
             // for examples of these options see: http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
             var chart = nv.models.stackedAreaChart()
@@ -59,7 +80,7 @@ report.d3 = function () {
                 .axisLabel("VCPU's");
 
             d3.select('#chart svg')
-                .datum(data)
+                .datum(nvd3_data)
                 .transition().duration(500)
                 .call(chart);
 

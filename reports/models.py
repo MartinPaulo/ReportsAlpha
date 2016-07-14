@@ -29,3 +29,51 @@ class Report(models.Model):
     was_published_recently.admin_order_field = 'pub_date'
     was_published_recently.boolean = True
     was_published_recently.short_description = 'Published recently?'
+
+
+class CloudAllocated(models.Model):
+    """
+    Contains the totals for the vcpu's allocated by each faculty
+    """
+    # All field names lowercased.
+    date = models.TextField(unique=True, blank=False, null=False, primary_key=True)
+    foa = models.IntegerField(db_column='FoA', blank=False, null=False)
+    vas = models.IntegerField(db_column='VAS', blank=False, null=False)  
+    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)  
+    mse = models.IntegerField(db_column='MSE', blank=False, null=False)  
+    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)  
+    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)  
+    fos = models.IntegerField(db_column='FoS', blank=False, null=False)  
+    abp = models.IntegerField(db_column='ABP', blank=False, null=False)  
+    mls = models.IntegerField(db_column='MLS', blank=False, null=False)  
+    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)  
+    other = models.IntegerField(db_column='Other', blank=False, null=False)  
+    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)  
+
+    class Meta:
+        managed = False
+        db_table = 'cloud_allocated'
+
+
+class CloudUsed(models.Model):
+    """
+    Contains the totals for the number of vcpu's fired up by each faculty
+    """
+    # All field names lowercased.
+    date = models.TextField(unique=True, blank=False, null=False, primary_key=True)
+    foa = models.IntegerField(db_column='FoA', blank=False, null=False)  
+    vas = models.IntegerField(db_column='VAS', blank=False, null=False)  
+    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)  
+    mse = models.IntegerField(db_column='MSE', blank=False, null=False)  
+    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)  
+    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)  
+    fos = models.IntegerField(db_column='FoS', blank=False, null=False)  
+    abp = models.IntegerField(db_column='ABP', blank=False, null=False)  
+    mls = models.IntegerField(db_column='MLS', blank=False, null=False)  
+    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)  
+    other = models.IntegerField(db_column='Other', blank=False, null=False)  
+    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)  
+
+    class Meta:
+        managed = False
+        db_table = 'cloud_used'

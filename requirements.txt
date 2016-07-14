@@ -4,3 +4,4 @@ numpy
 ldap3
 openpyxl
 mysqlclient
+python-dateutil

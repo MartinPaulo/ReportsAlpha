@@ -1,18 +1,32 @@
+import csv
 import os
+import re
+from datetime import date
 from wsgiref.util import FileWrapper
 
+import django
+from dateutil.relativedelta import relativedelta
+from django.apps import AppConfig
 from django.conf import settings
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import generic
+from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.writer.excel import save_virtual_workbook
 
 from reports.fake_data import factory
 from .models import Report
-from openpyxl import Workbook
+
+first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+all_cap_re = re.compile('([a-z0-9])([A-Z])')
+
+
+def convert(name):
+    s1 = first_cap_re.sub(r'\1_\2', name)
+    return all_cap_re.sub(r'\1_\2', s1).lower()
 
 
 class BrowseView(generic.ListView):
@@ -108,3 +122,33 @@ def xlsx(request, path):
     ws.title = 'Pi'
     ws.cell('F5').value = 3.14
     return HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
+
+
+def get_start_date(duration):
+    if duration == 'oneMonth':
+        return date.today() - relativedelta(months=1)
+    elif duration == 'threeMonths':
+        return date.today() - relativedelta(months=3)
+    elif duration == 'sixMonths':
+        return date.today() - relativedelta(months=6)
+    else:
+        # duration == 'year':
+        return date.today() - relativedelta(months=12)
+
+
+def actual(request, path):
+    """
+    :return: A response with the model data presented as CSV. The data is filtered till today by date range
+    """
+    duration = request.GET.get('from', 'year')
+    desired_model = request.GET.get('model', 'unknown')
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment;filename=%s.csv' % convert(desired_model)
+    writer = csv.writer(response)
+    # if not specified 'unknown' will not be found and an error raised
+    model = django.apps.apps.get_model('reports', desired_model)
+    field_names = [f.name for f in model._meta.fields]
+    writer.writerow(field_names)
+    for instance in model.objects.filter(date__range=((get_start_date(duration)), date.today())):
+        writer.writerow([getattr(instance, f) for f in field_names])
+    return response

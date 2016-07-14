@@ -57,7 +57,9 @@ var utils = function () {
         'FBE': '#7f7f7f',
         'FoA': '#bcbd22',
         'ABP': '#17becf',
-
+        'Other': 'red',
+        'Unknown': 'blue',
+        
         get: getColour
     };
 
