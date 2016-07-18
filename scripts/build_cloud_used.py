@@ -1,9 +1,8 @@
+import sqlite3
 import sys
 from datetime import timedelta, date
 
 import MySQLdb
-from ldap3 import Server, Connection
-import sqlite3
 
 sqlite3_connection = sqlite3.connect('/Users/mpaulo/PycharmProjects/ReportsBeta/db/db.sqlite3')
 
