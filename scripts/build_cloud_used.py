@@ -66,7 +66,6 @@ try:
             ORDER BY vcpus;
             """.format(day_date.strftime("%Y-%m-%d")))
         result_set = cursor.fetchall()
-        desc = cursor.description
         for row in result_set:
             project_id = row["project_id"]
             sqlite3_cursor = sqlite3_connection.cursor()
