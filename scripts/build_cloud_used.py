@@ -7,12 +7,6 @@ import sqlite3
 
 sqlite3_connection = sqlite3.connect('/Users/mpaulo/PycharmProjects/ReportsBeta/db/db.sqlite3')
 
-ldap_server = Server('centaur.unimelb.edu.au')
-ldap_connection = Connection(ldap_server)
-if not ldap_connection.bind():
-    print("Could not bind to LDAP server")
-    sys.exit(1)
-
 
 def date_range(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
