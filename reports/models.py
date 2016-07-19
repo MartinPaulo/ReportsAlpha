@@ -36,7 +36,8 @@ class CloudAllocated(models.Model):
     Contains the totals for the vcpu's allocated by each faculty
     """
     # All field names lowercased.
-    date = models.TextField(unique=True, blank=False, null=False, primary_key=True)
+    date = models.TextField(unique=True, blank=False, null=False, primary_key=True,
+                            help_text="The date on which the values in the row were calculated")
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
     vas = models.IntegerField(db_column='VAS', blank=False, null=False)
     fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
@@ -60,7 +61,8 @@ class CloudUsed(models.Model):
     Contains the totals for the number of vcpu's fired up by each faculty
     """
     # All field names lowercased.
-    date = models.TextField(unique=True, blank=False, null=False, primary_key=True)
+    date = models.TextField(unique=True, blank=False, null=False, primary_key=True,
+                            help_text="The date on which the values in the row were calculated")
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
     vas = models.IntegerField(db_column='VAS', blank=False, null=False)
     fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
@@ -99,3 +101,21 @@ class CloudActiveUsers(models.Model):
     class Meta:
         managed = False
         db_table = 'cloud_active_users'
+
+
+class CloudTopTwenty(models.Model):
+    """
+    The top twenty UoM users of the cloud, by date.
+    """
+    date = models.TextField(primary_key=True,
+                            help_text="The date on which the values were calculated")
+    project_id = models.CharField(primary_key=True, max_length=32,
+                                  help_text="The project ID")
+    vcpus = models.IntegerField(help_text="The project VCPU count on the date")
+    tenant_name = models.CharField(max_length=64,
+                                   help_text="The project's formal name")
+
+    class Meta:
+        managed = False
+        db_table = 'cloud_top_twenty'
+        unique_together = (('date', 'project_id'),)

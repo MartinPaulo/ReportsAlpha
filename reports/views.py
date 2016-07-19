@@ -5,6 +5,7 @@ from datetime import date
 from wsgiref.util import FileWrapper
 
 import django
+from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.apps import AppConfig
 from django.conf import settings
@@ -127,6 +128,12 @@ def actual(request, path):
     :return: A response with the model data presented as CSV. The data is filtered till today by date range
     """
     duration = request.GET.get('from', 'year')
+    # we default to a date range
+    date_range_desired = (get_start_date(duration), date.today())
+    on = request.GET.get('on')
+    if on:
+        date_desired = parse(on).date()
+        date_range_desired = (date_desired, date_desired)
     desired_model = request.GET.get('model', 'unknown')
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment;filename=%s.csv' % convert(desired_model)
@@ -135,6 +142,6 @@ def actual(request, path):
     model = django.apps.apps.get_model('reports', desired_model)
     field_names = [f.name for f in model._meta.fields]
     writer.writerow(field_names)
-    for instance in model.objects.filter(date__range=((get_start_date(duration)), date.today())):
+    for instance in model.objects.filter(date__range=date_range_desired):
         writer.writerow([getattr(instance, f) for f in field_names])
     return response

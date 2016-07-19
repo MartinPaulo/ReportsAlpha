@@ -11,7 +11,7 @@ report.d3 = function () {
     function userColours(key) {
         switch (key) {
             case "at_uom_only":
-                return "darkblue";
+                return "darkblue"; // UoM blue is really #002952ff
             case "elsewhere_only":
                 return "lightblue";
             case "in_both":
@@ -47,9 +47,11 @@ report.d3 = function () {
                 console.log("Error on loading data: " + error);
                 return;
             }
+
             csv.sort(function (a, b) {
                 return new Date(a['date']) - new Date(b['date']);
             });
+
             var nvd3_data = [];
             var totals = ["at_uom_only", "elsewhere_only", "in_both", "others_at_uom"];
             for (var i = 0; i < totals.length; i++) {
@@ -59,8 +61,9 @@ report.d3 = function () {
                 o.values = csv.map(function (d) {
                     return [new Date(d["date"]).getTime(), parseInt(d[totals[i].toLowerCase()])];
                 });
-                nvd3_data.push(o)
+                nvd3_data.push(o);
             }
+
             nv.addGraph(function () {
                 var chart = nv.models.stackedAreaChart()
                         .x(function (d) {
@@ -89,6 +92,17 @@ report.d3 = function () {
                     })
                     .axisLabel('Date');
 
+                var timeout;
+
+                chart.interactiveLayer.dispatch.on('elementMousemove.name', function (e) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(function () {
+                        var date = chart.xAxis.tickFormat()(e.pointXValue);
+                        //console.log("e: " + date);
+                        generateTopTwenty(date);
+                    }, 1000);
+                });
+
                 d3.select('#chart svg')
                     .datum(nvd3_data)
                     .call(chart);
@@ -105,67 +119,78 @@ report.d3 = function () {
         render();
     }, false);
 
-    var projectUsage = [{
-        key: "Top Twenty Users",
-        values: [
-            ['vSpartan', 3536],
-            ['Matlab_DCS', 1939],
-            ['GenomicsVL', 1728],
-            ['CoEPP-Tier3', 1218],
-            ['Endo_VL', 632],
-            ['GPaaS', 576],
-            ['MeG-LIDAR', 510],
-            ['InfectiousDiseases', 472],
-            ['UoM_Genomic_Adaptation', 455],
-            ['UoM_iDDSS', 434],
-            ['Unimelb_Peter_Mac_Research_Dropbox', 370],
-            ['AURIN', 272],
-            ['TbPc2', 256],
-            ['Melbourne_Genomics_Health_Alliance', 245],
-            ['Myzus_persicea_transcriptomics', 224],
-            ['UoM_NGSDA', 192],
-            ['OpenAPI', 176],
-            ['GenomicsVL_Devt', 174],
-            ['Thylacine_Genome_Project', 168],
-            ['Unimelb_VM_Co-resident_Attacks', 164]
-        ]
-    }
-    ];
 
+    var topTwentyColours = {};
+    var colors = d3.scale.category20();
     // to draw a line:
     // http://stackoverflow.com/questions/18856060/how-do-i-add-an-average-line-to-an-nvd3-js-stacked-area-chart
-    function generateTopTwenty() {
+    function generateTopTwenty(date) {
+        var data_path = '/reports/actual/?model=CloudTopTwenty&on=' + date;
+
+        d3.select('#extra_title h3').remove();
+
         d3.select('#extra_title')
             .insert('h3')
-            .text('The top 20 users as at xx/yy/zzzz')
+            .text('The top 20 users as at ' + date)
         ;
-        nv.addGraph(function () {
-            var chart = nv.models.discreteBarChart()
-                    .x(function (d) {
-                        return d[0]
-                    })
-                    .y(function (d) {
-                        return d[1]
-                    })
-                    //.staggerLabels(true)
-                    .wrapLabels(true)
-                    .rotateLabels(45)
-                ;
-            chart.yAxis
-                .tickFormat(d3.format('4d'))
-                .axisLabel("VM's");
 
-            d3.select('#extra svg')
-                .datum(projectUsage)
-                .call(chart);
+        d3.csv(data_path, function (error, csv) {
+            if (error) {
+                console.log("Error on loading data: " + error);
+                return;
+            }
+            csv.sort(function (a, b) {
+                return b['vcpus'] - a['vcpus'];
+            });
+            var nvd3_data = [];
+            var coloursToKeep = {};
+            var o = {};
+            o.key = "Top Twenty Users";
+            o.values = csv.map(function (d) {
+                coloursToKeep[d["tenant_name"]] = true;
+                return [d["tenant_name"], parseInt(d["vcpus"])];
+            });
+            nvd3_data.push(o);
+            for (var key in topTwentyColours) {
+                if (!coloursToKeep.hasOwnProperty(key)) {
+                    delete topTwentyColours[key];
+                }
+            }
+            nv.addGraph(function () {
+                var chart = nv.models.discreteBarChart()
+                        .x(function (d) {
+                            return d[0]
+                        })
+                        .y(function (d) {
+                            return d[1]
+                        })
+                        //.staggerLabels(true)
+                        .wrapLabels(true)
+                        .noData('No Data available')
+                        .rotateLabels(45)
+                        .color(function (d, i) {
+                            if (!topTwentyColours.hasOwnProperty(d[0])){
+                                topTwentyColours[d[0]] = colors(i);
+                            }
+                            return topTwentyColours[d[0]];
+                        })
+                    ;
+                chart.yAxis
+                    .tickFormat(d3.format('4d'))
+                    .axisLabel("VM's");
 
-            nv.utils.windowResize(chart.update);
-            return chart;
-        });
+                d3.select('#extra svg')
+                    .datum(nvd3_data)
+                    .call(chart);
+
+                nv.utils.windowResize(chart.update);
+                return chart;
+            });
+        })
 
     }
 
-    generateTopTwenty();
+    generateTopTwenty(new Date().toISOString().slice(0, 10));
 
     return {
         render: render
