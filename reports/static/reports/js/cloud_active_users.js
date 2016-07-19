@@ -9,17 +9,58 @@ report.d3 = function () {
     utils.createDateButtons();
 
     function userColours(key) {
-        console.log('key: ' + key);
-        if (key == 'UoM') return 'darkblue';
-        else if (key == 'Others @ UoM') return 'brown';
-        else if (key == 'Both @ UoM and elsewhere') return 'blue';
-        else return 'lightblue';
+        switch (key) {
+            case "at_uom_only":
+                return "darkblue";
+            case "elsewhere_only":
+                return "lightblue";
+            case "in_both":
+                return "blue";
+            case "others_at_uom":
+                return "brown";
+            default:
+                return "black";
+        }
+    }
+
+    function getStreamName(key) {
+        switch (key) {
+            case "at_uom_only":
+                return "UoM @ UoM only";
+            case "elsewhere_only":
+                return "UoM @ elsewhere";
+            case "in_both":
+                return "UoM @ UoM and elsewhere";
+            case "others_at_uom":
+                return "Others @ UoM";
+            default:
+                return key;
+        }
     }
 
     var render = function () {
-        var data_path = '/reports/manufactured/cloud_active_users/?from=' + utils.findFrom();
+        var data_path = '/reports/actual/?model=CloudActiveUsers&from=' + utils.findFrom();
+
         d3.select('#a_data').attr('href', data_path);
-        d3.json(data_path, function (data) {
+        d3.csv(data_path, function (error, csv) {
+            if (error) {
+                console.log("Error on loading data: " + error);
+                return;
+            }
+            csv.sort(function (a, b) {
+                return new Date(a['date']) - new Date(b['date']);
+            });
+            var nvd3_data = [];
+            var totals = ["at_uom_only", "elsewhere_only", "in_both", "others_at_uom"];
+            for (var i = 0; i < totals.length; i++) {
+                var o = {};
+                o.key = getStreamName(totals[i]);
+                o.color = userColours(totals[i]);
+                o.values = csv.map(function (d) {
+                    return [new Date(d["date"]).getTime(), parseInt(d[totals[i].toLowerCase()])];
+                });
+                nvd3_data.push(o)
+            }
             nv.addGraph(function () {
                 var chart = nv.models.stackedAreaChart()
                         .x(function (d) {
@@ -34,7 +75,7 @@ report.d3 = function () {
                         .margin({right: 75})
                         .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
                         .color(function (d) {
-                            return userColours(d['key']);
+                            return d['color'];
                         })
                     ;
 
@@ -49,7 +90,7 @@ report.d3 = function () {
                     .axisLabel('Date');
 
                 d3.select('#chart svg')
-                    .datum(data)
+                    .datum(nvd3_data)
                     .call(chart);
 
                 //figure out a good way to do this automatically

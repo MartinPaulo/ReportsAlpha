@@ -38,17 +38,17 @@ class CloudAllocated(models.Model):
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False, primary_key=True)
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
-    vas = models.IntegerField(db_column='VAS', blank=False, null=False)  
-    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)  
-    mse = models.IntegerField(db_column='MSE', blank=False, null=False)  
-    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)  
-    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)  
-    fos = models.IntegerField(db_column='FoS', blank=False, null=False)  
-    abp = models.IntegerField(db_column='ABP', blank=False, null=False)  
-    mls = models.IntegerField(db_column='MLS', blank=False, null=False)  
-    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)  
-    other = models.IntegerField(db_column='Other', blank=False, null=False)  
-    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)  
+    vas = models.IntegerField(db_column='VAS', blank=False, null=False)
+    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
+    mse = models.IntegerField(db_column='MSE', blank=False, null=False)
+    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)
+    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)
+    fos = models.IntegerField(db_column='FoS', blank=False, null=False)
+    abp = models.IntegerField(db_column='ABP', blank=False, null=False)
+    mls = models.IntegerField(db_column='MLS', blank=False, null=False)
+    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)
+    other = models.IntegerField(db_column='Other', blank=False, null=False)
+    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)
 
     class Meta:
         managed = False
@@ -61,19 +61,41 @@ class CloudUsed(models.Model):
     """
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False, primary_key=True)
-    foa = models.IntegerField(db_column='FoA', blank=False, null=False)  
-    vas = models.IntegerField(db_column='VAS', blank=False, null=False)  
-    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)  
-    mse = models.IntegerField(db_column='MSE', blank=False, null=False)  
-    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)  
-    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)  
-    fos = models.IntegerField(db_column='FoS', blank=False, null=False)  
-    abp = models.IntegerField(db_column='ABP', blank=False, null=False)  
-    mls = models.IntegerField(db_column='MLS', blank=False, null=False)  
-    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)  
-    other = models.IntegerField(db_column='Other', blank=False, null=False)  
-    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)  
+    foa = models.IntegerField(db_column='FoA', blank=False, null=False)
+    vas = models.IntegerField(db_column='VAS', blank=False, null=False)
+    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
+    mse = models.IntegerField(db_column='MSE', blank=False, null=False)
+    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)
+    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)
+    fos = models.IntegerField(db_column='FoS', blank=False, null=False)
+    abp = models.IntegerField(db_column='ABP', blank=False, null=False)
+    mls = models.IntegerField(db_column='MLS', blank=False, null=False)
+    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)
+    other = models.IntegerField(db_column='Other', blank=False, null=False)
+    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)
 
     class Meta:
         managed = False
         db_table = 'cloud_used'
+
+
+class CloudActiveUsers(models.Model):
+    """
+    Contains the active users.
+    """
+    date = models.TextField(primary_key=True, blank=False, null=False,
+                            help_text="The date on which the values in the row were calculated")
+    at_uom_only = models.IntegerField(blank=False, null=False,
+                                      help_text="The number of UoM users who are only running VM's in UoM cells")
+    elsewhere_only = models.IntegerField(blank=False, null=False,
+                                         help_text="The number of UoM users who are only "
+                                                   "running VM's in cells outside of UoM")
+    in_both = models.IntegerField(blank=False, null=False,
+                                  help_text="The number of UoM users who are running VM's "
+                                            "in both UoM cells and cells outside of UoM")
+    others_at_uom = models.IntegerField(blank=False, null=False,
+                                        help_text="Users not from UoM who are running VM's in UoM cells")
+
+    class Meta:
+        managed = False
+        db_table = 'cloud_active_users'
