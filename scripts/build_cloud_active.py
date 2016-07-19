@@ -22,6 +22,10 @@ mysql_connection = MySQLdb.connect(host='192.168.33.1',
                                    passwd=password,
                                    db='dashboard')
 try:
+    # on the 2016-03-11 we have 452 UoM users in total, with
+    # 309 running elsewhere,
+    # 233 running at UoM and 92 users are running in both UoM and elsewhere.
+    # so we have set A = 309, set B = 233, A ∪ B = 452 and A ∩ B = 92
     cursor = mysql_connection.cursor(MySQLdb.cursors.DictCursor)
     for day_date in date_range(start_day, end_day):
         cursor.execute("""SELECT COUNT(DISTINCT user_id) AS others_at_uom
@@ -36,29 +40,45 @@ try:
         row = cursor.fetchone()
         others_at_uom = row["others_at_uom"]
 
+        cursor.execute("""SELECT COUNT(DISTINCT user_id) AS UoM_only
+            FROM nova.instances
+            WHERE
+              ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+              OR  (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+              OR  (terminated_at IS NULL AND created_at < '{0}' ))
+              AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
+              AND user_id NOT IN (SELECT DISTINCT user_id AS user_id
+                FROM nova.instances
+                WHERE
+                ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR  (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR  (terminated_at IS NULL AND created_at < '{0}' ))
+                AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
+                AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email like '%unimelb.edu.au%'))
+              AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email like '%unimelb.edu.au%');
+        """.format(day_date.strftime("%Y-%m-%d")))
+        row = cursor.fetchone()
+        uom_only = row["UoM_only"]
+
         cursor.execute("""SELECT COUNT(DISTINCT user_id) AS elsewhere_only
             FROM nova.instances
-            WHERE 
-              ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (terminated_at IS NULL AND created_at < '{0}' ))
+            WHERE
+              ((terminated_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+              OR  (created_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+              OR  (terminated_at IS NULL AND created_at < '{0}' ))
               AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
+              AND user_id NOT IN (SELECT DISTINCT user_id AS user_id
+                FROM nova.instances
+                WHERE
+                ((terminated_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR  (created_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR  (terminated_at IS NULL AND created_at < '{0}' ))
+                AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
+                AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%'))
               AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%');
         """.format(day_date.strftime("%Y-%m-%d")))
         row = cursor.fetchone()
         elsewhere_only = row["elsewhere_only"]
-
-        cursor.execute("""SELECT COUNT(DISTINCT user_id) AS at_uom_only
-            FROM nova.instances
-            WHERE
-              ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (terminated_at IS NULL AND created_at < '{0}' ))
-              AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-              AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%');
-        """.format(day_date.strftime("%Y-%m-%d")))
-        row = cursor.fetchone()
-        at_uom_only = row["at_uom_only"]
 
         cursor.execute("""SELECT COUNT(DISTINCT r.user_id) AS in_both
             FROM nova.instances l
@@ -84,8 +104,8 @@ try:
             'date': day_date.strftime("%Y-%m-%d"),
             'others_at_uom': others_at_uom,
             'in_both': in_both,
-            'elsewhere_only': int(elsewhere_only - in_both / 2),
-            'at_uom_only': int(at_uom_only - in_both / 2)
+            'elsewhere_only': elsewhere_only,
+            'at_uom_only': uom_only
         }
         sqlite3_cursor = sqlite3_connection.cursor()
         columns = ', '.join(user_counts.keys())
