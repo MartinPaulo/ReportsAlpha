@@ -120,39 +120,49 @@ report.d3 = function () {
     }, false);
 
 
+    // We want to keep the colours between redraws more or less consistent
+    // Hence we remember them as attributes on this object.
     var topTwentyColours = {};
+    // The source of our initial colours
     var colors = d3.scale.category20();
     // to draw a line:
     // http://stackoverflow.com/questions/18856060/how-do-i-add-an-average-line-to-an-nvd3-js-stacked-area-chart
     function generateTopTwenty(date) {
         var data_path = '/reports/actual/?model=CloudTopTwenty&on=' + date;
 
-        d3.select('#extra_title h3').remove();
-
-        d3.select('#extra_title')
-            .insert('h3')
-            .text('The top 20 users as at ' + date)
-        ;
 
         d3.csv(data_path, function (error, csv) {
             if (error) {
+                // should perhaps also clear any older graph?
                 console.log("Error on loading data: " + error);
                 return;
             }
+            d3.select('#extra_title h3').remove();
+
+            d3.select('#extra_title')
+                .insert('h3')
+                .text('The top 20 users as at ' + date)
+            ;
+
             csv.sort(function (a, b) {
+                // By the number of vcpu's used.
                 return b['vcpus'] - a['vcpus'];
             });
             var nvd3_data = [];
             var coloursToKeep = {};
+            var availableColours = [];
             var o = {};
             o.key = "Top Twenty Users";
             o.values = csv.map(function (d) {
+                // we want to use the old colour for this tenant, if they were in the last top twenty
                 coloursToKeep[d["tenant_name"]] = true;
                 return [d["tenant_name"], parseInt(d["vcpus"])];
             });
             nvd3_data.push(o);
+            // if the top twenty colour isn't in use, free it up
             for (var key in topTwentyColours) {
                 if (!coloursToKeep.hasOwnProperty(key)) {
+                    availableColours.push(topTwentyColours[key]);
                     delete topTwentyColours[key];
                 }
             }
@@ -169,8 +179,11 @@ report.d3 = function () {
                         .noData('No Data available')
                         .rotateLabels(45)
                         .color(function (d, i) {
-                            if (!topTwentyColours.hasOwnProperty(d[0])){
-                                topTwentyColours[d[0]] = colors(i);
+                            if (!topTwentyColours.hasOwnProperty(d[0])) {
+                                // we try to take from the pool of free colours
+                                var colour = availableColours.pop();
+                                // but sometimes we just have to grab a random colour
+                                topTwentyColours[d[0]] = colour ? colour : colors(i);
                             }
                             return topTwentyColours[d[0]];
                         })
