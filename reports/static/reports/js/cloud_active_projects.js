@@ -141,7 +141,7 @@ report.d3 = function () {
 
             d3.select('#extra_title')
                 .insert('h3')
-                .text('The top 20 users as at ' + date)
+                .text('The top 20 projects as at ' + date)
             ;
 
             csv.sort(function (a, b) {
@@ -152,7 +152,7 @@ report.d3 = function () {
             var coloursToKeep = {};
             var availableColours = [];
             var o = {};
-            o.key = "Top Twenty Users";
+            o.key = "Top Twenty Projects";
             o.values = csv.map(function (d) {
                 // we want to use the old colour for this tenant, if they were in the last top twenty
                 coloursToKeep[d["tenant_name"]] = true;

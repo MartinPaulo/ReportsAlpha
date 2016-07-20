@@ -24,7 +24,8 @@ mysql_connection = MySQLdb.connect(host='192.168.33.1',
 try:
     cursor = mysql_connection.cursor(MySQLdb.cursors.DictCursor)
     for day_date in date_range(start_day, end_day):
-        cursor.execute("""SELECT  '{0}' AS 'date', i.project_id, SUM(i.vcpus) vcpus, a.tenant_name
+        cursor.execute("""
+            SELECT  '{0}' AS 'date', i.project_id, SUM(i.vcpus) vcpus, a.tenant_name
             FROM nova.instances i
             LEFT JOIN
             (SELECT DISTINCT tenant_uuid, tenant_name, contact_email
@@ -36,9 +37,14 @@ try:
                       WHERE t1.tenant_uuid = t2.tenant_uuid)) a
             ON i.project_id = a.tenant_uuid
             WHERE
+              /* (started on the day OR ended on the day OR running through the day)
+                  AND not started and stopped on the day AND a unimelb project
+               */
               ((i.terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (i.created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (i.terminated_at IS NULL AND i.created_at < '{0}' ))
+               OR (i.created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (i.terminated_at IS NULL AND i.created_at < '{0}'))
+              AND NOT ((i.terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                       AND (i.created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
               AND a.contact_email LIKE '%unimelb.edu.au%'
             GROUP BY i.project_id
             ORDER BY vcpus DESC
