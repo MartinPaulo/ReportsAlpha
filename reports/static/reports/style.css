@@ -66,3 +66,106 @@ input[type="button"].active {
 .pull-right {
     float: right;
 }
+
+/* style for uptime chart */
+.uptm_planned {
+    fill: black;
+}
+
+.uptm_planned:hover {
+    fill: grey;
+}
+
+.uptm_unplanned {
+    fill: #d9534d;
+}
+
+.uptm_unplanned:hover {
+    fill: #c9302c;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: left;
+    font-family: "Muli", "Helvetica", Arial, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 10px;
+    padding-left: 0;
+    width: auto;
+    border: 0;
+    border-left: thin solid #000000;
+    pointer-events: none;
+    line-height: 12px;
+    padding-top: 0;
+    display: block;
+}
+
+.uptm_ytitle {
+    dominant-baseline: central;
+    font-family: "Muli", "Helvetica", Arial, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 12px;
+}
+.uptm_axis path,
+.uptm_axis line {
+    display: none;
+}
+
+.uptm_axis text {
+    font-size: 12px;
+    font-family: "Muli", "Helvetica", Arial, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    fill: #777;
+}
+
+.uptm_vert_grid {
+    fill: none;
+    stroke: #dddddd;
+    stroke-width: 1px;
+}
+
+.uptime_line {
+    fill: #5cb85c;
+}
+
+.uptm_heading {
+    font-size: 16px;
+    font-family: "Muli", "Helvetica", Arial, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: bold;
+}
+
+.uptm_subheading {
+    font-size: 12px;
+    font-family: "Muli", "Helvetica", Arial, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    fill: #777;
+}
+
+.uptm_legend {
+    dominant-baseline: central;
+    font-size: 12px;
+    font-family: "Muli", "Helvetica", Arial, sans-serif;
+    -moz-osx-font-smoothing: grayscale;
+    fill: #777;
+}
+
+.uptm_tooltip {
+    display: inline-block;
+    text-align: center;
+    font-size: inherit;
+    width: 1.28571429em;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.uptm_tooltip_check:before {
+    color: #449d44;
+    content: "✓";
+}
+
+.uptm_tooltip_cross:before {
+    color: #c9302c;
+    content: "✗";
+}
