@@ -66,14 +66,18 @@ report.d3 = function () {
          SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
          */
+
+        //============================================================
+        // Public Variables with Default Settings
+        //------------------------------------------------------------
+
         var margin = {top: 70, right: 100, bottom: 20, left: 100}
             , width = null
             , minimumWidth = 800
-            , barHeight = 18    // it would be good if we could read this off of the style.
+            , barHeight = 18
             , lineSpacing = 14
             , paddingLeft = -100
             , paddingBottom = 10
-            , dataHeight = 18 // height of bars
             , paddingTopHeading = -50
             , headingText = "Uptime"
             , transitionDuration = 0
@@ -106,6 +110,7 @@ report.d3 = function () {
 
                 chart.update = function () {
                     container.selectAll('*').remove();
+                    // we aren't transitioning properly...
                     container.transition().duration(transitionDuration).call(chart);
                 };
 
@@ -165,7 +170,7 @@ report.d3 = function () {
                             return xScale(d.getTime());
                         },
                         'y1': 0,
-                        'y2': dataHeight * noOfDataSets + lineSpacing * noOfDataSets - 1 + paddingBottom
+                        'y2': barHeight * noOfDataSets + lineSpacing * noOfDataSets - 1 + paddingBottom
                     });
 
                 // draw the uptime lines (assume that it is up 100% of the time)
@@ -174,11 +179,11 @@ report.d3 = function () {
                     .enter()
                     .append('rect')
                     .attr('class', 'uptime_line')
-                    .attr('height', dataHeight)
+                    .attr('height', barHeight)
                     .attr('width', xScale(endDate))
                     .attr('x', xScale(startDate))
                     .attr('y', function (d, i) {
-                        return (lineSpacing + dataHeight) * i + lineSpacing;
+                        return (lineSpacing + barHeight) * i + lineSpacing;
                     })
                 ;
 
@@ -193,7 +198,7 @@ report.d3 = function () {
                     .enter()
                     .append('g')
                     .attr('transform', function (d, i) {
-                        return 'translate(0,' + ((lineSpacing + dataHeight) * i) + ')';
+                        return 'translate(0,' + ((lineSpacing + barHeight) * i) + ')';
                     })
                     .attr('class', 'dataset');
 
@@ -210,7 +215,7 @@ report.d3 = function () {
                     .attr('width', function (d) {
                         return (Math.ceil(xScale(new Date(d.end)) - xScale(new Date(d.start))));
                     })
-                    .attr('height', dataHeight)
+                    .attr('height', barHeight)
                     .attr('class', function (d) {
                         if (d.planned) {
                             return 'uptm_planned';
@@ -236,7 +241,7 @@ report.d3 = function () {
                             return window.pageXOffset + matrix.e + 'px';
                         }).style('top', function () {
                             return window.pageYOffset + matrix.f - 11 + 'px';
-                        }).style('height', dataHeight + 11 + 'px');
+                        }).style('height', barHeight + 11 + 'px');
                     })
                     .on('mouseout', function () {
                         div.transition()
@@ -294,9 +299,58 @@ report.d3 = function () {
 
         }
 
+        // Expose the public variables
         chart.width = function (_) {
             if (!arguments.length) return width;
             width = _;
+            return chart;
+        };
+
+        chart.minimumWidth = function (_) {
+            if (!arguments.length) return minimumWidth;
+            minimumWidth = _;
+            return chart;
+        };
+
+        chart.barHeight = function (_) {
+            if (!arguments.length) return barHeight;
+            barHeight = _;
+            return chart;
+        };
+
+        chart.lineSpacing = function (_) {
+            if (!arguments.length) return lineSpacing;
+            lineSpacing = _;
+            return chart;
+        };
+
+        chart.paddingLeft = function (_) {
+            if (!arguments.length) return paddingLeft;
+            paddingLeft = _;
+            return chart;
+        };
+
+        chart.paddingBottom = function (_) {
+            if (!arguments.length) return paddingBottom;
+            paddingBottom = _;
+            return chart;
+        };
+
+        chart.paddingTopHeading = function (_) {
+            if (!arguments.length) return paddingTopHeading;
+            paddingTopHeading = _;
+            return chart;
+        };
+
+        chart.headingText = function (_) {
+            if (!arguments.length) return headingText;
+            headingText = _;
+            return chart;
+        };
+
+        chart.transitionDuration = function (_) {
+            if (!arguments.length) return transitionDuration;
+            transitionDuration = _;
             return chart;
         };
 
