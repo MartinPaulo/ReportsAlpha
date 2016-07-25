@@ -46,7 +46,7 @@ report.d3 = function () {
     function uptimeGraph() {
 
         /*
-         Based on work done by Florian Roscheck: so this graph is, I guess:
+         Influenced by the work of Florian Roscheck: so this graph is, I guess:
 
          Copyright (c) 2016 Florian Roscheck
 
