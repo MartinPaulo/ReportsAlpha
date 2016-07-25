@@ -12,7 +12,7 @@ report.d3 = function () {
         var stylesheetName = "UptimeGraph.css";
         var found = false;
         for (var i = 0; i < document.styleSheets.length; i++) {
-            if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf("UptimeGraph.css") > 0) {
+            if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf(stylesheetName) > 0) {
                 found = true;
             }
         }
@@ -300,6 +300,12 @@ report.d3 = function () {
         }
 
         // Expose the public variables
+        chart.margin = function (_) {
+            if (!arguments.length) return margin;
+            margin = _;
+            return chart;
+        };
+
         chart.width = function (_) {
             if (!arguments.length) return width;
             width = _;
