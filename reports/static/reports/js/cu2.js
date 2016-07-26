@@ -9,14 +9,16 @@ report.d3 = function () {
 
 
     (function checkIfStyleSheetLoaded() {
-        var stylesheetName = "UptimeGraph.css";
+        var stylesheetName = "UptimeHistory.css";
         var found = false;
         for (var i = 0; i < document.styleSheets.length; i++) {
             if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf(stylesheetName) > 0) {
                 found = true;
             }
         }
-        console.log("Required stylesheet " + stylesheetName + " is present: " + found)
+        if (!found) {
+            console.log("Required stylesheet " + stylesheetName + " is not found!")
+        }
     })();
 
 
@@ -43,7 +45,7 @@ report.d3 = function () {
     ];
 
 
-    function uptimeGraph() {
+    function uptimeHistory() {
 
         /*
          Influenced by the work of Florian Roscheck: so this graph is, I guess:
@@ -79,8 +81,9 @@ report.d3 = function () {
             , paddingLeft = -100
             , paddingBottom = 10
             , paddingTopHeading = -50
-            , headingText = "Uptime"
+            , headingText = "Uptime History"
             , transitionDuration = 0
+            // we need to add a "No Data" message
             ;
 
         var calculateWidth = function (width, container, margin) {
@@ -97,8 +100,6 @@ report.d3 = function () {
             var endDate = new Date(); // end today
             var startDate = new Date(endDate.getTime());
             startDate.setFullYear(startDate.getFullYear() - 1); // and start one year ago
-            console.log("Start: " + startDate);
-            console.log("End  : " + endDate);
 
             selection.each(function drawGraph(dataset, i) {
 
@@ -110,7 +111,7 @@ report.d3 = function () {
 
                 chart.update = function () {
                     container.selectAll('*').remove();
-                    // we aren't transitioning properly...
+                    // we aren't transitioning properly, probably because of the remove above...
                     container.transition().duration(transitionDuration).call(chart);
                 };
 
@@ -406,8 +407,7 @@ report.d3 = function () {
         renderBullet(target.enter().append('svg')); // render on the missing elements
         //nv.utils.windowResize(chart.update);
 
-        console.log("Width " + d3.select('#extra svg').style('width'));
-        var ug = uptimeGraph();
+        var ug = uptimeHistory();
         d3.select('#extra svg')
             .datum(uptimeDataTemplate)
             .call(ug);
