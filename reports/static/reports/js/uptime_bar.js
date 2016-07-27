@@ -9,7 +9,7 @@ report.d3 = function () {
 
 
     (function checkIfStyleSheetLoaded() {
-        var stylesheetName = "nv.d3.css";  // we'll piggy back off of the nvd3 bullet chart
+        var stylesheetName = "nv.d3.css";  // we'll piggy back off of the nvd3 bullet chart styles
         var found = false;
         for (var i = 0; i < document.styleSheets.length; i++) {
             if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf(stylesheetName) > 0) {
@@ -40,25 +40,7 @@ report.d3 = function () {
                     value: 99.05
                 }
             ]
-        },  // does not deal with multiple sets properly yet.
-        {
-            national: 98.0, // the gray marker
-            target: 99.0,  // the white triangle
-            values: [   // the bars
-                {
-                    cell: "NP",
-                    value: 98.05   // the value represented by the line
-                },
-                {
-                    cell: "QH2-UoM",
-                    value: 97.05
-                },
-                {
-                    cell: "QH2",
-                    value: 99.05
-                }
-            ]
-        }
+        },
     ];
 
     function uptimeBar() {
@@ -100,16 +82,13 @@ report.d3 = function () {
 
         function chart(selection) {
 
-            // generate chart here; `d` is the data and `this` is the element
-            selection.each(function drawGraph(dataset, i) {
-
-
+            selection.each(function drawGraph(d) {
+                // here `d` is the data and `this` is the element
                 var container = d3.select(this);
 
-                // for the moment, just give it the nvd3-svg class so that it takes on the nvd3 stylesheet
+                // for the moment, we give it the nvd3-svg class so that it takes on the nvd3 stylesheet
                 // attributes rather than the default ones. (needed for resizing)
                 container.attr('class', 'nvd3-svg');
-
 
                 chart.update = function () {
                     container.selectAll('*').remove();
@@ -121,7 +100,7 @@ report.d3 = function () {
                 // height will default to 3 bars...
                 var height = (bulletHeight + bulletSpacing) * 3 + bulletSpacing;
 
-                if (!dataset) {
+                if (!d) {
                     //Remove any previously created chart components
                     container.selectAll('g').remove();
 
@@ -144,13 +123,12 @@ report.d3 = function () {
 
 
                 var minimum = 99.00;
-                dataset.forEach(function (d) {
-                    minimum = d.national < minimum ? d.national : minimum;
-                    minimum = d.target < minimum ? d.target : minimum;
-                    d.values.forEach(function (v) {
-                        minimum = v.value < minimum ? v.value : minimum;
-                    })
+                minimum = d.national < minimum ? d.national : minimum;
+                minimum = d.target < minimum ? d.target : minimum;
+                d.values.forEach(function (v) {
+                    minimum = v.value < minimum ? v.value : minimum;
                 });
+
                 minimum = Math.floor(minimum - 1); // round down to nearest number below the minimum
 
                 var xScale = d3.scale.linear()
@@ -165,12 +143,10 @@ report.d3 = function () {
                 // calculate the actual height needed.
                 height = 0;
 
-                dataset.forEach(function (d) {
-                    var cellCount = d.values.length;
-                    height += (bulletHeight + bulletSpacing) * cellCount + bulletSpacing;
-                });
+                height += (bulletHeight + bulletSpacing) * d.values.length + bulletSpacing;
 
-                var wrap = container.selectAll('g.nv-wrap.nv-bullet').data([dataset]);
+                var wrap = container.selectAll('g.nv-wrap.nv-bullet')
+                    .data([d]);
                 var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
                 var gEnter = wrapEnter.append('g');
                 var g = wrap.select('g');
@@ -187,15 +163,15 @@ report.d3 = function () {
                 ;
                 g.select('rect.nv-range1')
                     .attr('height', height)
-                    .attr('width', xScale(dataset[i].national))
+                    .attr('width', xScale(d.national))
                     .attr('x', xScale(minimum))
                 ;
 
                 var titles = gEnter.append('g')
                         .attr('class', 'nv-titles')
                     ;
-                for (var ii = 0, il = dataset[i].values.length; ii < il; ii++) {
-                    var bulletTopY = bulletSpacing + (bulletHeight + bulletSpacing) * ii;
+                for (var i = 0; i < d.values.length; i++) {
+                    var bulletTopY = bulletSpacing + (bulletHeight + bulletSpacing) * i;
                     var titleTopY = bulletTopY + bulletHeight / 2;
 
                     var title = titles.append('g')
@@ -204,16 +180,16 @@ report.d3 = function () {
                         ;
                     title.append('text')
                         .attr('class', 'nv-title')
-                        .text(dataset[i].values[ii].cell);
+                        .text(d.values[i].cell);
                     title.append('text')
                         .attr('class', 'nv-subtitle')
                         .attr('dy', '1em')
                         .text(subtitle);
-                    gEnter.append('rect').attr('class', 'nv-measure' + ii);
+                    gEnter.append('rect').attr('class', 'nv-measure' + i);
 
-                    var scaled = xScale(dataset[i].values[ii].value);
-                    g.select('rect.nv-measure' + ii)
-                        .data([dataset[i].values[ii]])
+                    var scaled = xScale(d.values[i].value);
+                    g.select('rect.nv-measure' + i)
+                        .data([d.values[i]])
                         .style('fill', color)
                         .attr('height', bulletHeight)
                         .attr('y', bulletTopY)
@@ -243,7 +219,7 @@ report.d3 = function () {
                     ;
                 }
                 var h3 = height / 6;
-                var markerData = [{value: dataset[i].target, label: targetLabel}];
+                var markerData = [{value: d.target, label: targetLabel}];
                 gEnter.selectAll('path.nv-markerTriangle')
                     .data(markerData)
                     .enter()
@@ -279,21 +255,21 @@ report.d3 = function () {
                 wrap.selectAll('.nv-range')
                     .on('mouseover', function (d, index) {
                         dispatch.elementMouseover({
-                            value: index != 0 ? d[i].national : 100,
+                            value: index != 0 ? d.national : 100,
                             label: rangeLabels[index],
                             color: d3.select(this).style('fill')
                         })
                     })
                     .on('mousemove', function (d, index) {
                         dispatch.elementMousemove({
-                            value: index != 0 ? d[i].national : 100,
+                            value: index != 0 ? d.national : 100,
                             label: rangeLabels[index],
                             color: d3.select(this).style('fill')
                         })
                     })
                     .on('mouseout', function (d, index) {
                         dispatch.elementMouseout({
-                            value: index != 0 ? d[i].national : 100,
+                            value: index != 0 ? d.national : 100,
                             label: rangeLabels[index],
                             color: d3.select(this).style('fill')
                         })
@@ -417,7 +393,7 @@ report.d3 = function () {
 
         d3.select('#chart')
             .selectAll('svg')
-            .datum(uptimeData)
+            .data(uptimeData)
             .call(chart)
         ;
         nv.utils.windowResize(chart.update);
