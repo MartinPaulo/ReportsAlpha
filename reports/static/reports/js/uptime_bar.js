@@ -40,6 +40,24 @@ report.d3 = function () {
                     value: 99.05
                 }
             ]
+        },  // does not deal with multiple sets properly yet.
+        {
+            national: 98.0, // the gray marker
+            target: 99.0,  // the white triangle
+            values: [   // the bars
+                {
+                    cell: "NP",
+                    value: 98.05   // the value represented by the line
+                },
+                {
+                    cell: "QH2-UoM",
+                    value: 97.05
+                },
+                {
+                    cell: "QH2",
+                    value: 99.05
+                }
+            ]
         }
     ];
 
@@ -49,23 +67,25 @@ report.d3 = function () {
         // Public Variables with Default Settings
         //------------------------------------------------------------
 
-        var bulletMargin = {top: 0, right: 0, bottom: 0, left: 0}
-            , margin = {top: 5, right: 40, bottom: 20, left: 120}
+        var margin = {top: 5, right: 40, bottom: 20, left: 120} // margin is not properly used yet
             , minimumWidth = 800
             , width = null
-            , bulletHeight = 10
-            , bulletSpacing = 10
-            , headingText = "Uptime"
+            , bulletHeight = 15
+            , bulletSpacing = 15
             , transitionDuration = 0
             , subtitle = "% Available"
             , rangeLabels = ["Maximum", "National"]
-            , valueLabel = "Current"
             , targetLabel = "Target"
+            , noData = "No Data Available."
             , color = nv.utils.getColor(['#1f77b4'])
-            , dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
+            ;
+
+        //============================================================
+        // Private Variables
+        //------------------------------------------------------------
+
+        var dispatch = d3.dispatch('elementMouseover', 'elementMouseout', 'elementMousemove')
             , tooltip = nv.models.tooltip()
-            // need to make the no data message display if there is no data available...
-            , noData = 'No Data Available'
             ;
 
         tooltip
@@ -77,9 +97,12 @@ report.d3 = function () {
             return newWidth < minimumWidth ? minimumWidth : newWidth;
         };
 
+
         function chart(selection) {
 
+            // generate chart here; `d` is the data and `this` is the element
             selection.each(function drawGraph(dataset, i) {
+
 
                 var container = d3.select(this);
 
@@ -87,15 +110,38 @@ report.d3 = function () {
                 // attributes rather than the default ones. (needed for resizing)
                 container.attr('class', 'nvd3-svg');
 
+
                 chart.update = function () {
                     container.selectAll('*').remove();
                     // we aren't transitioning properly...
                     container.transition().duration(transitionDuration).call(chart);
                 };
 
-                var availableWidth = calculateWidth(width, container, margin);
+                var usableWidth = calculateWidth(width, container, margin);
+                // height will default to 3 bars...
+                var height = (bulletHeight + bulletSpacing) * 3 + bulletSpacing;
 
-                var noOfDataSets = dataset.length;
+                if (!dataset) {
+                    //Remove any previously created chart components
+                    container.selectAll('g').remove();
+
+                    var noDataText = container.selectAll('.nv-noData')
+                        .data([noData]);
+
+                    noDataText.enter().append('text')
+                        .attr('class', 'nvd3 nv-noData')
+                        .attr('dy', '-.7em')
+                        .attr('x', margin.left + usableWidth / 2)
+                        .attr('y', margin.top + height / 2)
+                        .style('text-anchor', 'middle')
+                        .text(function (t) {
+                            return t;
+                        });
+                    return chart;
+                } else {
+                    container.selectAll('.nv-noData').remove();
+                }
+
 
                 var minimum = 99.00;
                 dataset.forEach(function (d) {
@@ -109,16 +155,17 @@ report.d3 = function () {
 
                 var xScale = d3.scale.linear()
                         .domain([minimum, 100])
-                        .range([0, availableWidth])
+                        .range([0, usableWidth])
                         .clamp(true)
                     ;
                 var xAxis = d3.svg.axis()
                         .scale(xScale)
                     ;
 
-                var height = 0;
+                // calculate the actual height needed.
+                height = 0;
+
                 dataset.forEach(function (d) {
-                    // height += margin.top + margin.bottom;
                     var cellCount = d.values.length;
                     height += (bulletHeight + bulletSpacing) * cellCount + bulletSpacing;
                 });
@@ -132,9 +179,6 @@ report.d3 = function () {
                 rangeClassNames = 'nv-range nv-range1';
                 gEnter.append('rect').attr('class', rangeClassNames);
 
-                for (var ii = 0, il = dataset[i].values.length; ii < il; ii++) {
-                    gEnter.append('rect').attr('class', 'nv-measure' + ii);
-                }
                 wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
                 g.select('rect.nv-range0')
                     .attr('height', height)
@@ -147,13 +191,32 @@ report.d3 = function () {
                     .attr('x', xScale(minimum))
                 ;
 
+                var titles = gEnter.append('g')
+                        .attr('class', 'nv-titles')
+                    ;
                 for (var ii = 0, il = dataset[i].values.length; ii < il; ii++) {
+                    var bulletTopY = bulletSpacing + (bulletHeight + bulletSpacing) * ii;
+                    var titleTopY = bulletTopY + bulletHeight / 2;
+
+                    var title = titles.append('g')
+                            .attr('text-anchor', 'end')
+                            .attr('transform', 'translate(-6,' + titleTopY + ')')
+                        ;
+                    title.append('text')
+                        .attr('class', 'nv-title')
+                        .text(dataset[i].values[ii].cell);
+                    title.append('text')
+                        .attr('class', 'nv-subtitle')
+                        .attr('dy', '1em')
+                        .text(subtitle);
+                    gEnter.append('rect').attr('class', 'nv-measure' + ii);
+
                     var scaled = xScale(dataset[i].values[ii].value);
                     g.select('rect.nv-measure' + ii)
                         .data([dataset[i].values[ii]])
                         .style('fill', color)
                         .attr('height', bulletHeight)
-                        .attr('y', bulletSpacing + (bulletHeight + bulletSpacing) * ii)
+                        .attr('y', bulletTopY)
                         .attr('x', xScale(minimum))
                         .attr('width', scaled)
                         .on('mouseover', function (d) {
@@ -180,14 +243,16 @@ report.d3 = function () {
                     ;
                 }
                 var h3 = height / 6;
-                var markerData = [{value: dataset[i].target, label: "Target"}];
-                gEnter
-                    .selectAll('path.nv-markerTriangle')
+                var markerData = [{value: dataset[i].target, label: targetLabel}];
+                gEnter.selectAll('path.nv-markerTriangle')
                     .data(markerData)
                     .enter()
                     .append('path')
                     .attr('class', 'nv-markerTriangle')
-                    .attr('d', 'M0,' + h3 + 'L' + h3 + ',' + (-h3) + ' ' + (-h3) + ',' + (-h3) + 'Z')
+                    .attr('transform', function (d) {
+                        return 'translate(' + xScale(d.value) + ', ' + (height / 2) + ')'
+                    })
+                    .attr('d', 'M 0 ' + h3 + ' L ' + h3 + ' ' + (-h3) + ' L ' + (-h3) + ' ' + (-h3) + ' Z')
                     .on('mouseover', function (d) {
                         dispatch.elementMouseover({
                             value: d.value,
@@ -209,11 +274,6 @@ report.d3 = function () {
                             label: d.label,
                             color: d3.select(this).style('fill')
                         })
-                    });
-                g.selectAll('path.nv-markerTriangle')
-                    .data(markerData)
-                    .attr('transform', function (d) {
-                        return 'translate(' + xScale(d.value) + ', ' + (height / 2) + ')'
                     })
                 ;
                 wrap.selectAll('.nv-range')
@@ -238,7 +298,7 @@ report.d3 = function () {
                             color: d3.select(this).style('fill')
                         })
                     });
-                var axis =  gEnter
+                var axis = gEnter
                     .append('g')
                     .attr('class', 'nv-axis')
                     .attr('transform', function (d) {
@@ -297,22 +357,39 @@ report.d3 = function () {
             return chart;
         };
 
-
-        chart.headingText = function (_) {
-            if (!arguments.length) return headingText;
-            headingText = _;
-            return chart;
-        };
-
         chart.transitionDuration = function (_) {
             if (!arguments.length) return transitionDuration;
             transitionDuration = _;
             return chart;
         };
 
+        chart.subtitle = function (_) {
+            if (!arguments.length) return subtitle;
+            subtitle = _;
+            return chart;
+        };
+
+        chart.rangeLabels = function (_) {
+            if (!arguments.length) return rangeLabels;
+            rangeLabels = _;
+            return chart;
+        };
+
+        chart.targetLabel = function (_) {
+            if (!arguments.length) return targetLabel;
+            targetLabel = _;
+            return chart;
+        };
+
         chart.color = function (_) {
             if (!arguments.length) return color;
             color = _;
+            return chart;
+        };
+
+        chart.noData = function (_) {
+            if (!arguments.length) return noData;
+            noData = _;
             return chart;
         };
 
@@ -338,11 +415,11 @@ report.d3 = function () {
                 return getColour(d.cell);
             });
 
-        var target = d3.select('#chart')
-                .selectAll('svg')
-                .datum(uptimeData)
-                .call(chart)
-            ;
+        d3.select('#chart')
+            .selectAll('svg')
+            .datum(uptimeData)
+            .call(chart)
+        ;
         nv.utils.windowResize(chart.update);
     };
 
