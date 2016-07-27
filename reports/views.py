@@ -14,9 +14,6 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import generic
-from openpyxl import Workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.writer.excel import save_virtual_workbook
 
 from reports.fake_data import factory
 from .models import Report
