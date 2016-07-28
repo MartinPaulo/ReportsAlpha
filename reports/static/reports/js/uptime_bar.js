@@ -40,7 +40,7 @@ report.d3 = function () {
                     value: 99.05
                 }
             ]
-        },
+        }
     ];
 
     function uptimeBar() {
