@@ -39,17 +39,25 @@ var report = report || {};
 report.uptimeHistory = function () {
 
 
-    (function checkIfStyleSheetLoaded() {
-        var stylesheetName = "UptimeHistory.css";
-        var found = false;
-        for (var i = 0; i < document.styleSheets.length; i++) {
-            if (document.styleSheets[i].href && document.styleSheets[i].href.indexOf(stylesheetName) > 0) {
-                found = true;
+    (function () {
+        // we load the css file here: that way we know the css will be present...
+        var getCurrentScriptPath = function () {
+            if (document.currentScript) {
+                return document.currentScript.src;
+            } else {
+                // this will be the file currently executing...
+                var scripts = document.getElementsByTagName('script');
+                return scripts[scripts.length - 1].src;
+
             }
-        }
-        if (!found) {
-            console.log("Required stylesheet " + stylesheetName + " is not found!")
-        }
+        };
+        var thisScriptPath = getCurrentScriptPath();
+        var link = document.createElement("link");
+        link.href = thisScriptPath.substr(0, thisScriptPath.lastIndexOf(".")) + ".css";
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.media = "screen,print";
+        document.getElementsByTagName("head")[0].appendChild(link);
     })();
 
     function uptimeHistory() {
