@@ -104,10 +104,10 @@ report.d3 = function () {
                     //Remove any previously created chart components
                     container.selectAll('g').remove();
 
-                    var noDataText = container.selectAll('.nv-noData')
-                        .data([noData]);
-
-                    noDataText.enter().append('text')
+                    container.selectAll('.nv-noData')
+                        .data([noData])
+                        .enter()
+                        .append('text')
                         .attr('class', 'nvd3 nv-noData')
                         .attr('dy', '-.7em')
                         .attr('x', margin.left + usableWidth / 2)
