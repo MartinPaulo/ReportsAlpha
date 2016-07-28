@@ -1,9 +1,10 @@
 /**
- * Created by martin paulo on 28/07/2016.
  * A bullet graph to show the uptime of one or more cells.
  * Inspired by the nvd3 bullet graph.
+ *
  * The expected data format is:
- *     var uptimeData = [
+ *
+ * var uptimeDataTemplate = [
  *       {
  *           national: 98.0, // will be drawn as a darker grey square to show how the national service compares
  *           target: 99.0,   // a white triangle demarcates the target uptime
@@ -25,6 +26,7 @@
  *       // each object in this array will be rendered as a separate uptime bullet chart
  *   ];
  *
+ * Created by martin paulo on 28/07/2016.
  */
 'use strict';
 
