@@ -86,7 +86,7 @@ report.d3 = function () {
             , paddingTopHeading = -50
             , headingText = "Uptime History"
             , transitionDuration = 0
-            // we need to add a "No Data" message
+            , noData = "No Data Available."
             ;
 
         var calculateWidth = function (width, container, margin) {
@@ -119,6 +119,27 @@ report.d3 = function () {
                 };
 
                 var availableWidth = calculateWidth(width, container, margin);
+
+                if (!dataset || dataset.length == 0) {
+                    //Remove any previously created chart components
+                    container.selectAll('g').remove();
+
+                    container.selectAll('.nv-noData')
+                        .data([noData])
+                        .enter()
+                        .append('text')
+                        .attr('class', 'nvd3 nv-noData')
+                        .attr('dy', '-.7em')
+                        .attr('x', margin.left + availableWidth / 2)
+                        .attr('y', margin.top + (barHeight + lineSpacing) / 2)
+                        .style('text-anchor', 'middle')
+                        .text(function (t) {
+                            return t;
+                        });
+                    return chart;
+                } else {
+                    container.selectAll('.nv-noData').remove();
+                }
 
                 var noOfDataSets = dataset.length;
 
@@ -364,6 +385,13 @@ report.d3 = function () {
             return chart;
         };
 
+        chart.noData = function (_) {
+            if (!arguments.length) return noData;
+            noData = _;
+            return chart;
+        };
+
+
         return chart;
     }
 
@@ -412,7 +440,8 @@ report.d3 = function () {
 
         var ug = uptimeHistory();
         d3.select('#extra').selectAll('svg')
-            .data(uptimeDataTemplate)
+        //.data(uptimeDataTemplate)
+            .datum(null)
             .call(ug)
         ;
 
