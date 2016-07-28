@@ -23,25 +23,28 @@ report.d3 = function () {
 
 
     var uptimeDataTemplate = [
-        {
-            key: "first service",
-            values: [
-                // start and end time being number of milliseconds since 1970/01/01.
-                // As returned by new Date().getTime();
-                // to convert to a date simply do var date = new Date(1468986686293);
-                {start: 1457000000000, end: 1458000000000, planned: true},
-                {start: 1458000000000, end: 1458900000000, planned: false},
-                {start: 1468050000000, end: 1468060000000, planned: true},
-                {start: 1468800000000, end: 1468900000000, planned: false}
-            ]
-        },
-        {
-            key: "second service",
-            values: [
-                {start: 1468986686293, end: 1468986700000, planned: true},
-                {start: 1468000000000, end: 1468900000000, planned: false}
-            ]
-        }
+        // each array entry will be rendered as a separate graph.
+        [
+            {
+                service: "first service",
+                values: [
+                    // start and end time being number of milliseconds since 1970/01/01.
+                    // As returned by new Date().getTime();
+                    // to convert to a date simply do var date = new Date(1468986686293);
+                    {start: 1457000000000, end: 1458000000000, planned: true},
+                    {start: 1458000000000, end: 1458900000000, planned: false},
+                    {start: 1468050000000, end: 1468060000000, planned: true},
+                    {start: 1468800000000, end: 1468900000000, planned: false}
+                ]
+            },
+            {
+                service: "second service",
+                values: [
+                    {start: 1468986686293, end: 1468986700000, planned: true},
+                    {start: 1468000000000, end: 1468900000000, planned: false}
+                ]
+            }
+        ]
     ];
 
 
@@ -101,7 +104,7 @@ report.d3 = function () {
             var startDate = new Date(endDate.getTime());
             startDate.setFullYear(startDate.getFullYear() - 1); // and start one year ago
 
-            selection.each(function drawGraph(dataset, i) {
+            selection.each(function drawGraph(dataset) {
 
                 var container = d3.select(this);
 
@@ -150,7 +153,7 @@ report.d3 = function () {
                     .attr('x', paddingLeft)
                     .attr('y', lineSpacing + barHeight / 2)
                     .text(function (d) {
-                        return d.key;
+                        return d.service;
                     })
                     .attr('transform', function (d, i) {
                         return 'translate(0,' + ((lineSpacing + barHeight) * i) + ')';
@@ -408,9 +411,10 @@ report.d3 = function () {
         //nv.utils.windowResize(chart.update);
 
         var ug = uptimeHistory();
-        d3.select('#extra svg')
-            .datum(uptimeDataTemplate)
-            .call(ug);
+        d3.select('#extra').selectAll('svg')
+            .data(uptimeDataTemplate)
+            .call(ug)
+        ;
 
         nv.utils.windowResize(ug.update);
 
