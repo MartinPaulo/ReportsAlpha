@@ -250,7 +250,10 @@ report.uptimeHistory = function () {
                     })
                     .attr('y', lineSpacing)
                     .attr('width', function (d) {
-                        return (Math.ceil(xScale(new Date(d.end)) - xScale(new Date(d.start))));
+                        var barWidth = Math.ceil(xScale(new Date(d.end)) - xScale(new Date(d.start)));
+                        // if the width < 1 pixel we won't see it...
+                        barWidth = barWidth < 1 ? 1 : barWidth;
+                        return barWidth;
                     })
                     .attr('height', barHeight)
                     .attr('class', function (d) {
