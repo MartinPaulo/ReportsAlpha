@@ -88,7 +88,7 @@ report.uptimeHistory = function () {
         // Public Variables with Default Settings
         //------------------------------------------------------------
 
-        var margin = {top: 70, right: 100, bottom: 20, left: 100}
+        var margin = {top: 70, right: 40, bottom: 20, left: 120}
             , width = null
             , minimumWidth = 800
             , barHeight = 18

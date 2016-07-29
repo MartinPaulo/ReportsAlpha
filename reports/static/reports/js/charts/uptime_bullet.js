@@ -56,7 +56,7 @@ report.uptimeBullet = function () {
         // Public Variables with Default Settings
         //------------------------------------------------------------
 
-        var margin = {top: 5, right: 40, bottom: 20, left: 120} // margin is not properly used yet
+        var margin = {top: 5, right: 40, bottom: 20, left: 120}
             , minimumWidth = 800    // the graph can get no smaller than this if self sizing
             , width = null  // the width the graph should be (if not set, self sizes)
             , bulletHeight = 15 // the vertical space of a bullet
@@ -96,6 +96,7 @@ report.uptimeBullet = function () {
                 // here `d` is the data and `this` is the element
                 var container = d3.select(this);
 
+                // clear the existing styles on the container
                 container.attr('class', 'nvd3-svg');
 
                 chart.update = function () {
@@ -108,8 +109,10 @@ report.uptimeBullet = function () {
 
                 // if no data put up the "no data" message and return
                 if (!d) {
-                    // height will default to 3 bars if there is no data...
+                    // height will default to that of 3 bars if there is no data...
                     var emptyHeight = (bulletHeight + bulletSpacing) * 3 + bulletSpacing;
+                    d3.select(this)
+                        .attr('height', emptyHeight + titleHeight + titlePadding + margin.top + margin.bottom);
                     //Remove any previously created chart components
                     container.selectAll('g').remove();
 
