@@ -7,7 +7,7 @@ var report = report || {};
 
 report.d3 = function () {
 
-    var uptimeOutageData = [
+    var uptimeHistoryData = [
         // each array entry will be rendered as a separate graph.
         [
             {
@@ -49,12 +49,13 @@ report.d3 = function () {
                 {start: 1468050000000, end: 1468060000000, planned: true},
                 {start: 1468800000000, end: 1468900000000, planned: false}
             ]
-        },
+        }
         ]
     ];
 
-    var uptimeHistoryData = [
+    var uptimeData = [
         {
+            service: "Nova",
             national: 98.0, // will be drawn as a darker grey square to show how the national service compares
             target: 99.0,   // a white triangle demarcates the target uptime
             cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
@@ -71,17 +72,33 @@ report.d3 = function () {
                     uptime: 99.05
                 }
             ]
+        }, {
+            service: "Neutron",
+            national: 99.0, // will be drawn as a darker grey square to show how the national service compares
+            target: 99.8,   // a white triangle demarcates the target uptime
+            cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
+                {
+                    name: "NP",
+                    uptime: 99.05   // the value represented by the line
+                },
+                {
+                    name: "QH2-UoM",
+                    uptime: 98.05
+                },
+                {
+                    name: "QH2",
+                    uptime: 99.9
+                }
+            ]
         }
         // each object in this array will be rendered as a separate uptime bullet chart
     ];
-
-    utils.createDateButtons();
 
     function drawHistory() {
         var ug = report.uptimeHistory();
         d3.select('#chart')
             .selectAll('svg')
-            .data(uptimeOutageData)
+            .data(uptimeHistoryData)
             .call(ug)
         ;
         nv.utils.windowResize(ug.update);
@@ -89,13 +106,19 @@ report.d3 = function () {
 
     var render = function () {
 
+
+        d3.select('#chart')
+            .style('height', 'auto');
+
+
+        drawHistory();  // at the top of the screen
+
         var datacenterColours = {
             'QH2': 'chocolate',
             'QH2-UoM': 'green',
             'NP': 'blue',
             'Other data centers': 'lightblue'
         };
-
 
         var getColour = function (key) {
             return key in datacenterColours && typeof datacenterColours[key] === 'string' ? datacenterColours[key] : 'black';
@@ -108,18 +131,16 @@ report.d3 = function () {
 
         d3.select('#extra')
             .selectAll('svg')
-            .data(uptimeHistoryData)
+            .data(uptimeData)
+            .call(chart)
+            .enter()
+            .append('svg')
             .call(chart)
         ;
 
         nv.utils.windowResize(chart.update);
 
-        drawHistory();
     };
-
-    d3.select('#chart svg')[0][0].addEventListener('redraw', function (e) {
-        drawHistory();
-    }, false);
 
     return {
         render: render

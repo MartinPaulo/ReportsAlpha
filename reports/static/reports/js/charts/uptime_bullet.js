@@ -6,10 +6,11 @@
  *
  * var uptimeDataTemplate = [
  *       {
- *           national: 98.0, // will be drawn as a darker grey square to show how the national service compares
- *           target: 99.0,   // a white triangle demarcates the target uptime
- *           cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
- *               {
+ *          service: "neutron", // the name of the service drawn above the bullet chart.
+ *          national: 98.0, // will be drawn as a darker grey square to show how the national service compares
+ *          target: 99.0,   // a white triangle demarcates the target uptime
+ *          cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
+ *              {
  *                   name: "NP",
  *                   uptime: 98.05   // the value represented by the line
  *               },
@@ -44,6 +45,7 @@ report.uptimeBullet = function () {
             }
         }
         if (!found) {
+            // a helpful hint to indicate why the graph might be garbage...
             console.log("Required stylesheet " + stylesheetName + " is not found!")
         }
     })();
@@ -55,16 +57,19 @@ report.uptimeBullet = function () {
         //------------------------------------------------------------
 
         var margin = {top: 5, right: 40, bottom: 20, left: 120} // margin is not properly used yet
-            , minimumWidth = 800
-            , width = null
-            , bulletHeight = 15
-            , bulletSpacing = 15
-            , transitionDuration = 0
+            , minimumWidth = 800    // the graph can get no smaller than this if self sizing
+            , width = null  // the width the graph should be (if not set, self sizes)
+            , bulletHeight = 15 // the vertical space of a bullet
+            , bulletSpacing = 15 // the vertical space between the bullets
+            , titleHeight = 20  // the vertical space for the title (the service name)
+            , titlePadding = 5  // the vertical space between the title and the graph
+            , title = "Uptime"  // what will prefix the service name
             , subtitle = "% Available"
             , rangeLabels = ["Maximum", "National"]
             , targetLabel = "Target"
             , noData = "No Data Available."
             , color = nv.utils.getColor(['#1f77b4'])
+            , transitionDuration = 0
             ;
 
         //============================================================
@@ -100,10 +105,11 @@ report.uptimeBullet = function () {
                 };
 
                 var usableWidth = calculateWidth(width, container, margin);
-                // height will default to 3 bars...
-                var height = (bulletHeight + bulletSpacing) * 3 + bulletSpacing;
 
+                // if no data put up the "no data" message and return
                 if (!d) {
+                    // height will default to 3 bars if there is no data...
+                    var emptyHeight = (bulletHeight + bulletSpacing) * 3 + bulletSpacing;
                     //Remove any previously created chart components
                     container.selectAll('g').remove();
 
@@ -114,18 +120,31 @@ report.uptimeBullet = function () {
                         .attr('class', 'nvd3 nv-noData')
                         .attr('dy', '-.7em')
                         .attr('x', margin.left + usableWidth / 2)
-                        .attr('y', margin.top + height / 2)
+                        .attr('y', margin.top + emptyHeight / 2)
                         .style('text-anchor', 'middle')
                         .text(function (t) {
                             return t;
                         });
                     return chart;
                 } else {
+                    // if left from last render, remove the no data message!
                     container.selectAll('.nv-noData').remove();
                 }
 
+                // add the graph title
+                var displayTitle = title ? title + ": " + d.service : d.service;
+                d3.select(this)
+                    .append('g')
+                    .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                    .append('text')
+                    .attr('x', 0)
+                    .attr('y', titleHeight)
+                    .attr('class', 'nv_title')
+                    .text(displayTitle)
+                ;
 
-                var minimum = 99.00;
+                // we want to find the left hand range
+                var minimum = 99.00;    // just start at some random likely value
                 minimum = d.national < minimum ? d.national : minimum;
                 minimum = d.target < minimum ? d.target : minimum;
                 d.cells.forEach(function (v) {
@@ -143,10 +162,12 @@ report.uptimeBullet = function () {
                         .scale(xScale)
                     ;
 
-                // calculate the actual height needed.
-                height = 0;
-
+                // calculate the actual height needed for the bars.
+                var height = 0;
                 height += (bulletHeight + bulletSpacing) * d.cells.length + bulletSpacing;
+
+                d3.select(this)
+                    .attr('height', height + titleHeight + titlePadding + margin.top + margin.bottom);
 
                 var wrap = container.selectAll('g.nv-wrap.nv-bullet')
                     .data([d]);
@@ -157,8 +178,8 @@ report.uptimeBullet = function () {
                 gEnter.append('rect').attr('class', rangeClassNames);
                 rangeClassNames = 'nv-range nv-range1';
                 gEnter.append('rect').attr('class', rangeClassNames);
-
-                wrap.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                var startX = titleHeight + margin.top + titlePadding;
+                wrap.attr('transform', 'translate(' + margin.left + ',' + startX + ')');
                 g.select('rect.nv-range0')
                     .attr('height', height)
                     .attr('width', xScale(100))
@@ -177,14 +198,14 @@ report.uptimeBullet = function () {
                     var bulletTopY = bulletSpacing + (bulletHeight + bulletSpacing) * i;
                     var titleTopY = bulletTopY + bulletHeight / 2;
 
-                    var title = titles.append('g')
+                    var bartTitle = titles.append('g')
                             .attr('text-anchor', 'end')
                             .attr('transform', 'translate(-6,' + titleTopY + ')')
                         ;
-                    title.append('text')
+                    bartTitle.append('text')
                         .attr('class', 'nv-title')
                         .text(d.cells[i].name);
-                    title.append('text')
+                    bartTitle.append('text')
                         .attr('class', 'nv-subtitle')
                         .attr('dy', '1em')
                         .text(subtitle);
@@ -333,6 +354,24 @@ report.uptimeBullet = function () {
         chart.bulletSpacing = function (_) {
             if (!arguments.length) return bulletSpacing;
             bulletSpacing = _;
+            return chart;
+        };
+
+        chart.titleHeight = function (_) {
+            if (!arguments.length) return titleHeight;
+            titleHeight = _;
+            return chart;
+        };
+
+        chart.titlePadding = function (_) {
+            if (!arguments.length) return titlePadding;
+            titlePadding = _;
+            return chart;
+        };
+
+        chart.title = function (_) {
+            if (!arguments.length) return title;
+            title = _;
             return chart;
         };
 
