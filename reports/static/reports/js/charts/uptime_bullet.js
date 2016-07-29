@@ -70,6 +70,7 @@ report.uptimeBullet = function () {
             , noData = "No Data Available."
             , color = nv.utils.getColor(['#1f77b4'])
             , transitionDuration = 0
+            , domainMinimum   // set to the domainMinimum you want all graphs to share.
             ;
 
         //============================================================
@@ -99,10 +100,16 @@ report.uptimeBullet = function () {
                 // clear the existing styles on the container
                 container.attr('class', 'nvd3-svg');
 
+                // because we have multiple charts, the update needs to chain them together
+                // of course this means that if a chart is deleted we are going to leak memory
+                var oldUpdate = chart.update; // capture any old update that might exist
                 chart.update = function () {
                     container.selectAll('*').remove();
                     // we aren't transitioning properly...
                     container.transition().duration(transitionDuration).call(chart);
+                    if (oldUpdate) { // if there was a previous update function
+                        oldUpdate(); // call it...
+                    }
                 };
 
                 var usableWidth = calculateWidth(width, container, margin);
@@ -145,19 +152,10 @@ report.uptimeBullet = function () {
                     .attr('class', 'nv_title')
                     .text(displayTitle)
                 ;
-
-                // we want to find the left hand range
-                var minimum = 99.00;    // just start at some random likely value
-                minimum = d.national < minimum ? d.national : minimum;
-                minimum = d.target < minimum ? d.target : minimum;
-                d.cells.forEach(function (v) {
-                    minimum = v.uptime < minimum ? v.uptime : minimum;
-                });
-
-                minimum = Math.floor(minimum - 1); // round down to nearest number below the minimum
+                var thisMinimum = domainMinimum ? domainMinimum : chart.getLowestUptime(d);
 
                 var xScale = d3.scale.linear()
-                        .domain([minimum, 100])
+                        .domain([thisMinimum, 100])
                         .range([0, usableWidth])
                         .clamp(true)
                     ;
@@ -174,24 +172,26 @@ report.uptimeBullet = function () {
 
                 var wrap = container.selectAll('g.nv-wrap.nv-bullet')
                     .data([d]);
-                var wrapEnter = wrap.enter().append('g').attr('class', 'nvd3 nv-wrap nv-bullet');
+                var wrapEnter = wrap.enter()
+                    .append('g')
+                    .attr('class', 'nvd3 nv-wrap nv-bullet');
                 var gEnter = wrapEnter.append('g');
                 var g = wrap.select('g');
-                var rangeClassNames = 'nv-range nv-range0';
-                gEnter.append('rect').attr('class', rangeClassNames);
-                rangeClassNames = 'nv-range nv-range1';
-                gEnter.append('rect').attr('class', rangeClassNames);
+                for (var k = 0; k < rangeLabels.length; k++) {
+                    var rangeClassNames = 'nv-range nv-range' + k;
+                    gEnter.append('rect').attr('class', rangeClassNames);
+                }
                 var startX = titleHeight + margin.top + titlePadding;
                 wrap.attr('transform', 'translate(' + margin.left + ',' + startX + ')');
                 g.select('rect.nv-range0')
                     .attr('height', height)
                     .attr('width', xScale(100))
-                    .attr('x', xScale(minimum))
+                    .attr('x', xScale(thisMinimum))
                 ;
                 g.select('rect.nv-range1')
                     .attr('height', height)
                     .attr('width', xScale(d.national))
-                    .attr('x', xScale(minimum))
+                    .attr('x', xScale(thisMinimum))
                 ;
 
                 var titles = gEnter.append('g')
@@ -220,7 +220,7 @@ report.uptimeBullet = function () {
                         .style('fill', color)
                         .attr('height', bulletHeight)
                         .attr('y', bulletTopY)
-                        .attr('x', xScale(minimum))
+                        .attr('x', xScale(thisMinimum))
                         .attr('width', scaled)
                         .on('mouseover', function (cell) {
                             dispatch.elementMouseover({
@@ -305,7 +305,7 @@ report.uptimeBullet = function () {
                     .append('g')
                     .attr('class', 'nv-axis')
                     .attr('transform', function (d) {
-                        return 'translate(' + xScale(minimum) + ', ' + height + ')'
+                        return 'translate(' + xScale(thisMinimum) + ', ' + height + ')'
                     })
                     .call(xAxis);
 
@@ -413,6 +413,24 @@ report.uptimeBullet = function () {
             noData = _;
             return chart;
         };
+
+        chart.domainMinimum = function (_) {
+            if (!arguments.length) return domainMinimum;
+            domainMinimum = _;
+            return domainMinimum;
+        };
+
+        // returns the lowest uptime in d rounded down to the nearest whole number
+        chart.getLowestUptime = function (d) {
+            // we want to find the lowest value in d, which is in the format of the data bound to __data__
+            var result = d.national;
+            result = d.target < result ? d.target : result;
+            d.cells.forEach(function (v) {
+                result = v.uptime < result ? v.uptime : result;
+            });
+            return Math.floor(result);
+        };
+
 
         return chart;
     }

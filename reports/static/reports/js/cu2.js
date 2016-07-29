@@ -90,6 +90,60 @@ report.d3 = function () {
                     uptime: 99.9
                 }
             ]
+        }, {
+            service: "Ceilometer",
+            national: 99.5, // will be drawn as a darker grey square to show how the national service compares
+            target: 99.8,   // a white triangle demarcates the target uptime
+            cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
+                {
+                    name: "NP",
+                    uptime: 99.22   // the value represented by the line
+                },
+                {
+                    name: "QH2-UoM",
+                    uptime: 98.89
+                },
+                {
+                    name: "QH2",
+                    uptime: 99.87
+                }
+            ]
+        }, {
+            service: "Glance",
+            national: 99.13, // will be drawn as a darker grey square to show how the national service compares
+            target: 99.56,   // a white triangle demarcates the target uptime
+            cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
+                {
+                    name: "NP",
+                    uptime: 99.15   // the value represented by the line
+                },
+                {
+                    name: "QH2-UoM",
+                    uptime: 99.66
+                },
+                {
+                    name: "QH2",
+                    uptime: 98.8
+                }
+            ]
+        }, {
+            service: "Cinder",
+            national: 99.40, // will be drawn as a darker grey square to show how the national service compares
+            target: 99.9,   // a white triangle demarcates the target uptime
+            cells: [       // each value will be rendered as a bar, indicating the uptime of that cell
+                {
+                    name: "NP",
+                    uptime: 97.05   // the value represented by the line
+                },
+                {
+                    name: "QH2-UoM",
+                    uptime: 99.05
+                },
+                {
+                    name: "QH2",
+                    uptime: 99.88
+                }
+            ]
         }
         // each object in this array will be rendered as a separate uptime bullet chart
     ];
@@ -128,6 +182,13 @@ report.d3 = function () {
             .color(function (cell) {
                 return getColour(cell.name);
             });
+
+        var lowestUptime = 100;
+        uptimeData.forEach(function (d) {
+            var dataMinimum = chart.getLowestUptime(d);
+            lowestUptime = dataMinimum < lowestUptime ? dataMinimum : lowestUptime;
+        });
+       chart.domainMinimum(lowestUptime);
 
         d3.select('#extra')
             .selectAll('svg')
