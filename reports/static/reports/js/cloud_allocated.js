@@ -17,6 +17,12 @@ report.d3 = function () {
 
     utils.createDateButtons();
 
+    /**
+     * Adds a radio button with the given caption and checked value.
+     * When clicked the button will force the graph to redraw
+     * @param caption {string}
+     * @param checked {boolean}
+     */
     function addRadioButton(caption, checked) {
         d3.select('#graph-buttons')
             .append('label')
@@ -32,6 +38,11 @@ report.d3 = function () {
         ;
     }
 
+    /**
+     * Takes a string as input and returns it with the first letter capitalized
+     * @param string {string}
+     * @returns {string}
+     */
     function capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
@@ -39,9 +50,10 @@ report.d3 = function () {
     addRadioButton(ALLOCATED_BUTTON_CAPTION, true);
     addRadioButton(USED_BUTTON_CAPTION, false);
 
-    // we have to ensure that the used chart uses the same domain as the allocation chart.
-    // this stores the domain between redraws. It works because the first graph rendered is the allocated one,
-    // and because all of the graphs are fixed on the same end date.
+    // We have to ensure that the used chart uses the same domain as the allocation chart.
+    // This stores the domain between redraws. It works because the first graph rendered is the allocated one,
+    // and because all of the graphs are fixed on the same end date. And because the allocated amount should
+    // always be more than the used amount...
     var allocationDomain;
 
     var render = function () {
@@ -50,7 +62,7 @@ report.d3 = function () {
         d3.select('#a_data').attr('href', data_path);
         d3.csv(data_path, function (error, csv) {
             if (error) {
-                console.log("Error on loading data: " + error);
+                console.log('Error on loading data: ' + error);
                 return;
             }
             csv.sort(function (a, b) {
@@ -58,12 +70,12 @@ report.d3 = function () {
             });
             var nvd3_data = [];
             var faculties = [
-                "FoA", "VAS", "FBE", "MSE", "MGSE", "MDHS", "FoS", "ABP", "MLS", "VCAMCM", "Other", "Unknown"];
+                'FoA', 'VAS', 'FBE', 'MSE', 'MGSE', 'MDHS', 'FoS', 'ABP', 'MLS', 'VCAMCM', 'Other', 'Unknown'];
             for (var i = 0; i < faculties.length; i++) {
                 var o = {};
                 o.key = faculties[i];
                 o.values = csv.map(function (d) {
-                    return [new Date(d["date"]).getTime(), parseInt(d[faculties[i].toLowerCase()])];
+                    return [new Date(d['date']).getTime(), parseInt(d[faculties[i].toLowerCase()])];
                 });
                 nvd3_data.push(o)
             }
@@ -119,7 +131,7 @@ report.d3 = function () {
         });
     };
 
-    d3.select('#chart svg')[0][0].addEventListener('redraw', function (e) {
+    d3.select('#chart svg')[0][0].addEventListener('redraw', function () {
         render();
     }, false);
 
