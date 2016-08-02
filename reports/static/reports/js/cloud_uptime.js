@@ -30,7 +30,7 @@ report.d3 = function () {
                 service: "Ceilometer",
                 outages: [
                     {start: new Date("2015-09-15").getTime(), end: new Date("2015-09-15").getTime(), planned: true},
-                    {start: new Date("2016-01-15").getTime(), end: new Date("2016-01-16").getTime(), planned: false},
+                    {start: new Date("2016-01-15").getTime(), end: new Date("2016-01-16").getTime(), planned: false}
                 ]
             },
             {
