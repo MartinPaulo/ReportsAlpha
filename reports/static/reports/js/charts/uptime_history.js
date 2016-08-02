@@ -38,7 +38,6 @@ var report = report || {};
 
 report.uptimeHistory = function () {
 
-
     (function () {
         // we load the css file here: that way we know the css will be present...
         var getCurrentScriptPath = function () {
@@ -48,7 +47,6 @@ report.uptimeHistory = function () {
                 // this will be the file currently executing...
                 var scripts = document.getElementsByTagName('script');
                 return scripts[scripts.length - 1].src;
-
             }
         };
         var thisScriptPath = getCurrentScriptPath();
