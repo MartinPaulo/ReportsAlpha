@@ -11,8 +11,10 @@ report.d3 = function () {
     function userColours(key) {
         switch (key) {
             case "at_uom_only":
+                //noinspection SpellCheckingInspection
                 return "darkblue"; // UoM blue is really #002952ff
             case "elsewhere_only":
+                //noinspection SpellCheckingInspection
                 return "lightblue";
             case "in_both":
                 return "blue";
