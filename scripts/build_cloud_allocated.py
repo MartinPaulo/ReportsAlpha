@@ -68,6 +68,10 @@ try:
     for day_date in date_range(start_day, end_day):
         faculty_totals = {'FoA': 0, 'VAS': 0, 'FBE': 0, 'MSE': 0, 'MGSE': 0, 'MDHS': 0, 'FoS': 0, 'ABP': 0, 'MLS': 0,
                           'VCAMCM': 0, 'Unknown': 0, 'Other': 0}
+        # I can't port this to the reporting database, as it doesn't have date modified or date created
+        # It also doesn't have properly linked users and projects.
+        # This is cumulative: the sum of all cores allocated till day_date. So 12756 yesterday, 12768 the day before,
+        # etc..
         cursor.execute("""SELECT
               tenant_uuid,
               contact_email,
