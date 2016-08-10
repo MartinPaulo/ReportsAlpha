@@ -72,6 +72,7 @@ try:
         # It also doesn't have properly linked users and projects.
         # This is cumulative: the sum of all cores allocated till day_date. So 12756 yesterday, 12768 the day before,
         # etc..
+        # So it is likely to double count projects that have been amended. However its not too far out...
         cursor.execute("""SELECT
               tenant_uuid,
               contact_email,
