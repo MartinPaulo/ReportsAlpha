@@ -31,9 +31,9 @@ try:
         cursor.execute("""SELECT COUNT(DISTINCT user_id) AS others_at_uom
             FROM nova.instances
             WHERE
-              ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-              OR (terminated_at IS NULL AND created_at < '{0}' ))
+              ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))  /* stopped on the day */
+              OR (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))   /* started on the day */
+              OR (terminated_at IS NULL AND created_at < '{0}' ))                 /* running through the day */
               AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
               AND user_id NOT IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%');
             """.format(day_date.strftime("%Y-%m-%d")))
