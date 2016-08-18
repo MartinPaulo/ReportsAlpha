@@ -14,25 +14,23 @@ CREATE TABLE IF NOT EXISTS allocation (
   project_id    VARCHAR(36) COMMENT 'Of the project that was spawned by this allocation',
   contact_email VARCHAR(75) COMMENT 'Who is the contact person for this allocation',
   modified_time DATETIME COMMENT 'The last time the allocation was modified',
-  PRIMARY KEY (project_id),
-  KEY volume_instance_uuid_key (modified_time)
-)
-  COMMENT 'The allocations that were awarded';
+  PRIMARY KEY (project_id)
+) COMMENT 'The allocations that were awarded';
 
 /* to get the first cut of the data we want the rows with the max modified time */
 SELECT
-  tenant_uuid AS project_id,
-  /* should be unique: our primary key*/
+  tenant_uuid AS project_id, /* This isn't unique*/
   contact_email,
   modified_time
-FROM rcallocation_allocationrequest t1
+FROM dashboard.rcallocation_allocationrequest t1
 WHERE
   tenant_uuid > ''
   AND modified_time = (
     SELECT MAX(modified_time)
-    FROM rcallocation_allocationrequest t2
+    FROM dashboard.rcallocation_allocationrequest t2
     WHERE t2.tenant_uuid = t1.tenant_uuid)
 ORDER BY modified_time;
+
 
 /* following returns the allocations that were approved or modified on the given day */
 SELECT
@@ -50,6 +48,11 @@ WHERE
           /* So should probly be where modified_time >= last_update */
           AND modified_time BETWEEN '2016-06-23' AND DATE_ADD('2016-06-23', INTERVAL 1 DAY));
 /* so these results can be used to update or insert into the original table*/
+
+/*
+INSERT INTO table (id, name, age)
+VALUES(1, "A", 19)
+ON DUPLICATE KEY UPDATE name="A", age=19 */
 
 SELECT
   id /* used for the join */,
