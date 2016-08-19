@@ -10,6 +10,7 @@ from scripts.cloud.build_used import build_used
 from scripts.config import Configuration
 from scripts.db import local_db
 from scripts.db import production_db
+from scripts.db import reporting_db
 
 
 def parse_args():
@@ -27,17 +28,19 @@ def main():
         'level': logging.DEBUG,
     }
     logging.basicConfig(**log_config)
+
     if 'config_file' in args:
         Configuration.load_from(args.config_file)
 
-    start_day = date.today() - timedelta(days=1)  # 380)
-    ldb = local_db.DB()
-    extract_db = production_db.DB()
-    #build_active(extract_db, ldb, start_day)
-    build_allocated(extract_db, ldb, start_day)
-    #build_project_faculty(extract_db, ldb, start_day)
-    #build_top_twenty(extract_db, ldb, start_day)
-    #build_used(extract_db, ldb, start_day)
+    start_day = date.today() - timedelta(days=480)
+    load_db = local_db.DB()
+    # extract_db = production_db.DB()
+    extract_db = reporting_db.DB()
+    # build_project_faculty(extract_db, load_db, start_day)
+    # build_active(extract_db, load_db, start_day)
+    # -> build_allocated(extract_db, load_db, start_day)
+    # build_top_twenty(extract_db, load_db, start_day)
+    # -> build_used(extract_db, load_db, start_day)
 
 
 if __name__ == '__main__':
