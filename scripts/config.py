@@ -6,8 +6,8 @@ from configparser import ConfigParser
 
 reporting_db = {
     'user': 'root',
-    'password': 'Testing out the system',
-    'database': 'reporting',
+    'passwd': 'B0nglyBeep',
+    'db': 'reporting',
     'host': '192.168.33.1',
     'port': 3306,
 }
@@ -36,7 +36,7 @@ class Configuration(object):
             sys.exit(1)
 
     @classmethod
-    def get_reporting_db(cls):
+    def get_prod_db(cls):
         if not cls.reporting_db:
             cls.reporting_db = reporting_db
         return cls.reporting_db
