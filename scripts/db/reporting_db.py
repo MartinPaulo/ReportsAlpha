@@ -19,74 +19,116 @@ class DB(object):
         self._db_connection.close()
 
     def get_in_both(self, day_date):
-        self._db_cur.execute("""SELECT COUNT(DISTINCT r.user_id) AS in_both
-                    FROM nova.instances l
-                    LEFT JOIN nova.instances r
-                    ON l.user_id = r.user_id
-                    WHERE
-                      (((l.terminated_at BETWEEN  '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR (l.created_at BETWEEN  '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR (l.terminated_at IS NULL AND l.created_at < '{0}' ))
-                      AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                      AND l.user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%'))
-                      AND
-                      (((r.terminated_at BETWEEN  '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR (r.created_at BETWEEN  '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR (r.terminated_at IS NULL AND r.created_at < '{0}' ))
-                      AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                      AND r.user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%'));
+        """
+        :param day_date:
+        :return:
+        """
+        self._db_cur.execute("""
+            SELECT COUNT(DISTINCT r.created_by) AS in_both
+            FROM instance l
+              LEFT JOIN instance r
+                ON l.created_by = r.created_by
+            WHERE
+              (((l.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (l.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (l.created < '{0}' AND (l.deleted IS NULL OR l.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+                AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND l.project_id IN (SELECT DISTINCT id
+                                    FROM project
+                                    WHERE organisation LIKE '%melb%'))
+              AND
+              (((r.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (r.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (r.created < '{0}' AND (r.deleted IS NULL OR r.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+                AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND r.project_id IN (SELECT DISTINCT id
+                                    FROM project
+                                    WHERE organisation LIKE '%melb%'));
                 """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["in_both"]
 
     def get_elsewhere_only(self, day_date):
-        self._db_cur.execute("""SELECT COUNT(DISTINCT user_id) AS elsewhere_only
-                    FROM nova.instances
-                    WHERE
-                      ((terminated_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR  (created_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR  (terminated_at IS NULL AND created_at < '{0}' ))
-                      AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                      AND user_id NOT IN (SELECT DISTINCT user_id AS user_id
-                        FROM nova.instances
-                        WHERE
-                        ((terminated_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                        OR  (created_at  BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                        OR  (terminated_at IS NULL AND created_at < '{0}' ))
-                        AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                        AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%'))
-                      AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%');
+        """
+
+        :param day_date:
+        :return:
+        """
+        self._db_cur.execute("""
+            SELECT COUNT(DISTINCT created_by) AS elsewhere_only
+            FROM instance
+            WHERE
+              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+              AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+              /* and not running any instances in melbourne on the day */
+              AND created_by NOT IN (SELECT DISTINCT created_by
+                                     FROM instance
+                                     WHERE
+                                       ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                                        OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                                        OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+                                       AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                                       AND project_id IN (SELECT DISTINCT id
+                                                          FROM project
+                                                          WHERE organisation LIKE '%melb%'))
+              AND project_id IN (SELECT DISTINCT id
+                                 FROM project
+                                 WHERE organisation LIKE '%melb%');
                 """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["elsewhere_only"]
 
     def get_uom_only(self, day_date):
-        self._db_cur.execute("""SELECT COUNT(DISTINCT user_id) AS UoM_only
-                    FROM nova.instances
-                    WHERE
-                      ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR  (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                      OR  (terminated_at IS NULL AND created_at < '{0}' ))
-                      AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                      AND user_id NOT IN (SELECT DISTINCT user_id AS user_id
-                        FROM nova.instances
-                        WHERE
-                        ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                        OR  (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                        OR  (terminated_at IS NULL AND created_at < '{0}' ))
-                        AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                        AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email like '%unimelb.edu.au%'))
-                      AND user_id IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email like '%unimelb.edu.au%');
+        """
+
+        :param day_date:
+        :return:
+        """
+        self._db_cur.execute("""
+            SELECT COUNT(DISTINCT created_by) AS UoM_only
+            FROM instance
+            WHERE
+              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+              AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+              /* and not running any instances in any other zone on the day */
+              AND created_by NOT IN (SELECT DISTINCT created_by
+                                     FROM instance
+                                     WHERE
+                                       ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                                        OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                                        OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+                                       AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                                       AND project_id IN (SELECT DISTINCT id
+                                                          FROM project
+                                                          WHERE organisation LIKE '%melb%'))
+              AND project_id IN (SELECT DISTINCT id
+                                 FROM project
+                                 WHERE organisation LIKE '%melb%');
                 """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["UoM_only"]
 
     def get_count_of_others_at_uom(self, day_date):
-        self._db_cur.execute("""SELECT COUNT(DISTINCT user_id) AS others_at_uom
-                    FROM nova.instances
-                    WHERE
-                      ((terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))  /* stopped on the day */
-                      OR (created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))   /* started on the day */
-                      OR (terminated_at IS NULL AND created_at < '{0}' ))                 /* running through the day */
-                      AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2' )
-                      AND user_id NOT IN (SELECT DISTINCT user_id FROM rcshib.user WHERE email LIKE '%unimelb.edu.au%');
+        """
+
+        :param day_date:
+        :return:
+        """
+        self._db_cur.execute("""
+            SELECT COUNT(DISTINCT created_by) AS others_at_uom
+            FROM instance
+            WHERE
+              /* stopped on the day */
+              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  /* started on the day */
+                  OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  /* running through the day */
+                  OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+              AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+              AND project_id NOT IN (SELECT id
+                                     FROM project
+                                     WHERE organisation LIKE '%melb%');
                     """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["others_at_uom"]
 
@@ -127,16 +169,16 @@ class DB(object):
         self._db_cur.execute("""
             SELECT
               i.project_id,
-              SUM(i.vcpus)    vcpus,
+              SUM(i.vcpus) AS vcpus,
               a.display_name
-            FROM reporting.instance i
+            FROM instance i
               LEFT JOIN
               (SELECT
                  id,
                  organisation,
                  display_name,
                  personal
-               FROM reporting.project t1) a
+               FROM project t1) a
                 ON i.project_id = a.id
             WHERE
               /* (started on the day OR ended on the day OR running through the day)
@@ -144,7 +186,7 @@ class DB(object):
                */
               ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
                OR (i.created BETWEEN '2016-07-10' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (i.deleted IS NULL AND i.created < '{0}'))
+               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND NOT ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
                        AND (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
               AND a.organisation LIKE '%melb%' AND a.personal = 0
@@ -154,32 +196,38 @@ class DB(object):
         return self._db_cur.fetchall()
 
     def get_top_twenty_data(self, day_date):
+        """
+        :param day_date:
+        :return:
+        """
         self._db_cur.execute("""
-                    SELECT  '{0}' AS 'date', i.project_id, SUM(i.vcpus) vcpus, a.tenant_name
-                    FROM nova.instances i
-                    LEFT JOIN
-                    (SELECT DISTINCT tenant_uuid, tenant_name, contact_email
-                         FROM dashboard.rcallocation_allocationrequest t1
-                         WHERE tenant_uuid > ''
-                            AND modified_time = (
-                              SELECT MAX(modified_time)
-                              FROM dashboard.rcallocation_allocationrequest t2
-                              WHERE t1.tenant_uuid = t2.tenant_uuid)) a
-                    ON i.project_id = a.tenant_uuid
-                    WHERE
-                      /* (started on the day OR ended on the day OR running through the day)
-                          AND not started and stopped on the day AND a unimelb project
-                       */
-                      ((i.terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                       OR (i.created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                       OR (i.terminated_at IS NULL AND i.created_at < '{0}'))
-                      AND NOT ((i.terminated_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                               AND (i.created_at BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
-                      AND a.contact_email LIKE '%unimelb.edu.au%'
-                    GROUP BY i.project_id
-                    ORDER BY vcpus DESC
-                    LIMIT 20;
-                  """.format(day_date.strftime("%Y-%m-%d")))
+            SELECT
+              '{0}' AS 'date',
+              i.project_id,
+              SUM(i.vcpus) AS vcpus,
+              a.display_name AS tenant_name
+            FROM instance i
+              LEFT JOIN
+              (SELECT
+                 id,
+                 organisation,
+                 display_name
+               FROM project t1) a
+                ON i.project_id = a.id
+            WHERE
+              /* (started on the day OR ended on the day OR running through the day)
+                  AND not started and stopped on the day AND a unimelb project
+               */
+              ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+              AND NOT ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                       AND (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
+              AND a.organisation LIKE '%melb%' /* OR a.organisation LIKE '%mac%'*/
+            GROUP BY i.project_id
+            ORDER BY vcpus DESC
+            LIMIT 20;
+            """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
     def get_faculty_data(self):
