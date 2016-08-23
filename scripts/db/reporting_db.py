@@ -231,20 +231,50 @@ class DB(object):
         return self._db_cur.fetchall()
 
     def get_faculty_data(self):
+        """
+        Returns:
+            A list giving the email address of the project contact
+            in the allocation database for all projects that are deemed to
+            belong to UoM
+
+        Notes:
+            A join between the project and the user:
+
+                SELECT id, email
+                FROM project p
+                  LEFT JOIN (SELECT default_project, email
+                             FROM user) u
+                    ON p.id = u.default_project
+                WHERE organisation LIKE '%melb%'
+                ORDER BY id;
+
+            returns 427 null email addresses out of 2503 results, so 1/5th
+            are missing.
+
+            If we change the join to only include personal tenancies:
+
+                WHERE organisation LIKE '%melb%' AND personal = 1
+
+            it returns 2076 rows, of which only 1 has a null email address
+
+            If we change the join to exclude personal tenancies:
+
+                WHERE organisation LIKE '%melb%' AND personal = 0
+
+            it returns 427 rows, of which 426 have a null email address.
+            So anything that comes through the allocation system does not give
+            the user a default project. Essentially a default project is a
+            euphemism for a personal tenancy.
+        """
         self._db_cur.execute("""
-                    SELECT
-                      tenant_uuid,
-                      contact_email,
-                      tenant_name
-                    FROM dashboard.rcallocation_allocationrequest t1
-                    WHERE contact_email LIKE '%unimelb.edu.au%'
-                          AND tenant_uuid > ''
-                          /* we want the last modified row */
-                          AND modified_time = (SELECT MAX(modified_time)
-                                               FROM
-                                                 dashboard.rcallocation_allocationrequest t2
-                                               WHERE
-                                                 t2.tenant_uuid = t1.tenant_uuid)
-                    ORDER BY t1.modified_time;
-                    """)
+          SELECT p.id, a.contact_email
+          FROM reporting.project p
+          LEFT JOIN (
+            SELECT project_id, contact_email
+            FROM allocation) a
+          ON p.id = a.project_id
+          WHERE p.organisation LIKE '%melb%'
+            AND p.personal = 0
+            AND a.contact_email IS NOT NULL;
+            """)
         return self._db_cur.fetchall()
