@@ -9,14 +9,11 @@ from scripts.cloud.build_top_twenty import build_top_twenty
 from scripts.cloud.build_used import build_used
 from scripts.config import Configuration
 from scripts.db import local_db
-from scripts.db import production_db
 from scripts.db import reporting_db
 
 
 def parse_args():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('-c', '--config-file', action='store',
-                        required=False, help='Specify the config file')
     parser.add_argument('--loglevel', action='store', required=False,
                         choices=['critical', 'error', 'debug',
                                  'info', 'warning'], default='debug',
@@ -36,9 +33,6 @@ def main():
         'level': loglevel,
     }
     logging.basicConfig(**log_config)
-
-    if 'config_file' in args:
-        Configuration.load_from(args.config_file)
 
     start_day = None
     days_past = int(args.days)
