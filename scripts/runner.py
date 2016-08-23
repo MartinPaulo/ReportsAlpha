@@ -47,7 +47,6 @@ def main():
     logging.info("Start date chosen is %s", start_day)
 
     load_db = local_db.DB()
-    # extract_db = production_db.DB()
     extract_db = reporting_db.DB()
     if False:
         build_project_faculty(extract_db, load_db, start_day)
