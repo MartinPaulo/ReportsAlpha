@@ -4,7 +4,9 @@ from datetime import date
 from scripts.cloud.utility import date_range
 
 
-def build_active(extract_db, load_db, start_day, end_day=date.today()):
+def build_active(extract_db, load_db, start_day=None, end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_active_last_run_date()
     logging.info("Building active user data from %s till %s",
                  start_day, end_day)
     # on the 2016-03-11 we have 452 UoM users in total, with

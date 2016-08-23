@@ -4,7 +4,9 @@ from datetime import date
 from scripts.cloud.utility import date_range, get_new_faculty_totals
 
 
-def build_used(extract_db, load_db, start_day, end_day=date.today()):
+def build_used(extract_db, load_db, start_day=None, end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_used_last_run_date()
     logging.info("Building used data from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):

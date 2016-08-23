@@ -7,7 +7,7 @@ from configparser import ConfigParser
 # default for local development
 reporting_db = {
     'user': 'root',
-    'passwd': 'password',
+    'passwd': 'B0nglyBeep',
     'db': 'menagerie',
     'host': '192.168.33.1',
     'port': 3306,
@@ -16,7 +16,7 @@ reporting_db = {
 # default for local development
 production_db = {
     'user': 'root',
-    'passwd': 'password',
+    'passwd': 'B0nglyBeep',
     'db': 'dashboard',
     'host': '192.168.33.1',
     'port': 3306,

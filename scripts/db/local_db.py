@@ -1,6 +1,6 @@
 import logging
 import sqlite3
-
+from datetime import datetime, date, timedelta
 from scripts.config import Configuration
 
 
@@ -18,6 +18,20 @@ class DB(object):
     def __del__(self):
         self._db_connection.close()
 
+    def get_max_date(self, table_name):
+        last_date = date.today() - timedelta(days=364)
+        query = "SELECT MAX(date) AS max_date FROM %s;" % table_name
+        self._db_cur.execute(query)
+        row = self._db_cur.fetchone()
+        if row is None:
+            logging.warning("No last date found for table %s", table_name)
+        else:
+            last_date = datetime.strptime(row[0], "%Y-%m-%d").date()
+        return last_date
+
+    def get_active_last_run_date(self):
+        return self.get_max_date('cloud_active_users')
+
     def save_active(self, user_counts):
         columns = ', '.join(user_counts.keys())
         value_placeholder = ', '.join(
@@ -27,15 +41,22 @@ class DB(object):
         self._db_cur.execute(update, user_counts)
         self._db_connection.commit()
 
+    def get_faculty_allocated_last_run_date(self):
+        return self.get_max_date('cloud_allocated')
+
     def save_faculty_allocated(self, day_date, faculty_totals):
         faculty_totals['date'] = day_date.strftime("%Y-%m-%d")
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
-        update = "INSERT OR REPLACE INTO cloud_allocated (%s) VALUES (%s);" % (
-            columns, value_placeholder)
+        update = "INSERT OR REPLACE INTO cloud_allocated (%s) " \
+                 "VALUES (%s);" % \
+                 (columns, value_placeholder)
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
+
+    def get_top_twenty_last_run_date(self):
+        return self.get_max_date('cloud_top_twenty')
 
     def save_top_twenty_data(self, user_counts):
         columns = ', '.join(user_counts.keys())
@@ -47,11 +68,15 @@ class DB(object):
         self._db_cur.execute(update, user_counts)
         self._db_connection.commit()
 
+    def get_used_last_run_date(self):
+        return self.get_max_date('cloud_used')
+
     def save_used_data(self, faculty_totals):
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
-        update = "INSERT OR REPLACE INTO cloud_used (%s) VALUES (%s);" % (
+        update = "INSERT OR REPLACE INTO cloud_used (%s) " \
+                 "VALUES (%s);" % (
             columns, value_placeholder)
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
@@ -66,7 +91,7 @@ class DB(object):
                      "        name, faculty_abbreviation) " \
                      "VALUES (:project_id, :contact_email, " \
                      "        :project_name, :faculty);"
-            self._db_cur.execute(update, {'project_id':project_id,
+            self._db_cur.execute(update, {'project_id': project_id,
                                           'contact_email': contact_email,
                                           'project_name': project_name,
                                           'faculty': faculty})
