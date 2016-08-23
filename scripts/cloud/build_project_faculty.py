@@ -17,11 +17,15 @@ def build_project_faculty(extract_db, load_db, start_day,
                           end_day=date.today()):
     logging.info("Building project faculty data from %s till %s ",
                  start_day, end_day)
-    result_set = extract_db.get_faculty_data()
+    result_set = extract_db.get_uom_project_contact_email()
     for row in result_set:
-        project_leader = row["contact_email"]
-        faculties = find_project_leader_faculty(project_leader)
-        load_db.save_faculty_data(faculties, project_leader, row)
+        contact_email = row["contact_email"]
+        project_id = row["tenant_uuid"]
+        project_name = row["tenant_name"]
+        faculties = find_project_leader_faculty(contact_email)
+        logging.info("Leader %s belongs to %s", contact_email, faculties)
+        load_db.save_faculty_data(faculties, contact_email, project_id,
+                                  project_name)
 
 
 def find_project_leader_faculty(project_leader):
@@ -38,5 +42,5 @@ def find_project_leader_faculty(project_leader):
                 department_no.extend(entry.departmentNumber)
         faculties = get_faculty(department_no)
     if not faculties:
-        faculties = ['Unknown']
+        faculties = {'Unknown'}
     return faculties

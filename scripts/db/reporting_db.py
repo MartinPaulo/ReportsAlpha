@@ -1,9 +1,46 @@
 import MySQLdb
 
 from scripts.config import Configuration
+from scripts.db.source_db import BaseDB
 
 
-class DB(object):
+class DB(BaseDB):
+    """
+    Contains queries specific to the reporting database.
+
+
+    A large number of the queries are trying to find instances active
+    on a given day
+
+    The following diagram shows the situation.
+
+    Key:
+        A  = day start
+        B  = day end
+        tc = time created
+        td = time deleted
+
+              A                                       B
+              +                                       +
+        tc    |                                       |     td
+         +--------------------------------------------------+
+              |                                       |
+         +------------------------------------------------------------> NULL
+              |                                       |
+              |  +------------------------------------------+
+              |                                       |
+              |  +----------------------------------------------------> NULL
+              |                                       |
+         +-------------------------------------+      |
+              |                                       |
+              |  +-----------------------------+      |   Not sometimes wanted
+              |                                       |
+              +                                       +
+
+    Short running instances that are started and stopped between A and B are
+    excluded in some reports.
+    """
+
     _db_connection = None
     _db_cur = None
 
@@ -20,8 +57,9 @@ class DB(object):
 
     def get_in_both(self, day_date):
         """
-        :param day_date:
-        :return:
+        :param day_date: The day for which the query is to be run
+        :return: The count of users running instances in both UoM and non
+        UoM data centers on the given day.
         """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT r.created_by) AS in_both
@@ -195,7 +233,7 @@ class DB(object):
                     """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
-    def get_top_twenty_data(self, day_date):
+    def get_top_twenty_projects(self, day_date):
         """
         :param day_date:
         :return:
@@ -230,13 +268,8 @@ class DB(object):
             """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
-    def get_faculty_data(self):
+    def get_uom_project_contact_email(self):
         """
-        Returns:
-            A list giving the email address of the project contact
-            in the allocation database for all projects that are deemed to
-            belong to UoM
-
         Notes:
             A join between the project and the user:
 
@@ -267,7 +300,9 @@ class DB(object):
             euphemism for a personal tenancy.
         """
         self._db_cur.execute("""
-          SELECT p.id, a.contact_email
+          SELECT p.id AS tenant_uuid,
+                 a.contact_email,
+                 p.description AS tenant_name
           FROM reporting.project p
           LEFT JOIN (
             SELECT project_id, contact_email

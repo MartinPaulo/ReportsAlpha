@@ -7,8 +7,8 @@ from configparser import ConfigParser
 # default for local development
 reporting_db = {
     'user': 'root',
-    'passwd': 'Password',
-    'db': 'reporting',
+    'passwd': 'password',
+    'db': 'menagerie',
     'host': '192.168.33.1',
     'port': 3306,
 }
@@ -16,7 +16,7 @@ reporting_db = {
 # default for local development
 production_db = {
     'user': 'root',
-    'passwd': 'Password',
+    'passwd': 'password',
     'db': 'dashboard',
     'host': '192.168.33.1',
     'port': 3306,
@@ -53,7 +53,7 @@ class Configuration(object):
                 sys.exit(1)
 
     @classmethod
-    def production_db(cls):
+    def get_production_db(cls):
         if not cls.production_db:
             cls.production_db = production_db
         return cls.production_db

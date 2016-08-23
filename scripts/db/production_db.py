@@ -1,9 +1,10 @@
 import MySQLdb
 
 from scripts.config import Configuration
+from scripts.db.source_db import BaseDB
 
 
-class DB(object):
+class DB(BaseDB):
     _db_connection = None
     _db_cur = None
 
@@ -152,7 +153,7 @@ class DB(object):
                     """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
-    def get_top_twenty_data(self, day_date):
+    def get_top_twenty_projects(self, day_date):
         self._db_cur.execute("""
                     SELECT  '{0}' AS 'date', i.project_id, SUM(i.vcpus) vcpus, a.tenant_name
                     FROM nova.instances i
@@ -181,7 +182,7 @@ class DB(object):
                   """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
-    def get_faculty_data(self):
+    def get_uom_project_contact_email(self):
         self._db_cur.execute("""
                     SELECT
                       tenant_uuid,

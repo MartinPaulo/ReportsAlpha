@@ -132,7 +132,7 @@ before the allocation system, or after the snapshot was taken */
  * Top twenty from unimelb on a given date (2016-07-10)
  */
 SELECT
-  '2016-07-10' AS 'date',
+  '2016-03-10' AS 'date',
   i.project_id,
   SUM(i.vcpus)    vcpus,
   a.display_name
@@ -148,11 +148,38 @@ WHERE
   /* (started on the day OR ended on the day OR running through the day)
       AND not started and stopped on the day AND a unimelb project
    */
-  ((i.deleted BETWEEN '2016-07-10' AND DATE_ADD('2016-07-10', INTERVAL 1 DAY))
-   OR (i.created BETWEEN '2016-07-10' AND DATE_ADD('2016-07-10', INTERVAL 1 DAY))
-   OR (i.deleted IS NULL AND i.created < '2016-07-10'))
-  AND NOT ((i.deleted BETWEEN '2016-07-10' AND DATE_ADD('2016-07-10', INTERVAL 1 DAY))
-           AND (i.created BETWEEN '2016-07-10' AND DATE_ADD('2016-07-10', INTERVAL 1 DAY)))
+  ((i.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+   OR (i.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+   OR (i.created < '2016-03-10' AND (i.deleted IS NULL OR i.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY))))
+  AND NOT ((i.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+           AND (i.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY)))
+  AND a.organisation LIKE '%melb%' /* OR a.organisation LIKE '%mac%'*/
+GROUP BY i.project_id
+ORDER BY vcpus DESC
+LIMIT 20;
+
+SELECT
+  '2016-03-10' AS 'date',
+  i.project_id,
+  SUM(i.vcpus)    vcpus,
+  a.display_name
+FROM reporting.instance i
+  LEFT JOIN
+  (SELECT
+     id,
+     organisation,
+     display_name
+   FROM reporting.project t1) a
+    ON i.project_id = a.id
+WHERE
+  /* (started on the day OR ended on the day OR running through the day)
+      AND not started and stopped on the day AND a unimelb project
+   */
+  ((i.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+   OR (i.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+   OR (i.created < '2016-03-10' AND i.deleted IS NULL))
+  AND NOT ((i.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+           AND (i.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY)))
   AND a.organisation LIKE '%melb%' /* OR a.organisation LIKE '%mac%'*/
 GROUP BY i.project_id
 ORDER BY vcpus DESC
@@ -201,34 +228,7 @@ ORDER BY vcpus DESC;
 /**
  * Find out which user email is associated with each project
  */
-SELECT
-  id,
-  /* the project id*/
-  email /* used to get the faculty */
-FROM project p
-  LEFT JOIN (SELECT
-               default_project,
-               email
-             FROM user) u
-    ON p.id = u.default_project
-WHERE organisation LIKE '%melb%'
-ORDER BY id;
-/* returns 427 null email addresses out of 2503 results, so 1/5th are missing */
 
-SELECT
-  id,
-  /* the project id*/
-  email /* used to get the faculty */
-FROM project p
-  LEFT JOIN (SELECT
-               default_project,
-               email
-             FROM user) u
-    ON p.id = u.default_project
-WHERE organisation LIKE '%melb%'
-      AND personal = 1
-ORDER BY id;
-/* returns 2076 rows, of which 1 has a null email address */
 
 SELECT
   id,
@@ -245,20 +245,20 @@ WHERE organisation LIKE '%melb%'
 ORDER BY id;
 /* returns 427 rows, of which 426 have null email address */
 /* so anything that comes through the allocation system does not give the user a default project */
-/* so default project is a euphamism for personal tenancy */
+/* so default project is a euphemism for personal tenancy */
+
+
 
 SELECT
   p.id,
   a.contact_email
 FROM reporting.project p
-  LEFT JOIN (SELECT DISTINCT
-               (tenant_uuid),
-               contact_email
-             FROM dashboard.rcallocation_allocationrequest) a
-    ON p.id = a.tenant_uuid
+  LEFT JOIN (SELECT project_id, contact_email
+             FROM allocation) a
+    ON p.id = a.project_id
 WHERE p.organisation LIKE '%melb%'
       AND p.personal = 0
-      AND a.contact_email IS NULL;
+      AND a.contact_email IS NOT NULL;
 /* returns 435 of which 48 are null. So just over 10% is not known */
 
 /**
@@ -270,7 +270,7 @@ WHERE
   ((deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))  /* stopped on the day */
    OR (created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))   /* started on the day */
    OR (deleted IS NULL AND created < '2016-06-27'))                 /* running through the day */
-  AND availability_zone LIKE '%melb%'
+  AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
   AND project_id NOT IN (SELECT id
                          FROM project
                          WHERE organisation LIKE '%melb%');
@@ -282,7 +282,7 @@ WHERE
   ((deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
    OR (created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
    OR (deleted IS NULL AND created < '2016-06-27'))
-  AND availability_zone LIKE '%melb%'
+  AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
   /* and not running any instances in any other zone on the day */
   AND created_by NOT IN (SELECT DISTINCT created_by
                          FROM instance
@@ -290,7 +290,7 @@ WHERE
                            ((deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
                             OR (created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
                             OR (deleted IS NULL AND created < '2016-06-27'))
-                           AND availability_zone NOT LIKE '%melb%'
+                           AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
                            AND project_id IN (SELECT DISTINCT id
                                               FROM project
                                               WHERE organisation LIKE '%melb%'))
@@ -303,18 +303,18 @@ WHERE
 SELECT COUNT(DISTINCT created_by) AS elsewhere_only
 FROM instance
 WHERE
-  ((deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
-   OR (created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
-   OR (deleted IS NULL AND created < '2016-06-27'))
-  AND availability_zone NOT LIKE '%melb%'
+  ((deleted BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))
+   OR (created BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))
+   OR (deleted IS NULL AND created < '2016-06-28'))
+  AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
   /* and not running any instances in melbourne on the day */
   AND created_by NOT IN (SELECT DISTINCT created_by
                          FROM instance
                          WHERE
-                           ((deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
-                            OR (created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
-                            OR (deleted IS NULL AND created < '2016-06-27'))
-                           AND availability_zone LIKE '%melb%'
+                           ((deleted BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))
+                            OR (created BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))
+                            OR (deleted IS NULL AND created < '2016-06-28'))
+                           AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
                            AND project_id IN (SELECT DISTINCT id
                                               FROM project
                                               WHERE organisation LIKE '%melb%'))
@@ -329,10 +329,10 @@ FROM instance l
   LEFT JOIN instance r
     ON l.created_by = r.created_by
 WHERE
-  (((l.deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
-    OR (l.created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
+  (((l.deleted BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))
+    OR (l.created BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))
     OR (l.deleted IS NULL AND l.created < '2016-06-27'))
-   AND l.availability_zone LIKE '%melb%'
+    AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
    AND l.project_id IN (SELECT DISTINCT id
                         FROM project
                         WHERE organisation LIKE '%melb%'))
@@ -340,7 +340,7 @@ WHERE
   (((r.deleted BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
     OR (r.created BETWEEN '2016-06-27' AND DATE_ADD('2016-06-27', INTERVAL 1 DAY))
     OR (r.deleted IS NULL AND r.created < '2016-06-27'))
-   AND r.availability_zone NOT LIKE '%melb%'
+    AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
    AND r.project_id IN (SELECT DISTINCT id
                         FROM project
                         WHERE organisation LIKE '%melb%'));
@@ -403,3 +403,51 @@ WHERE `key` = 'availability_zone'
 GROUP BY value;
 
 
+
+SELECT COUNT(DISTINCT r.created_by) AS in_both
+            FROM instance l
+              LEFT JOIN instance r
+                ON l.created_by = r.created_by
+            WHERE
+              (((l.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+                OR (l.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+                OR (l.created < '2016-03-10' AND (l.deleted IS NULL OR l.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY))))
+                AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND l.project_id IN (SELECT DISTINCT id
+                                    FROM project
+                                    WHERE organisation LIKE '%melb%'))
+              AND
+              (((r.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+                OR (r.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))
+                OR (r.created < '2016-03-10' AND (r.deleted IS NULL OR r.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY))))
+                AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND r.project_id IN (SELECT DISTINCT id
+                                    FROM project
+                                    WHERE organisation LIKE '%melb%'));
+
+SELECT COUNT(DISTINCT r.created_by) AS in_both
+            FROM instance l
+              LEFT JOIN instance r
+                ON l.created_by = r.created_by
+            WHERE
+              ((
+                (l.created < '2016-03-10' AND (l.deleted IS NULL OR l.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY)))
+                OR
+                (l.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY) AND (l.deleted IS NULL OR l.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY)))
+                OR
+                (l.created < '2016-03-10' AND (l.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))))
+               AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND l.project_id IN (SELECT DISTINCT id
+                                    FROM project
+                                    WHERE organisation LIKE '%melb%'))
+              AND
+              ((
+                (r.created < '2016-03-10' AND (r.deleted IS NULL OR r.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY)))
+                OR
+                (r.created BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY) AND (r.deleted IS NULL OR r.deleted > DATE_ADD('2016-03-10', INTERVAL 1 DAY)))
+                OR
+                (r.created < '2016-03-10' AND (r.deleted BETWEEN '2016-03-10' AND DATE_ADD('2016-03-10', INTERVAL 1 DAY))))
+               AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND r.project_id IN (SELECT DISTINCT id
+                                    FROM project
+                                    WHERE organisation LIKE '%melb%'));

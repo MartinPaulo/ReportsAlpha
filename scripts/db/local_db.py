@@ -56,17 +56,20 @@ class DB(object):
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
 
-    def save_faculty_data(self, faculties, project_leader, row):
-        project_id = row["tenant_uuid"]
-        project_name = row["tenant_name"]
+    def save_faculty_data(self, faculties, contact_email,
+                          project_id, project_name):
         for faculty in faculties:
             # TODO: This does not support multiple faculties for a project
             # It will just overwrite the last entry :(
             update = "INSERT OR REPLACE INTO cloud_project_faculty " \
-                     "  (project_id, contact_email, name, faculty_abbreviation) " \
-                     "VALUES ('%s', '%s', '%s', '%s');" % \
-                     (project_id, project_leader, project_name, faculty)
-            self._db_cur.execute(update)
+                     "       (project_id, contact_email, " \
+                     "        name, faculty_abbreviation) " \
+                     "VALUES (:project_id, :contact_email, " \
+                     "        :project_name, :faculty);"
+            self._db_cur.execute(update, {'project_id':project_id,
+                                          'contact_email': contact_email,
+                                          'project_name': project_name,
+                                          'faculty': faculty})
         self._db_connection.commit()
 
     def get_faculty_abbreviations(self, project_id):
