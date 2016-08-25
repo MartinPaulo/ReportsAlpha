@@ -1,52 +1,53 @@
 import logging
 
-# default for local development
-reporting_db = {
-    'user': 'root',
-    'passwd': 'Password',
-    'db': 'menagerie',
-    'host': '192.168.33.1',
-    'port': 3306,
-}
-
-# default for local development
-production_db = {
-    'user': 'root',
-    'passwd': 'Password',
-    'db': 'dashboard',
-    'host': '192.168.33.1',
-    'port': 3306,
-}
+import sys
 
 
 class Configuration(object):
     reporting_db = None
     production_db = None
+    nagios_auth = None
+    nagios_url = None
 
     @classmethod
     def load(cls):
         try:
-            from reports_beta.local_settings import reporting_db as ls_rep
-            cls.reporting_db = ls_rep
-            from reports_beta.local_settings import reporting_db as ls_prod
-            cls.reporting_db = ls_prod
-            logging.info('Settings loaded from local_settings.py')
+            import reports_beta.settings as settings
+            cls.reporting_db = settings.reporting_db
+            cls.reporting_db = settings.reporting_db
+            cls.nagios_auth = settings.nagios_auth
+            cls.nagios_url = settings.nagios_url
+            logging.info('Settings loaded from settings.py')
         except ImportError as e:
-            logging.warning('Local settings not found, using defaults...')
-            cls.reporting_db = reporting_db
-            cls.production_db = production_db
+            logging.error('Settings not found, exiting...')
+            sys.exit(1)
+
+    @classmethod
+    def get_attribute_value(cls, attribute_name):
+        """
+        :param attribute_name: String giving name of attribute value to return
+        :return: The value of the named attribute. If the initial value is None
+        loads the configuration from settings.py first.
+        """
+        if not getattr(cls, attribute_name):
+            cls.load()
+        return getattr(cls, attribute_name)
 
     @classmethod
     def get_production_db(cls):
-        if not cls.production_db:
-            cls.load()
-        return cls.production_db
+        return cls.get_attribute_value('production_db')
 
     @classmethod
     def get_reporting_db(cls):
-        if not cls.reporting_db:
-            cls.load()
-        return cls.reporting_db
+        return cls.get_attribute_value('reporting_db')
+
+    @classmethod
+    def get_nagios_auth(cls):
+        return cls.get_attribute_value('nagios_auth')
+
+    @classmethod
+    def get_nagios_url(cls):
+        return cls.get_attribute_value('nagios_url')
 
     @classmethod
     def get_uom_db(cls):

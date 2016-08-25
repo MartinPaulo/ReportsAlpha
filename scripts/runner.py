@@ -7,7 +7,6 @@ from scripts.cloud.build_allocated import build_faculty_allocated
 from scripts.cloud.build_project_faculty import build_project_faculty
 from scripts.cloud.build_top_twenty import build_top_twenty
 from scripts.cloud.build_used import build_used
-from scripts.config import Configuration
 from scripts.db import local_db
 from scripts.db import reporting_db
 

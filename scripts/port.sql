@@ -402,7 +402,24 @@ FROM nova.instance_system_metadata
 WHERE `key` = 'availability_zone'
 GROUP BY value;
 
+SELECT COUNT(vcpus) AS vcpu_count
+FROM instance
+WHERE
+  ((deleted BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))  /* stopped on the day */
+   OR (created BETWEEN '2016-06-28' AND DATE_ADD('2016-06-28', INTERVAL 1 DAY))   /* started on the day */
+   OR (deleted IS NULL AND created < '2016-06-28'))                 /* running through the day */
+  AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+  AND project_id NOT IN (SELECT id
+                         FROM project
+                         WHERE organisation LIKE '%melb%');
 
+/*
++------------+
+| vcpu_count |
++------------+
+|        980 |
++------------+
+*/
 
 SELECT COUNT(DISTINCT r.created_by) AS in_both
             FROM instance l

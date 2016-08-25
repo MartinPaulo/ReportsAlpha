@@ -21,3 +21,7 @@ production_db = {
     'host': '192.168.33.1',
     'port': 3306,
 }
+
+# the nagios server
+nagios_auth = ("user", "password")
+nagios_url = "http://mon.test.nectar.org.au/cgi-bin/nagios3/"
