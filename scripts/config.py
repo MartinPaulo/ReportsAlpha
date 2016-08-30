@@ -47,7 +47,7 @@ class Configuration(object):
 
     @classmethod
     def get_nagios_url(cls):
-        return cls.get_attribute_value('nagios_url')
+        return cls.get_attribute_value('nagios_url').strip("/")
 
     @classmethod
     def get_uom_db(cls):
