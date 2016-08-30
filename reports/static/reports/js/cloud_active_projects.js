@@ -55,7 +55,7 @@ report.d3 = function () {
             });
 
             var nvd3_data = [];
-            var totals = ["at_uom_only", "elsewhere_only", "in_both", "others_at_uom"];
+            var totals = ["at_uom_only", "in_both", "elsewhere_only", "others_at_uom"];
             for (var i = 0; i < totals.length; i++) {
                 var o = {};
                 o.key = getStreamName(totals[i]);
