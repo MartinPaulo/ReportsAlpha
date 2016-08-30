@@ -227,7 +227,8 @@ class DB(BaseDB):
                OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND NOT ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
                        AND (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
-              AND a.organisation LIKE '%melb%' AND a.personal = 0
+              AND a.organisation LIKE '%melb%'
+              AND a.personal = 0
             GROUP BY i.project_id
             ORDER BY vcpus DESC;
                     """.format(day_date.strftime("%Y-%m-%d")))
@@ -261,7 +262,7 @@ class DB(BaseDB):
                OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND NOT ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
                        AND (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
-              AND a.organisation LIKE '%melb%' /* OR a.organisation LIKE '%mac%'*/
+              AND a.organisation LIKE '%melb%'
             GROUP BY i.project_id
             ORDER BY vcpus DESC
             LIMIT 20;
