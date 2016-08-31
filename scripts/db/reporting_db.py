@@ -71,7 +71,10 @@ class DB(BaseDB):
         """
         :param day_date: The day for which the query is to be run
         :return: The count of users running instances in both UoM and non
-        UoM data centers on the given day.
+        UoM data centers on day_date.
+
+        Notes:
+            Instances started and stopped on the day are *included*.
         """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT r.created_by) AS in_both
@@ -99,9 +102,12 @@ class DB(BaseDB):
 
     def get_elsewhere_only(self, day_date):
         """
+        :param day_date: The day for which the query is to be run
+        :return: The number of UoM users who are running instances only in
+        data centers that do not belong to UoM on day_date.
 
-        :param day_date:
-        :return:
+        Notes:
+            Instances started and stopped on the day are *included*.
         """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS elsewhere_only
@@ -130,9 +136,12 @@ class DB(BaseDB):
 
     def get_uom_only(self, day_date):
         """
+        :param day_date: The day for which the query is to be run
+        :return: The number of UoM users who are running instances only in
+        the UoM data centers on day_date.
 
-        :param day_date:
-        :return:
+        Notes:
+            Instances started and stopped on the day are *included*.
         """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS UoM_only
@@ -161,9 +170,12 @@ class DB(BaseDB):
 
     def get_count_of_others_at_uom(self, day_date):
         """
+        :param day_date: The day for which the query is to be run
+        :return: The count of users who belong to non UoM projects running
+        instances in UoM data centers on the day_date.
 
-        :param day_date:
-        :return:
+        Notes:
+            Instances started and stopped on the day are *included*.
         """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS others_at_uom
@@ -184,9 +196,32 @@ class DB(BaseDB):
 
     def get_allocated_totals(self, day_date):
         """
-        project id b97d4ecd7f554796b5f59fadfb10a087 has null cores?
-        :param day_date:
-        :return:
+        :param day_date: The day up till which data is to be returned.
+        :return: The amount allocated in keystone for those projects whose
+        last modified date is less than or equal to the day_date.
+
+        Notes:
+            project id b97d4ecd7f554796b5f59fadfb10a087 has null cores?
+
+            The allocations table is used simply to filter the results by
+            date.
+
+            Any project that was initially provisioned before the requested
+            date then subsequently modified afterward will be excluded. Which
+            doesn't give a fair reflection of the state on a given day if
+            the query is being stepped through past data.
+
+            However, once the historical data has been worked through, it
+            will show the changing state of the allocation totals as they are
+            made.
+
+            If it weren't for the desire to capture historical data it would
+            be possible to simply query only the project table every day
+            and save the total - no need to include the allocations table.
+
+            Once crams goes live it should be possible to rather query the
+            crams API for a more accurate historical record of the allocations
+            made.
         """
         self._db_cur.execute("""
             SELECT
@@ -212,9 +247,13 @@ class DB(BaseDB):
 
     def get_used_data(self, day_date):
         """
+        :param day_date: The day for which the query is to be run
+        :return: The sum of the the vcpu's being used by UoM projects
+        on the given day.
 
-        :param day_date:
-        :return:
+        Notes:
+            Personal projects are excluded.
+            Instances started and stopped on the day are also excluded.
         """
         self._db_cur.execute("""
             SELECT
@@ -248,8 +287,14 @@ class DB(BaseDB):
 
     def get_top_twenty_projects(self, day_date):
         """
-        :param day_date:
-        :return:
+        :param day_date: The day for which the query is to be run
+        :return: The sum of the the vcpu's being used by the top
+        twenty UoM projects on the given day.
+
+        Notes:
+            Personal projects are not excluded. However, it would be
+            very surprising if they were to make it onto this list.
+            Instances started and stopped on the day are excluded.
         """
         self._db_cur.execute("""
             SELECT
@@ -283,8 +328,12 @@ class DB(BaseDB):
 
     def get_uom_project_contact_email(self):
         """
+        :return: A list of projects and the contact email taken from the
+        matching allocation record. All projects where the associated contact
+        email is known are returned.
+
         Notes:
-            A join between the project and the user:
+            A join between the project and the user tables:
 
                 SELECT id, email
                 FROM project p
