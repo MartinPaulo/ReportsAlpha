@@ -12,7 +12,7 @@ class DB(BaseDB):
     A large number of the queries are trying to find instances active
     on a given day
 
-    The following diagram shows the situation.
+    The following diagram shows the possibilities.
 
     Key:
         A  = day start
@@ -37,8 +37,20 @@ class DB(BaseDB):
               |                                       |
               +                                       +
 
+    Here NULL indicates that the instance is still running.
+
     Short running instances that are started and stopped between A and B are
-    excluded in some reports.
+    excluded in some reports. This is done because if a project continually
+    starts and stops even the tiniest instance throughout the period between
+    A and B they will build up a huge weighting that doesn't reflect their
+    true usage.
+
+    This can be minimised by shrinking the time between A and B down to
+    seconds: but then the time taken to query the database, and the stored
+    derived will both baloon.
+
+    So the difference between that reported and that allocated on a given day
+    shows the average headroom available to people to 'burst'.
     """
 
     _db_connection = None
