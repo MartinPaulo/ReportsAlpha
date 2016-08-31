@@ -81,22 +81,20 @@ class DB(BaseDB):
             FROM instance l
               LEFT JOIN instance r
                 ON l.created_by = r.created_by
-            WHERE
-              (((l.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (l.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (l.created < '{0}' AND (l.deleted IS NULL OR l.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-                AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
-               AND l.project_id IN (SELECT DISTINCT id
+            WHERE (((l.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (l.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (l.created < '{0}' AND (l.deleted IS NULL OR l.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+              AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+              AND l.project_id IN (SELECT DISTINCT id
                                     FROM project
                                     WHERE organisation LIKE '%melb%'))
-              AND
-              (((r.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (r.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (r.created < '{0}' AND (r.deleted IS NULL OR r.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+              AND (((r.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (r.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (r.created < '{0}' AND (r.deleted IS NULL OR r.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
                 AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
-               AND r.project_id IN (SELECT DISTINCT id
-                                    FROM project
-                                    WHERE organisation LIKE '%melb%'));
+                AND r.project_id IN (SELECT DISTINCT id
+                                     FROM project
+                                     WHERE organisation LIKE '%melb%'));
                 """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["in_both"]
 
@@ -112,10 +110,9 @@ class DB(BaseDB):
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS elsewhere_only
             FROM instance
-            WHERE
-              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+            WHERE ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
               /* and not running any instances in melbourne on the day */
               AND created_by NOT IN (SELECT DISTINCT created_by
@@ -146,10 +143,9 @@ class DB(BaseDB):
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS UoM_only
             FROM instance
-            WHERE
-              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+            WHERE ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                   OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                   OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
               /* and not running any instances in any other zone on the day */
               AND created_by NOT IN (SELECT DISTINCT created_by
