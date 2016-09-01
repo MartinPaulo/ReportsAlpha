@@ -2,9 +2,13 @@ import csv
 import os
 import re
 from datetime import date
+from json import dumps
+from operator import itemgetter
+from urllib.parse import urlencode
 from wsgiref.util import FileWrapper
 
 import django
+import requests
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.apps import AppConfig
@@ -152,3 +156,55 @@ def actual(request, path):
     for instance in model.objects.filter(date__range=date_range_desired):
         writer.writerow([getattr(instance, f) for f in field_names])
     return response
+
+
+# Addressing the history components
+# within a 2-member data-point array.
+VALUE_INDEX = 0
+TIMESTAMP_INDEX = 1
+
+
+def _fill_nulls(data, template):
+    data = dict([(timestamp, value) for value, timestamp in data])
+    previous_value = 0.0
+    for point in template:
+        timestamp = point[TIMESTAMP_INDEX]
+        value = point[VALUE_INDEX]
+        if timestamp in data:
+            value = data[timestamp]
+        if value is None:
+            yield [previous_value, timestamp]
+        else:
+            previous_value = value
+            yield [value, timestamp]
+
+
+def fill_null_datapoints(response_data):
+    """Extend graphite data sets to the same length and fill in any missing
+    values with either 0.0 or the previous real value that existed.
+    """
+    # Use the longest series as the template.  NVD3 requires that all
+    # the datasets have the same data points.
+    tmpl = sorted([(len(data['datapoints']), data['datapoints'])
+                   for data in response_data],
+                  key=itemgetter(0))[-1][1]
+    tmpl = [[None, t] for v, t in tmpl]
+    for data_series in response_data:
+        data_points = data_series['datapoints']
+        data_series['datapoints'] = list(_fill_nulls(data_points,
+                                                     template=tmpl))
+    return response_data
+
+
+def graphite(request, path):
+    args_to_call = [
+        ('format', 'json'),
+        ('target', "alias(cell.melbourne.capacity_768, 'QH2 and NP')"),
+        ('target', "alias(cell.qh2-uom.capacity_768, 'QH2-UoM')"),
+        ('from', '-3months')]
+    encoded_url = "http://status1.mgmt.rc.nectar.org.au/render/?" + \
+                  urlencode(args_to_call)
+    response = requests.get(encoded_url)
+    # TODO: should check the requests return code?
+    raw = fill_null_datapoints(response.json())
+    return HttpResponse(dumps(raw), response.headers['content-type'])

@@ -8,17 +8,17 @@ report.d3 = function () {
     utils.createDateButtons();
 
     var flavors = [
-        ['m2.tiny', '768'],
-        ['m2.xsmall', '2048'],
-        ['m2.small', '4096'],
-        ['m2.medium', '6144'],
-        ['m2.large', '12288'],
-        ['m2.xlarge', '49152'],
-        ['m1.small', '4096'],
-        ['m1.medium', '8192'],
-        ['m1.large', '16384'],
-        ['m1.xlarge', '32768'],
-        ['m1.xxlarge', '65536']
+        ['m2.tiny', 'capacity_768'],
+        ['m2.xsmall', 'capacity_2048'],
+        ['m2.small', 'capacity_4096'],
+        ['m2.medium', 'capacity_6144'],
+        ['m2.large', 'capacity_12288'],
+        ['m2.xlarge', 'capacity_49152'],
+        ['m1.small', 'capacity_4096'],
+        ['m1.medium', 'capacity_8192'],
+        ['m1.large', 'capacity_16384'],
+        ['m1.xlarge', 'capacity_32768'],
+        ['m1.xxlarge', 'capacity_65536']
     ];
 
     function changeSize(e) {
@@ -49,9 +49,13 @@ report.d3 = function () {
     }
 
     var render = function () {
-        var data_path = '/reports/manufactured/cloud_available_capacity/?from=' + utils.findFrom() + '&type=' + findSize();
+        var data_path = '/reports/graphite/cloud_available_capacity/?from=' + utils.findFrom() + '&type=' + findSize();
         d3.select('#a_data').attr('href', data_path);
-        d3.json(data_path, function (data) {
+        d3.json(data_path, function (error, data) {
+            if (error) {
+                console.log("Error on loading data: " + error);
+                return;
+            }
             nv.addGraph(function () {
                 var chart = nv.models.lineChart()
                         .x(function (d) {

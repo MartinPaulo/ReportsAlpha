@@ -4,3 +4,6 @@ numpy
 ldap3
 mysqlclient
 python-dateutil
+lxml
+requests
+cssselect
