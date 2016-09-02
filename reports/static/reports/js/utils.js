@@ -59,7 +59,7 @@ var utils = function () {
         'ABP': '#17becf',
         'Other': 'red',
         'Unknown': 'blue',
-        
+
         get: getColour
     };
 
@@ -75,6 +75,7 @@ var utils = function () {
         'QH2': 'chocolate',
         'QH2-UoM': 'green',
         'NP': 'blue',
+        'QH2 and NP': 'darkblue',
         'Other data centers': 'lightblue',
 
         get: getColour
@@ -107,12 +108,13 @@ var utils = function () {
         return d3.select('#graph-buttons .active').attr('id');
     }
 
-    function createDateButtons() {
+    function createDateButtons(chosen) {
+        var selector = typeof chosen !== 'undefined' ? chosen:  '#year';
         createButton('Year');
         createButton('6 Months', {target_id: 'sixMonths'});
         createButton('3 Months', {target_id: 'threeMonths'});
         createButton('1 Month', {target_id: 'oneMonth'});
-        d3.select('#year')
+        d3.select(selector)
             .on('click')();
     }
 

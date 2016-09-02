@@ -5,7 +5,7 @@ var report = report || {};
 report.d3 = function () {
 
 
-    utils.createDateButtons();
+    utils.createDateButtons('#oneMonth');
 
     var flavors = [
         ['m2.tiny', 'capacity_768'],
@@ -48,9 +48,26 @@ report.d3 = function () {
         return d3.select('select').property('value');
     }
 
+    var opts = {
+        lines: 9, // The number of lines to draw
+        length: 9, // The length of each line
+        width: 5, // The line thickness
+        radius: 14, // The radius of the inner circle
+        color: 'blue', // #rgb or #rrggbb or array of colors
+        speed: 1.9, // Rounds per second
+        trail: 40, // Afterglow percentage
+        className: 'spinner' // The CSS class to assign to the spinner
+    };
+
+    var spinner = new Spinner(opts);
+
     var render = function () {
-        var data_path = '/reports/graphite/cloud_available_capacity/?from=' + utils.findFrom() + '&type=' + findSize();
-        d3.select('#a_data').attr('href', data_path);
+        var data_path = '/reports/graphite/cloud_available_capacity/?from='
+            + utils.findFrom() + '&type=' + findSize();
+        //d3.select('#a_data').attr('href', data_path);
+
+        spinner.spin(document.getElementById('chart'));
+
         d3.json(data_path, function (error, data) {
             if (error) {
                 console.log("Error on loading data: " + error);
@@ -59,13 +76,13 @@ report.d3 = function () {
             nv.addGraph(function () {
                 var chart = nv.models.lineChart()
                         .x(function (d) {
-                            return d[0]
-                        })
-                        .y(function (d) {
                             return d[1]
                         })
+                        .y(function (d) {
+                            return d[0]
+                        })
                         .useInteractiveGuideline(true)
-                        .rightAlignYAxis(true)          // Move the y-axis to the right side.
+                        .rightAlignYAxis(true)
                         .noData('No Data available')
                         .margin({right: 75})
                         .color(function (d) {
@@ -74,18 +91,20 @@ report.d3 = function () {
                     ;
 
                 chart.yAxis
-                    .tickFormat(d3.format('4d'))
+                    .tickFormat(d3.format(',.0f'))
                     .axisLabel('Available');
 
                 chart.xAxis
                     .tickFormat(function (d) {
-                        return d3.time.format('%Y-%m-%d')(new Date(d))
+                        return d3.time.format('%Y-%m-%d')(new Date(d * 1000))
                     })
                     .axisLabel('Date');
 
                 d3.select('#chart svg')
                     .datum(data)
                     .call(chart);
+
+                spinner.stop();
 
                 //figure out a good way to do this automatically
                 nv.utils.windowResize(chart.update);

@@ -165,6 +165,10 @@ TIMESTAMP_INDEX = 1
 
 
 def _fill_nulls(data, template):
+    """
+
+    Remove any datapoint with a null value component.
+    """
     data = dict([(timestamp, value) for value, timestamp in data])
     previous_value = 0.0
     for point in template:
@@ -180,7 +184,31 @@ def _fill_nulls(data, template):
 
 
 def fill_null_datapoints(response_data):
-    """Extend graphite data sets to the same length and fill in any missing
+    """
+    Example Graphite response =
+    [
+        {
+            "target": "Cumulative",
+            "datapoints": [
+                [null, 1324130400],
+                [0.0, 1324216800],
+                [null, 1413208800]
+            ]
+        },
+    ]
+
+    Example nvd3 expected response =
+    [
+        {
+            "key": "Cumulative",
+            "values": [
+                [0.0, 1324130400],
+                [0.0, 1324216800],
+                [0.0, 1413208800]
+            ]
+        },
+    ]
+    Extend graphite data sets to the same length and fill in any missing
     values with either 0.0 or the previous real value that existed.
     """
     # Use the longest series as the template.  NVD3 requires that all
@@ -196,15 +224,38 @@ def fill_null_datapoints(response_data):
     return response_data
 
 
+def translate_data(response_data):
+    data_points = fill_null_datapoints(response_data)
+    for series in data_points:
+        series['key'] = series.pop('target')
+        series['values'] = series.pop('datapoints')
+    return data_points
+
+
+def map_duration(selected):
+    return {
+        "year": '-1y',
+        "sixMonths": '-6mon',
+        "threeMonths": '-3mon',
+        "oneMonth": '-31d',
+    }[selected]
+
+
 def graphite(request, path):
+    duration = request.GET.get('from', 'year')
+    capacity = request.GET.get('type', 'capacity_768')
+    cells = [('cell.melbourne', 'QH2 and NP'),
+             ('cell.qh2-uom', 'QH2-UoM')]
     args_to_call = [
         ('format', 'json'),
-        ('target', "alias(cell.melbourne.capacity_768, 'QH2 and NP')"),
-        ('target', "alias(cell.qh2-uom.capacity_768, 'QH2-UoM')"),
-        ('from', '-3months')]
-    encoded_url = "http://status1.mgmt.rc.nectar.org.au/render/?" + \
+        ('from', map_duration(duration))]
+    args_to_call.extend(
+        [('target', "alias(%s.%s, '%s')" % (cell, capacity, alias)) for
+         cell, alias in cells])
+    encoded_url = settings.GRAPHITE_SERVER + "/render/?" + \
                   urlencode(args_to_call)
+    print("Fetching: " + encoded_url)
     response = requests.get(encoded_url)
-    # TODO: should check the requests return code?
-    raw = fill_null_datapoints(response.json())
+    response.raise_for_status()
+    raw = translate_data(response.json())
     return HttpResponse(dumps(raw), response.headers['content-type'])
