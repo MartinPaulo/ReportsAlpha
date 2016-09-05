@@ -64,13 +64,17 @@ report.d3 = function () {
     var render = function () {
         var data_path = '/reports/graphite/cloud_available_capacity/?from='
             + utils.findFrom() + '&type=' + findSize();
-        //d3.select('#a_data').attr('href', data_path);
+
+        // set the download link with the url, requesting csv instead of json
+        d3.select('#a_data').attr('href', data_path + '&format=csv');
 
         spinner.spin(document.getElementById('chart'));
 
         d3.json(data_path, function (error, data) {
             if (error) {
                 console.log("Error on loading data: " + error);
+                spinner.stop();
+                utils.showError(error);
                 return;
             }
             nv.addGraph(function () {

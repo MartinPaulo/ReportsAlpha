@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+import logging
 from datetime import date
 from json import dumps
 from operator import itemgetter
@@ -244,18 +245,22 @@ def map_duration(selected):
 def graphite(request, path):
     duration = request.GET.get('from', 'year')
     capacity = request.GET.get('type', 'capacity_768')
+    desired_format = request.GET.get('format', 'json')
     cells = [('cell.melbourne', 'QH2 and NP'),
              ('cell.qh2-uom', 'QH2-UoM')]
     args_to_call = [
-        ('format', 'json'),
+        ('format', desired_format),
         ('from', map_duration(duration))]
     args_to_call.extend(
         [('target', "alias(%s.%s, '%s')" % (cell, capacity, alias)) for
          cell, alias in cells])
-    encoded_url = settings.GRAPHITE_SERVER + "/render/?" + \
-                  urlencode(args_to_call)
-    print("Fetching: " + encoded_url)
+    encoded_url = settings.GRAPHITE_SERVER + "/render/?" + urlencode(
+        args_to_call)
+    logging.warning("Fetching: " + encoded_url)
     response = requests.get(encoded_url)
     response.raise_for_status()
-    raw = translate_data(response.json())
-    return HttpResponse(dumps(raw), response.headers['content-type'])
+    if desired_format == 'json':
+        graphite_response = dumps(translate_data(response.json()))
+    else:
+        graphite_response = response.text()
+    return HttpResponse(graphite_response, response.headers['content-type'])

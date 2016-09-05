@@ -4,12 +4,23 @@
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
     {% load staticfiles %}
-    <link rel="stylesheet" type="text/css" href="{% static 'reports/style.css' %}"/>
-    {%  block header_lines %}{%  endblock %}
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'reports/style.css' %}"/>
+    {% block header_lines %}{% endblock %}
 </head>
 <body>
 {% include 'nav.html' %}
-<h1>{%  block h1 %}{%  endblock %}</h1>
+<h1>{% block h1 %}{% endblock %}</h1>
+
+<div id="md_error" class="modalDialog">
+    <div>
+        <a id="md_close" href="#" title="Close" class="modalClose">X</a>
+        <h2 id="md_title">There was a problem</h2>
+        <p id="md_message">An unexpected error was encountered</p>
+    </div>
+</div>
+
+
 {% block content %}{% endblock %}
 {% block footer %}
     <p>Version: {{ SOURCE_REVISION }}</p>

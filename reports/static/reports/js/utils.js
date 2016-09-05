@@ -109,7 +109,7 @@ var utils = function () {
     }
 
     function createDateButtons(chosen) {
-        var selector = typeof chosen !== 'undefined' ? chosen:  '#year';
+        var selector = typeof chosen !== 'undefined' ? chosen : '#year';
         createButton('Year');
         createButton('6 Months', {target_id: 'sixMonths'});
         createButton('3 Months', {target_id: 'threeMonths'});
@@ -172,6 +172,26 @@ var utils = function () {
         };
     }
 
+    var showError = function (error) {
+        var errorText = error;
+        if ('statusText' in error) {
+            errorText = error.statusText;
+        }
+        d3.select('#md_message')
+            .html(errorText);
+        const errorDialog = d3.select('#md_error');
+        errorDialog
+            .style('opacity', '1')
+            .style('pointer-events', 'auto');
+
+        d3.select('#md_close')
+            .on('click', function () {
+                errorDialog
+                    .style('opacity', '0')
+                    .style('pointer-events', 'none');
+            });
+    };
+
     return { // exports
         generateFacultyKey: generateFacultyKey,
         getStorageChart: getStorageChart,
@@ -180,6 +200,7 @@ var utils = function () {
         findFrom: findFrom,
         findType: findType,
         cellColours: cellColours,
-        facultyColors: facultyColours
+        facultyColors: facultyColours,
+        showError: showError
     }
 }();
