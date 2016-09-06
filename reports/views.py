@@ -1,15 +1,10 @@
 import csv
 import os
 import re
-import logging
 from datetime import date
-from json import dumps
-from operator import itemgetter
-from urllib.parse import urlencode
 from wsgiref.util import FileWrapper
 
 import django
-import requests
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.apps import AppConfig
@@ -21,7 +16,10 @@ from django.utils import timezone
 from django.views import generic
 
 from reports.fake_data import factory
+from reports.graphite.capacity import fetch, GRAPHITE_JSON, GRAPHITE_CAPACITY
 from .models import Report
+
+YEAR = 'year'
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -115,7 +113,7 @@ def data(request, path):
 
 
 def manufactured(request, path):
-    duration = request.GET.get('from', 'year')
+    duration = request.GET.get('from', YEAR)
     storage_type = request.GET.get('type', 'total')
     quota = factory.get(path, duration, storage_type)
     return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})
@@ -129,7 +127,7 @@ def get_start_date(duration):
     elif duration == 'sixMonths':
         return date.today() - relativedelta(months=6)
     else:
-        # duration == 'year':
+        # duration == YEAR:
         return date.today() - relativedelta(months=12)
 
 
@@ -138,7 +136,7 @@ def actual(request, path):
     :return: A response with the model data presented as CSV. The data is
     filtered till today by date range
     """
-    duration = request.GET.get('from', 'year')
+    duration = request.GET.get('from', YEAR)
     # we default to a date range
     date_range_desired = (get_start_date(duration), date.today())
     on = request.GET.get('on')
@@ -159,108 +157,12 @@ def actual(request, path):
     return response
 
 
-# Addressing the history components
-# within a 2-member data-point array.
-VALUE_INDEX = 0
-TIMESTAMP_INDEX = 1
-
-
-def _fill_nulls(data, template):
-    """
-
-    Remove any datapoint with a null value component.
-    """
-    data = dict([(timestamp, value) for value, timestamp in data])
-    previous_value = 0.0
-    for point in template:
-        timestamp = point[TIMESTAMP_INDEX]
-        value = point[VALUE_INDEX]
-        if timestamp in data:
-            value = data[timestamp]
-        if value is None:
-            yield [previous_value, timestamp]
-        else:
-            previous_value = value
-            yield [value, timestamp]
-
-
-def fill_null_datapoints(response_data):
-    """
-    Example Graphite response =
-    [
-        {
-            "target": "Cumulative",
-            "datapoints": [
-                [null, 1324130400],
-                [0.0, 1324216800],
-                [null, 1413208800]
-            ]
-        },
-    ]
-
-    Example nvd3 expected response =
-    [
-        {
-            "key": "Cumulative",
-            "values": [
-                [0.0, 1324130400],
-                [0.0, 1324216800],
-                [0.0, 1413208800]
-            ]
-        },
-    ]
-    Extend graphite data sets to the same length and fill in any missing
-    values with either 0.0 or the previous real value that existed.
-    """
-    # Use the longest series as the template.  NVD3 requires that all
-    # the datasets have the same data points.
-    tmpl = sorted([(len(data['datapoints']), data['datapoints'])
-                   for data in response_data],
-                  key=itemgetter(0))[-1][1]
-    tmpl = [[None, t] for v, t in tmpl]
-    for data_series in response_data:
-        data_points = data_series['datapoints']
-        data_series['datapoints'] = list(_fill_nulls(data_points,
-                                                     template=tmpl))
-    return response_data
-
-
-def translate_data(response_data):
-    data_points = fill_null_datapoints(response_data)
-    for series in data_points:
-        series['key'] = series.pop('target')
-        series['values'] = series.pop('datapoints')
-    return data_points
-
-
-def map_duration(selected):
-    return {
-        "year": '-1y',
-        "sixMonths": '-6mon',
-        "threeMonths": '-3mon',
-        "oneMonth": '-31d',
-    }[selected]
-
-
 def graphite(request, path):
-    duration = request.GET.get('from', 'year')
-    capacity = request.GET.get('type', 'capacity_768')
-    desired_format = request.GET.get('format', 'json')
-    cells = [('cell.melbourne', 'QH2 and NP'),
-             ('cell.qh2-uom', 'QH2-UoM')]
-    args_to_call = [
-        ('format', desired_format),
-        ('from', map_duration(duration))]
-    args_to_call.extend(
-        [('target', "alias(%s.%s, '%s')" % (cell, capacity, alias)) for
-         cell, alias in cells])
-    encoded_url = settings.GRAPHITE_SERVER + "/render/?" + urlencode(
-        args_to_call)
-    logging.warning("Fetching: " + encoded_url)
-    response = requests.get(encoded_url)
-    response.raise_for_status()
-    if desired_format == 'json':
-        graphite_response = dumps(translate_data(response.json()))
-    else:
-        graphite_response = response.text()
-    return HttpResponse(graphite_response, response.headers['content-type'])
+    duration = request.GET.get('from', YEAR)
+    capacity = request.GET.get('type', GRAPHITE_CAPACITY)
+    desired_format = request.GET.get('format', GRAPHITE_JSON)
+    graphite_response, content_type = fetch(capacity, desired_format, duration)
+    response = HttpResponse(graphite_response, content_type)
+    response['Content-Disposition'] = \
+        'attachment; filename="capacity.%s"' % desired_format.lower()
+    return response
