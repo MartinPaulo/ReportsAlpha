@@ -108,7 +108,7 @@ WHERE storage_product_id = 1
 SELECT sum(size) AS computational_size
 FROM applications_allocation
 WHERE storage_product_id = 1
---       AND last_modified >= '2015-05-15'
+      --       AND last_modified >= '2015-05-15'
       AND last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL);
 
 -- and the following gives allows us to wrap the results up into one query
@@ -129,7 +129,57 @@ FROM
    WHERE storage_product_id = 10
          AND last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) c;
 
- -- 84400	258400	697000
+-- 84400	258400	697000
+
+-- but there's a sad issue with the above
+-- not all of UoM (institution_id = 2)'s storage product is used by UoM only
+
+SELECT
+  size AS computational_size,
+  storage_product_id,
+  institution_id,
+  short_name
+FROM applications_allocation
+  LEFT JOIN applications_request
+    ON applications_allocation.application_id = applications_request.id
+  LEFT JOIN contacts_organisation
+    ON applications_request.institution_id = contacts_organisation.id
+WHERE storage_product_id = 10;
+
+-- for example, reveals other institutions using storage product 10. 1 and 4
+-- are even more exiting...
+
+-- So
+
+SELECT *
+FROM
+  (SELECT SUM(size) AS computational_size
+   FROM applications_allocation
+     LEFT JOIN applications_request
+       ON applications_allocation.application_id = applications_request.id
+   WHERE storage_product_id = 1
+         AND institution_id = 2
+         AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) a
+  CROSS JOIN
+  (SELECT sum(size) AS market_size
+   FROM applications_allocation
+     LEFT JOIN applications_request
+       ON applications_allocation.application_id = applications_request.id
+   WHERE storage_product_id = 4
+         AND institution_id = 2
+         AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) b
+  CROSS JOIN
+  (SELECT sum(size) AS vault_size
+   FROM applications_allocation
+     LEFT JOIN applications_request
+       ON applications_allocation.application_id = applications_request.id
+   WHERE storage_product_id = 10
+         AND institution_id = 2
+         AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) c;
+
+-- restricts it to unimelb only and gives
+-- 85000	258000	633000
+
 
 -- ----------------------------------------------------------------------------
 -- Storage allocated by faculty
@@ -137,17 +187,26 @@ FROM
 
 -- So to get the storage allocated by faculty...
 -- We have  a table with the faculties:
-SELECT id, name
+SELECT
+  id,
+  name
 FROM applications_suborganization;
 
 -- To find who references this:
-select
-  (select r.relname from pg_class r where r.oid = c.conrelid) as table,
-  (select array_agg(attname) from pg_attribute
-   where attrelid = c.conrelid and ARRAY[attnum] <@ c.conkey) as col,
-  (select r.relname from pg_class r where r.oid = c.confrelid) as ftable
-from pg_constraint c
-where c.confrelid = (select oid from pg_class where relname = 'applications_suborganization');
+SELECT
+  (SELECT r.relname
+   FROM pg_class r
+   WHERE r.oid = c.conrelid)                                   AS table,
+  (SELECT array_agg(attname)
+   FROM pg_attribute
+   WHERE attrelid = c.conrelid AND ARRAY [attnum] <@ c.conkey) AS col,
+  (SELECT r.relname
+   FROM pg_class r
+   WHERE r.oid = c.confrelid)                                  AS ftable
+FROM pg_constraint c
+WHERE c.confrelid = (SELECT oid
+                     FROM pg_class
+                     WHERE relname = 'applications_suborganization');
 
 -- applications_request	{institution_faculty_id}	applications_suborganization
 
@@ -155,19 +214,41 @@ where c.confrelid = (select oid from pg_class where relname = 'applications_subo
 
 -- But first
 
-SELECT id, short_name
+SELECT
+  id,
+  short_name
 FROM contacts_organisation;
 
 -- shows that melbourne has an ID of 2 (what about Peter Mac etc. Are they ours?
 
 -- also
 
-SELECT institution_id, institution_faculty_id
+SELECT
+  institution_id,
+  institution_faculty_id
 FROM applications_request
-WHERE institution_faculty_id is not null;
+WHERE institution_faculty_id IS NOT NULL;
 
 -- shows that Monash have a faculty of science allocated to them?
 
 -- applications_allocation	{application_id}	applications_request
--- so we allocation -> request -> faculty
+-- so we have allocation -> request -> faculty
+-- Thus to break this down by faculty for storage type for UOM we need
+-- for each storage type:
+
+SELECT
+  sum(size) AS computational_size,
+  name
+FROM applications_allocation
+  LEFT JOIN applications_request
+    ON applications_allocation.application_id = applications_request.id
+  LEFT JOIN applications_suborganization
+    ON applications_request.institution_faculty_id =
+       applications_suborganization.id
+WHERE storage_product_id = 10
+   AND institution_id = 2
+--      AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+GROUP BY name
+;
+
 
