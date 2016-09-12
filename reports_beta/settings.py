@@ -128,13 +128,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 LOGIN_REDIRECT_URL = '/'
 
-# from http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
-try:
-    from reports_beta.local_settings import *
-except ImportError as e:
-    logging.warning('Local machine settings file not found...')
-    pass
-
 # see http://www.webforefront.com/django/setupdjangologging.html
 LOGGING = {
     'version': 1,
@@ -181,7 +174,8 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'development_logfile', 'production_logfile'],
+            'handlers': ['console', 'development_logfile',
+                         'production_logfile'],
         },
         'py.warnings': {
             'handlers': ['console', 'development_logfile'],
@@ -191,5 +185,14 @@ LOGGING = {
 
 if DEBUG:
     logging.warning('Overwriting logging output files...')
-    LOGGING.get('handlers').get('production_logfile')['filename'] = '/tmp/flow_reports_production.log'
-    LOGGING.get('handlers').get('development_logfile')['filename'] = '/tmp/flow_reports_dev.log'
+    LOGGING.get('handlers').get('production_logfile')[
+        'filename'] = '/tmp/flow_reports_production.log'
+    LOGGING.get('handlers').get('development_logfile')[
+        'filename'] = '/tmp/flow_reports_dev.log'
+
+# from http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
+try:
+    from reports_beta.local_settings import *
+except ImportError as e:
+    logging.warning('Local machine settings file not found...')
+    pass

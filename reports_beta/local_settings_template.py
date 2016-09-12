@@ -25,3 +25,7 @@ production_db = {
 # the nagios server
 nagios_auth = ("user", "password")
 nagios_url = "http://mon.test.nectar.org.au/cgi-bin/nagios3/"
+
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'g8hkvxw54%k-$ymtp90ig*4ai8c%6ra4p@(&m##6b_#g=@0v)!'
