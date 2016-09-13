@@ -149,7 +149,9 @@ WHERE storage_product_id = 10;
 -- for example, reveals other institutions using storage product 10. 1 and 4
 -- are even more exiting...
 
--- So
+-- So Andy says "Show the grand total allocated here"
+
+-- So the following that breaks it down by UoM only is not needed...
 
 SELECT *
 FROM
@@ -184,6 +186,8 @@ FROM
 -- ----------------------------------------------------------------------------
 -- Storage allocated by faculty
 -- ----------------------------------------------------------------------------
+
+-- But here include the non UoM users as a faculty named "external"
 
 -- So to get the storage allocated by faculty...
 -- We have  a table with the faculties:
