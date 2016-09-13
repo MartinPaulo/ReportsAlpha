@@ -10,33 +10,9 @@ GRAPHITE_JSON = 'json'
 GRAPHITE_CAPACITY = 'capacity_768'
 
 
-def _fill_nulls(data, template):
+def _translate_data(response):
     """
-    :return: a generator that yields the template timestamp with a value
-    taken from the actual data if possible, otherwise yields the template
-    timestamp with the last value taken from the data. If there is no
-    last value, the default of 0.0 is used.
-
-    *Note* for this to work the data and the template have to have the
-    same time stamps. Something that the nectar metrics nova module ensures.
-    """
-    data = dict([(timestamp, value) for value, timestamp in data])
-    previous_value = 0.0
-    for point in template:
-        value = None
-        timestamp = point[1]
-        if timestamp in data:
-            value = data[timestamp]
-        if value is None:
-            yield [previous_value, timestamp]
-        else:
-            previous_value = value
-            yield [value, timestamp]
-
-
-def _fill_null_data_points(response):
-    """
-    A sample Graphite response =
+    Example Graphite response =
     [
         {
             "target": "Kitchenware",
@@ -54,24 +30,12 @@ def _fill_null_data_points(response):
             ]
         },
     ]
-    But NVD3 requires that the data points in each series have the same
-    length and timestamp. So we need to extend the graphite data sets to the
-    same length and fill in any null values with something more acceptable.
-    """
-    # Find the longest data point series and use it to build a template.
-    longest = sorted(
-        [(len(series['datapoints']), series['datapoints'])
-         for series in response], key=itemgetter(0))[-1][1]
-    template = [[None, t] for v, t in longest]
-    for series in response:
-        data_points = series['datapoints']
-        # replace the original series with a new one built from the template
-        series['datapoints'] = list(_fill_nulls(data_points, template))
-    return response
 
+    But NVD3 requires that the data points in each series have a
+    proper value for each point, So we need to filter out the nulls and Nones.
 
-def _translate_data(response):
-    """
+    Also
+
     Example Graphite response =
     [
         {
@@ -95,16 +59,21 @@ def _translate_data(response):
             ]
         },
     ]
-    :return: This function maps from the one to the other
+    So we have to change the format as well.
+    This function does both.
     """
+    # so remove all the data points with a null or a None
     result = []
     for series in response:
-        result.append(
-            {
-                'key': series['target'],
-                'values': series['datapoints']
-            }
-        )
+        element = dict()
+        element['key'] = series['target']
+        element['values'] = [point for point in series['datapoints'] if
+                             (point[0] != 'null' and point[0] is not None)]
+        # we add an initial point of 0, if only to show a line rising from the
+        # axis
+        point = [0, series['datapoints'][0][1] - 1000]
+        element['values'].insert(0, point)
+        result.append(element)
     return result
 
 
@@ -139,9 +108,7 @@ def fetch(capacity, desired_format, duration):
     response = requests.get(graphite_url)
     response.raise_for_status()
     if desired_format == 'json':
-        filled_data = _fill_null_data_points(response.json())
-        translated_data = _translate_data(filled_data)
-        graphite_response = dumps(translated_data)
+        graphite_response = dumps(_translate_data(response.json()))
     else:
         graphite_response = response.text
     return graphite_response, response.headers['content-type']
