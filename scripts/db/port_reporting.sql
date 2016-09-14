@@ -630,14 +630,133 @@ WHERE
   p.name NOT LIKE 'pt-%' AND a.parent_request_id IS NULL AND a.id IS NOT NULL
 ORDER BY a.id;
 
-SELECT 'ALTER TABLE '|| schemaname || '.' || tablename ||' OWNER TO vicnode;'
-FROM pg_tables WHERE NOT schemaname IN ('pg_catalog', 'information_schema')
-ORDER BY schemaname, tablename;
+#------------------------------------------------------------------------------
+# Allocated
+#------------------------------------------------------------------------------
 
-SELECT 'ALTER SEQUENCE '|| sequence_schema || '.' || sequence_name ||' OWNER TO vicnode;'
-FROM information_schema.sequences WHERE NOT sequence_schema IN ('pg_catalog', 'information_schema')
-ORDER BY sequence_schema, sequence_name;
+SELECT count(*)
+FROM project p
+WHERE p.personal = 0 AND p.organisation LIKE '%melb%' AND p.enabled = 1;
 
-SELECT 'ALTER VIEW '|| table_schema || '.' || table_name ||' OWNER TO vicnode;'
-FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
-ORDER BY table_schema, table_name;
+# +----------+
+# | count(*) |
+# +----------+
+# |      450 |
+# +----------+
+
+SELECT sum(quota_vcpus)
+FROM project p
+WHERE p.personal = 0 AND p.organisation LIKE '%melb%' AND p.enabled = 1;
+
+# +------------------+
+# | sum(quota_vcpus) |
+# +------------------+
+# |            14316 |
+# +------------------+
+
+SELECT count(*)
+FROM project p
+WHERE p.personal = 0 AND p.organisation LIKE '%melb%' AND p.enabled = 1 AND
+      p.quota_vcpus IS NULL;
+
+# +----------+
+# | count(*) |
+# +----------+
+# |       10 |
+# +----------+
+
+-- Ok: there are projects that are not referenced by the allocation table, so
+-- we have to modify the query to deal with null modified times
+
+SELECT
+  p.id                     AS tenant_uuid /* used for the join */,
+  a.contact_email /* used to get the faculty at UoM */,
+  IFNULL(p.quota_vcpus, 2) AS cores /* cores from allocation? */,
+  IFNULL(a.modified_time, '2013-12-04') /* and get the value on a given day*/,
+  p.display_name           AS tenant_name/* just because */,
+  p.organisation /* so we can refine by organisation */
+FROM project p
+  LEFT JOIN (
+              SELECT
+                project_id,
+                contact_email,
+                modified_time
+              FROM allocation) a
+    ON p.id = a.project_id
+WHERE p.personal = 0
+      AND p.enabled = 1
+      AND p.organisation LIKE '%melb%'
+      AND (modified_time <= DATE_ADD('2016-09-14', INTERVAL 1 DAY) OR
+           modified_time IS NULL)
+ORDER BY id;
+
+#------------------------------------------------------------------------------
+# Used
+#------------------------------------------------------------------------------
+
+SELECT SUM(i.vcpus) AS vcpus
+FROM instance i
+  LEFT JOIN
+  (SELECT
+     id,
+     organisation,
+     display_name,
+     personal
+   FROM project t1) a
+    ON i.project_id = a.id
+WHERE
+  /* (started on the day OR ended on the day OR running through the day)
+      AND not started and stopped on the day AND a unimelb project
+   */
+  ((i.deleted BETWEEN '2016-09-13' AND DATE_ADD('2016-09-13', INTERVAL 1 DAY))
+   OR
+   (i.created BETWEEN '2016-07-10' AND DATE_ADD('2016-09-13', INTERVAL 1 DAY))
+   OR (created < '2016-09-13' AND
+       (deleted IS NULL OR deleted > DATE_ADD('2016-09-13', INTERVAL 1 DAY))))
+  AND NOT (
+    (i.deleted BETWEEN '2016-09-13' AND DATE_ADD('2016-09-13', INTERVAL 1 DAY))
+    AND (i.created BETWEEN '2016-09-13' AND DATE_ADD('2016-09-13', INTERVAL 1
+                                                     DAY)))
+  AND a.organisation LIKE '%melb%'
+  AND a.personal = 0;
+
+# +-------+
+# | vcpus |
+# +-------+
+# | 12858 |
+# +-------+
+
+SELECT SUM(i.vcpus) AS vcpus
+FROM instance i
+  LEFT JOIN
+  (SELECT
+     id,
+     organisation,
+     display_name,
+     personal
+   FROM project t1) a
+    ON i.project_id = a.id
+WHERE
+  /* (started on the day OR ended on the day OR running through the day)
+      AND not started and stopped on the day AND a unimelb project
+   */
+  ((i.deleted BETWEEN '2016-09-14' AND DATE_ADD('2016-09-14', INTERVAL 1 DAY))
+   OR
+   (i.created BETWEEN '2016-07-10' AND DATE_ADD('2016-09-14', INTERVAL 1 DAY))
+   OR (created < '2016-09-14' AND
+       (deleted IS NULL OR deleted > DATE_ADD('2016-09-14', INTERVAL 1 DAY))))
+  AND NOT (
+    (i.deleted BETWEEN '2016-09-14' AND DATE_ADD('2016-09-14', INTERVAL 1 DAY))
+    AND (i.created BETWEEN '2016-09-14' AND DATE_ADD('2016-09-14', INTERVAL 1
+                                                     DAY)))
+  AND cell_name IN
+      ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+  AND a.organisation LIKE '%melb%'
+  AND a.personal = 0;
+
+# +-------+
+# | vcpus |
+# +-------+
+# |  8841 | Graphana reports 7578
+# +-------+
+
