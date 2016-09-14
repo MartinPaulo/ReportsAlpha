@@ -1,4 +1,20 @@
 -- ----------------------------------------------------------------------------
+-- 0: Some of the queries required in setting up the database
+-- ----------------------------------------------------------------------------
+
+SELECT 'ALTER TABLE '|| schemaname || '.' || tablename ||' OWNER TO vicnode;'
+FROM pg_tables WHERE NOT schemaname IN ('pg_catalog', 'information_schema')
+ORDER BY schemaname, tablename;
+
+SELECT 'ALTER SEQUENCE '|| sequence_schema || '.' || sequence_name ||' OWNER TO vicnode;'
+FROM information_schema.sequences WHERE NOT sequence_schema IN ('pg_catalog', 'information_schema')
+ORDER BY sequence_schema, sequence_name;
+
+SELECT 'ALTER VIEW '|| table_schema || '.' || table_name ||' OWNER TO vicnode;'
+FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
+ORDER BY table_schema, table_name;
+
+-- ----------------------------------------------------------------------------
 -- 1: Storage Allocated by Type
 -- ----------------------------------------------------------------------------
 
