@@ -2,6 +2,13 @@ from datetime import timedelta
 
 
 def date_range(start_date, end_date):
+    """
+    A generator that returns all dates from and including the start date
+    to the day before the end date.
+    :param start_date: the first date to be yielded
+    :param end_date: the day after the last date to be yielded.
+    :return: yields the next date on
+    """
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
