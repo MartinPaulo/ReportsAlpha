@@ -218,13 +218,20 @@ class DB(BaseDB):
             Once crams goes live it should be possible to rather query the
             crams API for a more accurate historical record of the allocations
             made.
+
+            Also, now newly discovered is that the reporting project table
+            has projects allocated to UoM that don't actually have allocations
+            in its allocation table: so we have made some mistake in the
+            way in which they are brought across...
+
+            Further, there are three projects that have no quota...
         """
         self._db_cur.execute("""
             SELECT
               p.id as tenant_uuid /* used for the join */,
               a.contact_email /* used to get the faculty at UoM */,
               IFNULL(p.quota_vcpus, 0) as cores /* cores from allocation? */,
-              a.modified_time /* and get the value on a given day*/,
+              IFNULL(a.modified_time, '2013-12-04') /* on a given day */,
               p.display_name as tenant_name/* just because */,
               p.organisation /* so we can refine by organisation */
             FROM project p
@@ -237,7 +244,8 @@ class DB(BaseDB):
                 ON p.id = a.project_id
             WHERE p.personal = 0
                 AND p.organisation LIKE '%melb%'
-                AND modified_time <= DATE_ADD('{0}', INTERVAL 1 DAY)
+                AND (modified_time <= DATE_ADD('{0}', INTERVAL 1 DAY)
+                  OR modified_time IS NULL)
             ORDER BY id;""".format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
