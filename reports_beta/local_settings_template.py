@@ -24,8 +24,26 @@ production_db = {
 
 # the nagios server
 nagios_auth = ("user", "password")
-nagios_url = "http://mon.test.nectar.org.au/cgi-bin/nagios3/"
+NECTAR_NAGIOS_URL = "http://mon.test.nectar.org.au/cgi-bin/nagios3/"
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'g8hkvxw54%k-$ymtp90ig*4ai8c%6ra4p@(&m##6b_#g=@0v)!'
+
+# Debug defaults to False
+# DEBUG = True
+# Hence the following allowed hosts will stop the server from running...
+ALLOWED_HOSTS = []
+
+# These are the people that email will flow to...
+ADMINS = (
+    ('One Admin', 'one.admin@somewhere.edu.au'),
+    ('Two Admin', 'two.admin@somewhere.edu.au')
+)
+
+DATABASES = {
+    'default': {
+        #'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
+    }
+}
