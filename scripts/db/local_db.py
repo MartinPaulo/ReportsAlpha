@@ -76,14 +76,23 @@ class DB(object):
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
         update = "INSERT OR REPLACE INTO cloud_used (%s) " \
-                 "VALUES (%s);" % (
-            columns, value_placeholder)
+                 "VALUES (%s);" % (columns, value_placeholder)
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
 
     def save_faculty_data(self, faculties, contact_email,
                           project_id, project_name):
         for faculty in faculties:
+            # This should not overwrite existing assigned projects
+            query = "SELECT faculty_abbreviation FROM cloud_project_faculty " \
+                    "WHERE project_id=:project_id;"
+            self._db_cur.execute(query, {'project_id': project_id})
+            row = self._db_cur.fetchone()
+            if row is not None:
+                if row[0] != 'Unknown':
+                    logging.info("Found faculty %s for project %s", row[0],
+                                    project_id)
+                    continue
             # TODO: This does not support multiple faculties for a project
             # It will just overwrite the last entry :(
             update = "INSERT OR REPLACE INTO cloud_project_faculty " \
