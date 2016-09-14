@@ -28,12 +28,13 @@ SOURCE_REVISION_COMMANDS = [
 SECRET_KEY = 'g8hkvxw54%k-$ymtp90ig*4ai8c%6ra4p@(&m##6b_#g=@0v)!'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
+# So default to False...
+DEBUG = False
+# Unless ALLOWED_HOSTS is overridden the default DEBUG setting will stop
+# the server running at startup.
 ALLOWED_HOSTS = []
 
 # Application definition
-
 INSTALLED_APPS = [
     'reports.apps.ReportsConfig',
     'django.contrib.admin',
@@ -183,16 +184,18 @@ LOGGING = {
     }
 }
 
-if DEBUG:
-    logging.warning('Overwriting logging output files...')
-    LOGGING.get('handlers').get('production_logfile')[
-        'filename'] = '/tmp/flow_reports_production.log'
-    LOGGING.get('handlers').get('development_logfile')[
-        'filename'] = '/tmp/flow_reports_dev.log'
-
 # from http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
 try:
     from reports_beta.local_settings import *
 except ImportError as e:
     logging.warning('Local machine settings file not found...')
     pass
+
+# need to be after local settings in order to allow them to override the
+# debug flag
+if DEBUG:
+    logging.warning('Overwriting logging output files...')
+    LOGGING.get('handlers').get('production_logfile')[
+        'filename'] = '/tmp/flow_reports_production.log'
+    LOGGING.get('handlers').get('development_logfile')[
+        'filename'] = '/tmp/flow_reports_dev.log'
