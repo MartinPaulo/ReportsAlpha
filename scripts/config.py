@@ -8,7 +8,9 @@ class Configuration(object):
     production_db = None
     nagios_auth = None
     nagios_url = None
+    sqlite3_location = None
 
+    # noinspection PyBroadException
     @classmethod
     def load(cls):
         try:
@@ -16,11 +18,15 @@ class Configuration(object):
             cls.reporting_db = settings.reporting_db
             cls.reporting_db = settings.reporting_db
             cls.nagios_auth = settings.nagios_auth
-            cls.nagios_url = settings.nagios_url
+            cls.nagios_url = settings.NECTAR_NAGIOS_URL
+            cls.sqlite3_location = settings.DATABASES['default']['NAME']
             logging.info('Settings loaded from settings.py')
         except ImportError as e:
             logging.error('Settings not found, exiting...')
             sys.exit(1)
+        except:
+            logging.error("Unexpected error, exiting...", sys.exc_info()[0])
+            sys.exit(2)
 
     @classmethod
     def get_attribute_value(cls, attribute_name):
@@ -51,4 +57,4 @@ class Configuration(object):
 
     @classmethod
     def get_uom_db(cls):
-        return '/Users/mpaulo/PycharmProjects/ReportsBeta/db/db.sqlite3'
+        return cls.get_attribute_value('sqlite3_location')
