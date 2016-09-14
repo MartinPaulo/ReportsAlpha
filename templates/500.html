@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Page unavailable{% endblock %}
+
+{% block h1 %}Page unavailable{% endblock %}
+
+{% block content %}
+    <p>Sorry: for some inexplicable reason the requested page could not be
+       loaded.</p>
+    <p>Our engineers have been notified: so they will look into it.</p>
+    <p>You <b>should</b> check back later, but if you are open
+       to risk you can now:</p>
+    <ul>
+        <li><a href="/reports/search">Search for other pages</a></li>
+        <li><a href="/">Explore more from the home page</a></li>
+    </ul>
+{% endblock %}
