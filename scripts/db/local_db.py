@@ -1,3 +1,4 @@
+import codecs
 import logging
 import sqlite3
 from datetime import datetime, date, timedelta
@@ -8,19 +9,35 @@ class DB(object):
     _db_connection = None
     _db_cur = None
 
+    # see http://stackoverflow.com/questions/6514274/
+    # how-do-you-escape-strings-for-sqlite-table-column-names-in-python
+    @staticmethod
+    def quote_identifier(s, errors="strict"):
+        encodable = s.encode("utf-8", errors).decode("utf-8")
+        nul_index = encodable.find("\x00")
+        if nul_index >= 0:
+            error = UnicodeEncodeError("NUL-terminated utf-8", encodable,
+                                       nul_index, nul_index + 1,
+                                       "NUL not allowed")
+            error_handler = codecs.lookup_error(errors)
+            replacement, _ = error_handler(error)
+            encodable = encodable.replace("\x00", replacement)
+        return "\"" + encodable.replace("\"", "\"\"") + "\""
+
     def __init__(self):
         self._db_connection = sqlite3.connect(Configuration.get_uom_db())
         self._db_cur = self._db_connection.cursor()
 
-    def query(self, query, params):
-        return self._db_cur.execute(query, params)
-
     def __del__(self):
         self._db_connection.close()
 
+    def query(self, query, params):
+        return self._db_cur.execute(query, params)
+
     def get_max_date(self, table_name):
         last_date = date.today() - timedelta(days=364)
-        query = "SELECT MAX(date) AS max_date FROM %s;" % table_name
+        query = "SELECT MAX(date) AS max_date FROM %s;" % \
+                self.quote_identifier(table_name)
         self._db_cur.execute(query)
         row = self._db_cur.fetchone()
         if row is None:
@@ -36,6 +53,7 @@ class DB(object):
         columns = ', '.join(user_counts.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in user_counts.keys()])
+        # TODO: escape
         update = "INSERT OR REPLACE INTO cloud_active_users (%s) " \
                  "VALUES (%s);" % (columns, value_placeholder)
         self._db_cur.execute(update, user_counts)
@@ -49,6 +67,7 @@ class DB(object):
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
+        # TODO: escape
         update = "INSERT OR REPLACE INTO cloud_allocated (%s) " \
                  "VALUES (%s);" % \
                  (columns, value_placeholder)
@@ -62,6 +81,7 @@ class DB(object):
         columns = ', '.join(user_counts.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in user_counts.keys()])
+        # TODO: escape
         update = "INSERT OR REPLACE INTO cloud_top_twenty (%s) " \
                  "VALUES (%s);" % (
                      columns, value_placeholder)
@@ -75,6 +95,7 @@ class DB(object):
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
+        # TODO: escape
         update = "INSERT OR REPLACE INTO cloud_used (%s) " \
                  "VALUES (%s);" % (columns, value_placeholder)
         self._db_cur.execute(update, faculty_totals)
@@ -91,7 +112,7 @@ class DB(object):
             if row is not None:
                 if row[0] != 'Unknown':
                     logging.info("Found faculty %s for project %s", row[0],
-                                    project_id)
+                                 project_id)
                     continue
             # TODO: This does not support multiple faculties for a project
             # It will just overwrite the last entry :(
