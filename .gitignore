@@ -51,4 +51,4 @@ reports/__pycache__/
 reports/migrations/__pycache__/
 reports_beta/__pycache__/
 reports_beta/local_settings.py
-/scripts/db/swinburne.sql
+/scripts/db/add_hoc/
