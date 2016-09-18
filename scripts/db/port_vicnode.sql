@@ -2,20 +2,25 @@
 -- 0: Some of the queries required in setting up the database
 -- ----------------------------------------------------------------------------
 
-SELECT 'ALTER TABLE '|| schemaname || '.' || tablename ||' OWNER TO vicnode;'
-FROM pg_tables WHERE NOT schemaname IN ('pg_catalog', 'information_schema')
+SELECT 'ALTER TABLE ' || schemaname || '.' || tablename || ' OWNER TO vicnode;'
+FROM pg_tables
+WHERE NOT schemaname IN ('pg_catalog', 'information_schema')
 ORDER BY schemaname, tablename;
 
-SELECT 'ALTER SEQUENCE '|| sequence_schema || '.' || sequence_name ||' OWNER TO vicnode;'
-FROM information_schema.sequences WHERE NOT sequence_schema IN ('pg_catalog', 'information_schema')
+SELECT 'ALTER SEQUENCE ' || sequence_schema || '.' || sequence_name ||
+       ' OWNER TO vicnode;'
+FROM information_schema.sequences
+WHERE NOT sequence_schema IN ('pg_catalog', 'information_schema')
 ORDER BY sequence_schema, sequence_name;
 
-SELECT 'ALTER VIEW '|| table_schema || '.' || table_name ||' OWNER TO vicnode;'
-FROM information_schema.views WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
+SELECT
+  'ALTER VIEW ' || table_schema || '.' || table_name || ' OWNER TO vicnode;'
+FROM information_schema.views
+WHERE NOT table_schema IN ('pg_catalog', 'information_schema')
 ORDER BY table_schema, table_name;
 
 -- ----------------------------------------------------------------------------
--- 1: Storage Allocated by Type
+-- 1: Storage allocated by type
 -- ----------------------------------------------------------------------------
 
 -- so to get the names and capacities for the storage products
@@ -117,8 +122,9 @@ WHERE storage_product_id IN (1, 4, 10)
 SELECT SUM(size) AS total_to_date
 FROM applications_allocation
 WHERE storage_product_id = 1
-      AND last_modified >= '2015-05-15'
-      AND last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL);
+      AND DATE '2015-05-15' <= last_modified
+      AND last_modified < (DATE '2015-05-15' :: DATE + '1 day' :: INTERVAL);
+-- vs: ? AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
 
 -- to select the total amount allocated for a product up to a given day:
 SELECT sum(size) AS computational_size
@@ -177,7 +183,8 @@ FROM
        ON applications_allocation.application_id = applications_request.id
    WHERE storage_product_id = 1
          AND institution_id = 2
-         AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) a
+         AND applications_allocation.last_modified <
+             ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) a
   CROSS JOIN
   (SELECT sum(size) AS market_size
    FROM applications_allocation
@@ -185,7 +192,8 @@ FROM
        ON applications_allocation.application_id = applications_request.id
    WHERE storage_product_id = 4
          AND institution_id = 2
-         AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) b
+         AND applications_allocation.last_modified <
+             ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) b
   CROSS JOIN
   (SELECT sum(size) AS vault_size
    FROM applications_allocation
@@ -193,14 +201,15 @@ FROM
        ON applications_allocation.application_id = applications_request.id
    WHERE storage_product_id = 10
          AND institution_id = 2
-         AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) c;
+         AND applications_allocation.last_modified <
+             ('2015-05-15' :: DATE + '1 day' :: INTERVAL)) c;
 
 -- restricts it to unimelb only and gives
 -- 85000	258000	633000
 
 
 -- ----------------------------------------------------------------------------
--- Storage allocated by faculty
+-- 2: Storage allocated by faculty
 -- ----------------------------------------------------------------------------
 
 -- But here include the non UoM users as a faculty named "external"
@@ -249,7 +258,7 @@ SELECT
 FROM applications_request
 WHERE institution_faculty_id IS NOT NULL;
 
--- shows that Monash have a faculty of science allocated to them?
+-- shows that several non UoM have faculties allocated to them?
 
 -- applications_allocation	{application_id}	applications_request
 -- so we have allocation -> request -> faculty
@@ -257,7 +266,8 @@ WHERE institution_faculty_id IS NOT NULL;
 -- for each storage type:
 
 SELECT
-  sum(size) AS computational_size,
+  count(applications_allocation.id) AS found,
+  sum(size)                         AS computational_size,
   name
 FROM applications_allocation
   LEFT JOIN applications_request
@@ -266,9 +276,321 @@ FROM applications_allocation
     ON applications_request.institution_faculty_id =
        applications_suborganization.id
 WHERE storage_product_id = 10
-   AND institution_id = 2
+      AND institution_id = 2
 --      AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
-GROUP BY name
-;
+GROUP BY name;
+
+-- shows that we still have some projects not allocated
 
 
+-- To include the 'External ones'
+-- This will move all the non allocated projects to 'External'
+
+SELECT
+  count(applications_allocation.id) AS found,
+  sum(size)                         AS computational_size,
+  CASE WHEN name IS NULL
+    THEN 'External'
+  ELSE name END
+FROM applications_allocation
+  LEFT JOIN applications_request
+    ON applications_allocation.application_id = applications_request.id
+  LEFT JOIN applications_suborganization
+    ON applications_request.institution_faculty_id =
+       applications_suborganization.id
+WHERE storage_product_id = 10
+--      AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+GROUP BY name;
+
+-- or more portably
+
+SELECT
+  count(applications_allocation.id) AS found,
+  sum(size)                         AS computational_size,
+  coalesce(nullif(name, ''), 'External') -- handles nulls and empty strings
+FROM applications_allocation
+  LEFT JOIN applications_request
+    ON applications_allocation.application_id = applications_request.id
+  LEFT JOIN applications_suborganization
+    ON applications_request.institution_faculty_id =
+       applications_suborganization.id
+WHERE storage_product_id = 10
+--      AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+GROUP BY name;
+
+-- ----------------------------------------------------------------------------
+-- 3: Storage capacity by type
+-- ----------------------------------------------------------------------------
+
+-- so to get the names and capacities for the storage products
+SELECT
+  value                          AS product_name,
+  product_name_id,
+  capacity,
+  applications_storageproduct.id AS storage_product_id
+FROM applications_storageproduct
+  LEFT JOIN labels_label
+    ON labels_label.id = applications_storageproduct.product_name_id
+WHERE applications_storageproduct.id IN (1, 4, 10);
+
+-- There is no history kept: so here we become the guardian of the history
+-- and the first record we can't rebuild over time!
+-- But surely there is a historical record we can add manually?
+
+-- ----------------------------------------------------------------------------
+-- 4: Storage headroom unallocated by type
+-- ----------------------------------------------------------------------------
+
+-- We simply run a join between the table resultant from 1 and the table
+-- resultant in 3 and show the differences in the grand total
+
+-- ----------------------------------------------------------------------------
+-- 5: Storage headroom unused by type
+-- ----------------------------------------------------------------------------
+
+-- We want to the difference between what has been allocated and what is
+-- actually used.
+
+SELECT current_size
+FROM applications_collectionprofile;
+
+-- pointless, is null
+
+SELECT estimated_final_size
+FROM applications_collectionprofile;
+
+-- has some null fields. But then
+
+SELECT
+  collection_id,
+  allocated_capacity,
+  used_capacity,
+  allocated_capacity - used_capacity AS headroom
+FROM applications_ingest
+WHERE storage_product_id IN (1, 4, 10)
+ORDER BY collection_id;
+
+-- shows the history over time (last_modified date) There are over 67000
+-- records...
+-- is the 'active' setting relevant?
+
+SELECT
+  collection_id,
+  allocated_capacity,
+  used_capacity,
+  allocated_capacity - used_capacity AS headroom,
+  extraction_date,
+  storage_product_id
+FROM applications_ingest
+WHERE storage_product_id IN (1, 4, 10)
+      AND DATE '2016-02-06' <= extraction_date
+      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+ORDER BY collection_id, storage_product_id;
+
+-- to collapse into per product:
+
+SELECT
+  sum(allocated_capacity - used_capacity) AS headroom,
+  storage_product_id
+FROM applications_ingest
+WHERE storage_product_id IN (1, 4, 10)
+      AND DATE '2016-02-06' <= extraction_date
+      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+GROUP BY storage_product_id;
+
+-- But we find that the allocated capacity in this table does not
+-- necessarily match the allocation in the allocation table
+-- Linh says that we return the amount that has been set aside in the storage
+-- for the project. So the figure shown in the ingest is the physical amount
+-- they have had made available to their project.
+
+SELECT sum(size) AS computational_size
+FROM applications_allocation
+WHERE storage_product_id = 4
+      AND collection_id = 1;
+
+-- ----------------------------------------------------------------------------
+-- ** 6: Storage headroom by faculty
+-- ----------------------------------------------------------------------------
+-- This, I'm guessing, is the storage headroom *used* by faculty
+-- So
+
+SELECT
+  collection_id,
+  allocated_capacity - used_capacity AS headroom,
+  extraction_date,
+  storage_product_id
+FROM applications_ingest
+WHERE storage_product_id IN (1, 4, 10)
+      AND DATE '2016-02-06' <= extraction_date
+      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+ORDER BY collection_id, storage_product_id;
+
+-- tricky:
+-- ingest.collection id -> project
+-- request.project id -> project
+-- request.institution faculty -> suborganization
+
+SELECT
+  applications_project.id
+                                        collection_id,
+  allocated_capacity - used_capacity AS headroom,
+  extraction_date,
+  storage_product_id,
+  institution_faculty_id
+--   applications_suborganization.name
+FROM applications_ingest
+  LEFT JOIN applications_project
+    ON applications_ingest.collection_id = applications_project.id
+-- following causes explosion!
+--   LEFT JOIN applications_request
+--      ON applications_project.id = applications_request.project_id
+--   LEFT JOIN applications_suborganization
+--       ON applications_request.institution_faculty_id = applications_suborganization.id
+WHERE storage_product_id IN (1, 4, 10)
+      AND DATE '2016-02-06' <= extraction_date
+      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+ORDER BY collection_id, storage_product_id;
+
+-- ----------------------------------------------------------------------------
+-- 7: Storage quota by faculty
+-- ----------------------------------------------------------------------------
+
+
+-- ----------------------------------------------------------------------------
+-- 8: Storage used by type
+-- ----------------------------------------------------------------------------
+
+-- This must be calculated by looking at the total ingested.
+SELECT *
+FROM applications_ingest
+WHERE collection_id = 2
+ORDER BY storage_product_id;
+
+-- shows that an ingest reports what is run: so we actually don't want to sum
+-- all the records, as this would give us multiple duplicate values.
+-- so we need to do a subquery to get the last row before the extraction date
+
+-- So to select the last ingests on or before a given date, say '2016-02-06'
+SELECT
+  collection_id,
+  extraction_date,
+  used_capacity,
+  storage_product_id
+FROM applications_ingest t1
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = t1.collection_id
+                 AND t2.storage_product_id = t1.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+ORDER BY collection_id, storage_product_id;
+
+-- a slow running query :(
+
+-- and the sum used on or before that given date, say '2016-02-06'
+SELECT
+  sum(used_capacity),
+  storage_product_id
+FROM applications_ingest t1
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = t1.collection_id
+                 AND t2.storage_product_id = t1.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY storage_product_id;
+
+-- ----------------------------------------------------------------------------
+-- 9: Storage used by faculty
+-- ----------------------------------------------------------------------------
+
+-- We need to do the same complex query against the ingested data, but this
+-- time we need to bundle it into by faculties.
+--
+-- tricky:
+-- ingest.collection id -> project
+-- request.project id -> project
+-- request.institution faculty -> suborganization
+
+-- following gives faculty names for unimelb projects.
+SELECT
+  t1.id,
+  coalesce(nullif(name, ''), 'Unknown') -- handles nulls and empty strings
+FROM applications_request t1
+  LEFT JOIN applications_suborganization t2
+    ON institution_faculty_id = t2.id
+WHERE
+  t1.institution_id = '2'
+ORDER BY id;
+
+-- So the following gives the names (and takes even longer to run)
+-- But nicely, still the same number of rows as previous
+SELECT
+  collection_id AS project_id,
+  extraction_date,
+  used_capacity,
+  storage_product_id,
+  coalesce(nullif(name, ''),
+                         'External') AS name -- handles nulls and empty strings
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(nullif(name, ''),
+                         'Unknown') AS name -- handles nulls and empty strings
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+ORDER BY collection_id, storage_product_id, name;
+
+SELECT
+  sum(used_capacity),
+  coalesce(nullif(name, ''),
+                         'External') AS name -- handles nulls and empty strings
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(nullif(name, ''),
+                         'Unknown') AS name -- handles nulls and empty strings
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY name;
