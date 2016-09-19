@@ -192,7 +192,7 @@ report.d3 = function () {
                     ;
                 chart.yAxis
                     .tickFormat(d3.format('4d'))
-                    .axisLabel("VM's");
+                    .axisLabel("VCPU's");
 
                 d3.select('#extra svg')
                     .datum(nvd3_data)
