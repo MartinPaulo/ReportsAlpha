@@ -348,8 +348,10 @@ WHERE applications_storageproduct.id IN (1, 4, 10);
 -- 5: Storage headroom unused by type
 -- ----------------------------------------------------------------------------
 
--- We want to the difference between what has been allocated and what is
--- actually used.
+-- We want to the difference between what has been allocated (? notes say
+-- capacity? ) and what is actually used.
+
+-- If what is allocated:
 
 SELECT current_size
 FROM applications_collectionprofile;
@@ -374,6 +376,7 @@ ORDER BY collection_id;
 -- records...
 -- is the 'active' setting relevant?
 
+-- so to get the amount per day...
 SELECT
   collection_id,
   allocated_capacity,
@@ -387,15 +390,45 @@ WHERE storage_product_id IN (1, 4, 10)
       AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
 ORDER BY collection_id, storage_product_id;
 
+-- But that excludes prior runs that might not be included?
+-- As there are products that are not updated ingest
+-- So to pick them up
+SELECT
+  collection_id,
+  allocated_capacity,
+  used_capacity,
+  allocated_capacity - used_capacity AS headroom,
+  extraction_date,
+  storage_product_id
+FROM applications_ingest AS ingest
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+ORDER BY collection_id, storage_product_id;
+
 -- to collapse into per product:
 
 SELECT
   sum(allocated_capacity - used_capacity) AS headroom,
   storage_product_id
-FROM applications_ingest
+FROM applications_ingest AS ingest
 WHERE storage_product_id IN (1, 4, 10)
-      AND DATE '2016-02-06' <= extraction_date
-      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
 GROUP BY storage_product_id;
 
 -- But we find that the allocated capacity in this table does not
@@ -412,18 +445,24 @@ WHERE storage_product_id = 4
 -- ----------------------------------------------------------------------------
 -- ** 6: Storage headroom by faculty
 -- ----------------------------------------------------------------------------
--- This, I'm guessing, is the storage headroom *used* by faculty
--- So
+-- This is simply the above by faculty
 
 SELECT
   collection_id,
   allocated_capacity - used_capacity AS headroom,
   extraction_date,
   storage_product_id
-FROM applications_ingest
+FROM applications_ingest AS ingest
 WHERE storage_product_id IN (1, 4, 10)
-      AND DATE '2016-02-06' <= extraction_date
-      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
 ORDER BY collection_id, storage_product_id;
 
 -- tricky:
@@ -432,33 +471,36 @@ ORDER BY collection_id, storage_product_id;
 -- request.institution faculty -> suborganization
 
 SELECT
-  applications_project.id
-                                        collection_id,
-  allocated_capacity - used_capacity AS headroom,
-  extraction_date,
-  storage_product_id,
-  institution_faculty_id
---   applications_suborganization.name
-FROM applications_ingest
-  LEFT JOIN applications_project
-    ON applications_ingest.collection_id = applications_project.id
--- following causes explosion!
---   LEFT JOIN applications_request
---      ON applications_project.id = applications_request.project_id
---   LEFT JOIN applications_suborganization
---       ON applications_request.institution_faculty_id = applications_suborganization.id
+  sum(allocated_capacity - used_capacity) AS headroom,
+  coalesce(nullif(name, ''),
+           'External') AS name -- handles nulls and empty strings
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(nullif(name, ''),
+                         'Unknown') AS name -- handles nulls and empty strings
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
 WHERE storage_product_id IN (1, 4, 10)
-      AND DATE '2016-02-06' <= extraction_date
-      AND extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
-ORDER BY collection_id, storage_product_id;
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY name;
 
 -- ----------------------------------------------------------------------------
--- 7: Storage quota by faculty
--- ----------------------------------------------------------------------------
-
-
--- ----------------------------------------------------------------------------
--- 8: Storage used by type
+-- 7: Storage used by type
 -- ----------------------------------------------------------------------------
 
 -- This must be calculated by looking at the total ingested.
@@ -510,7 +552,7 @@ WHERE storage_product_id IN (1, 4, 10)
 GROUP BY storage_product_id;
 
 -- ----------------------------------------------------------------------------
--- 9: Storage used by faculty
+-- 8: Storage used by faculty
 -- ----------------------------------------------------------------------------
 
 -- We need to do the same complex query against the ingested data, but this
@@ -535,12 +577,12 @@ ORDER BY id;
 -- So the following gives the names (and takes even longer to run)
 -- But nicely, still the same number of rows as previous
 SELECT
-  collection_id AS project_id,
+  collection_id        AS project_id,
   extraction_date,
   used_capacity,
   storage_product_id,
   coalesce(nullif(name, ''),
-                         'External') AS name -- handles nulls and empty strings
+           'External') AS name -- handles nulls and empty strings
 FROM applications_ingest ingest
   LEFT JOIN (
               SELECT
@@ -569,7 +611,7 @@ ORDER BY collection_id, storage_product_id, name;
 SELECT
   sum(used_capacity),
   coalesce(nullif(name, ''),
-                         'External') AS name -- handles nulls and empty strings
+           'External') AS name -- handles nulls and empty strings
 FROM applications_ingest ingest
   LEFT JOIN (
               SELECT
