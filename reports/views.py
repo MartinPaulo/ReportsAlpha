@@ -40,7 +40,7 @@ class BrowseView(generic.ListView):
 
     def get_queryset(self):
         """
-        :return: The last 11 published reports: excluding those published in
+        :return: All the published reports: excluding those published in
         the future.
         """
         reports = Report.objects.filter(pub_date__lte=timezone.now())
@@ -49,7 +49,7 @@ class BrowseView(generic.ListView):
             reports = reports.filter(report_title__startswith='Cloud')
         elif self.selected_set == 'storage':
             reports = reports.filter(report_title__startswith='Storage')
-        return reports.order_by('report_title')[:11]
+        return reports.order_by('report_title')
 
     # we override this to add the selected set to the context
     # (is there a better way?)
