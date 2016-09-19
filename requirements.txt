@@ -7,3 +7,5 @@ python-dateutil
 lxml
 requests
 cssselect
+sshtunnel
+psycopg2    # http://initd.org/psycopg/docs/install.html ?
