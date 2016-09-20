@@ -11,7 +11,7 @@ def build_faculty_allocated(extract_db, load_db, start_day=None,
     logging.info("Building allocated data from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
-        logging.info("Building allocated data for %s", day_date)
+        logging.info("Building cloud allocated data for %s", day_date)
         faculty_totals = get_new_faculty_totals()
         result_set = extract_db.get_allocated_totals(day_date)
         for row in result_set:
