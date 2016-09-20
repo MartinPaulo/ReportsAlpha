@@ -2,7 +2,24 @@ import codecs
 import logging
 import sqlite3
 from datetime import datetime, date, timedelta
+
+from decimal import Decimal
+
 from scripts.config import Configuration
+
+
+def decimal2float(val):
+    return float(str(val))
+
+
+sqlite3.register_adapter(Decimal, decimal2float)
+
+
+def float2decimal(val):
+    return Decimal(str(val))
+
+
+sqlite3.register_converter("decimal", float2decimal)
 
 
 class DB(object):
@@ -25,7 +42,9 @@ class DB(object):
         return "\"" + encodable.replace("\"", "\"\"") + "\""
 
     def __init__(self):
-        self._db_connection = sqlite3.connect(Configuration.get_uom_db())
+        self._db_connection = sqlite3.connect(
+            Configuration.get_uom_db(),
+            detect_types=sqlite3.PARSE_DECLTYPES)
         self._db_cur = self._db_connection.cursor()
 
     def __del__(self):
@@ -137,3 +156,15 @@ class DB(object):
         if not faculties:
             faculties = ['Unknown']
         return faculties
+
+    def save_storage_allocated(self, day_date, day_totals):
+        day_totals['date'] = day_date.strftime("%Y-%m-%d")
+        columns = ', '.join(day_totals.keys())
+        value_placeholder = ', '.join(
+            [':%s' % k for k in day_totals.keys()])
+        # TODO: escape columns?
+        update = "INSERT OR REPLACE INTO storage_allocated (%s) " \
+                 "VALUES (%s);" % \
+                 (columns, value_placeholder)
+        self._db_cur.execute(update, day_totals)
+        self._db_connection.commit()
