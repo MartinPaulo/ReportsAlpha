@@ -6,9 +6,11 @@ import sys
 class Configuration(object):
     reporting_db = None
     production_db = None
+    vicnode_db = None
     nagios_auth = None
     nagios_url = None
     sqlite3_location = None
+    ssh_tunnel = None
 
     # noinspection PyBroadException
     @classmethod
@@ -16,10 +18,11 @@ class Configuration(object):
         try:
             import reports_beta.settings as settings
             cls.reporting_db = settings.reporting_db
-            cls.reporting_db = settings.reporting_db
+            cls.vicnode_db = settings.vicnode_db
             cls.nagios_auth = settings.nagios_auth
             cls.nagios_url = settings.NECTAR_NAGIOS_URL
             cls.sqlite3_location = settings.DATABASES['default']['NAME']
+            cls.ssh_tunnel = settings.ssh_tunnel
             logging.info('Settings loaded from settings.py')
         except ImportError as e:
             logging.error('Settings not found, exiting...')
@@ -44,6 +47,10 @@ class Configuration(object):
         return cls.get_attribute_value('production_db')
 
     @classmethod
+    def get_vicnode_db(cls):
+        return cls.get_attribute_value('vicnode_db')
+
+    @classmethod
     def get_reporting_db(cls):
         return cls.get_attribute_value('reporting_db')
 
@@ -58,3 +65,7 @@ class Configuration(object):
     @classmethod
     def get_uom_db(cls):
         return cls.get_attribute_value('sqlite3_location')
+
+    @classmethod
+    def get_ssh_tunnel_info(cls):
+        return cls.get_attribute_value('ssh_tunnel')
