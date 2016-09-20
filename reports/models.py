@@ -36,7 +36,8 @@ class CloudAllocated(models.Model):
     Contains the totals for the vcpu's allocated by each faculty
     """
     # All field names lowercased.
-    date = models.TextField(unique=True, blank=False, null=False, primary_key=True,
+    date = models.TextField(unique=True, blank=False, null=False,
+                            primary_key=True,
                             help_text="The date on which the values in the row were calculated")
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
     vas = models.IntegerField(db_column='VAS', blank=False, null=False)
@@ -61,7 +62,8 @@ class CloudUsed(models.Model):
     Contains the totals for the number of vcpu's fired up by each faculty
     """
     # All field names lowercased.
-    date = models.TextField(unique=True, blank=False, null=False, primary_key=True,
+    date = models.TextField(unique=True, blank=False, null=False,
+                            primary_key=True,
                             help_text="The date on which the values in the row were calculated")
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
     vas = models.IntegerField(db_column='VAS', blank=False, null=False)
@@ -119,3 +121,23 @@ class CloudTopTwenty(models.Model):
         managed = False
         db_table = 'cloud_top_twenty'
         unique_together = (('date', 'project_id'),)
+
+
+class StorageAllocated(models.Model):
+    date = models.TextField(primary_key=True)
+    computational = models.DecimalField(blank=False,
+                                        null=False,
+                                        decimal_places=2,
+                                        max_digits=15)
+    market = models.DecimalField(blank=False,
+                                 null=False,
+                                 decimal_places=2,
+                                 max_digits=15)
+    vault = models.DecimalField(blank=False,
+                                null=False,
+                                decimal_places=2,
+                                max_digits=15)
+
+    class Meta:
+        managed = False
+        db_table = 'storage_allocated'

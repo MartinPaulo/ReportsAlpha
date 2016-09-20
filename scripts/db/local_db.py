@@ -157,6 +157,9 @@ class DB(object):
             faculties = ['Unknown']
         return faculties
 
+    def get_storage_allocated_last_run_date(self):
+        return self.get_max_date('storage_allocated')
+
     def save_storage_allocated(self, day_date, day_totals):
         day_totals['date'] = day_date.strftime("%Y-%m-%d")
         columns = ', '.join(day_totals.keys())
