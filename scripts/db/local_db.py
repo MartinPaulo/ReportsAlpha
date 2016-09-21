@@ -54,6 +54,7 @@ class DB(object):
         return self._db_cur.execute(query, params)
 
     def get_max_date(self, table_name):
+        # default is a year ago...
         last_date = date.today() - timedelta(days=364)
         query = "SELECT MAX(date) AS max_date FROM %s;" % \
                 self.quote_identifier(table_name)
@@ -172,17 +173,55 @@ class DB(object):
         self._db_cur.execute(update, day_totals)
         self._db_connection.commit()
 
-    def get_storage_allocated_by_faculty_last_run_date(self):
-        return self.get_max_date('storage_allocated_by_faculty')
-
-    def save_storage_allocated_by_faculty(self, day_date, faculty_totals):
+    def _save_storage_allocated_by_faculty(self, day_date, faculty_totals,
+                                           query):
         faculty_totals['date'] = day_date.strftime("%Y-%m-%d")
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
         # TODO: escape columns?
-        update = "INSERT OR REPLACE INTO storage_allocated_by_faculty (%s) " \
-                 "VALUES (%s);" % \
-                 (columns, value_placeholder)
+        update = query % (columns, value_placeholder)
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
+
+    def get_storage_allocated_by_faculty_last_run_date(self):
+        return self.get_max_date('storage_allocated_by_faculty')
+
+    def save_storage_allocated_by_faculty(self, day_date, faculty_totals):
+        query = "INSERT OR REPLACE INTO storage_allocated_by_faculty (%s) " \
+                "VALUES (%s);"
+        self._save_storage_allocated_by_faculty(day_date, faculty_totals,
+                                                query)
+
+    def get_storage_allocated_by_faculty_compute_last_run_date(self):
+        return self.get_max_date('storage_allocated_by_faculty_compute')
+
+    def save_storage_allocated_by_faculty_compute(self, day_date,
+                                                  faculty_totals):
+        query = "INSERT OR REPLACE INTO " \
+                "storage_allocated_by_faculty_compute (%s) " \
+                "VALUES (%s);"
+        self._save_storage_allocated_by_faculty(day_date, faculty_totals,
+                                                query)
+
+    def get_storage_allocated_by_faculty_market_last_run_date(self):
+        return self.get_max_date('storage_allocated_by_faculty_market')
+
+    def save_storage_allocated_by_faculty_market(self, day_date,
+                                                  faculty_totals):
+        query = "INSERT OR REPLACE INTO " \
+                "storage_allocated_by_faculty_market (%s) " \
+                "VALUES (%s);"
+        self._save_storage_allocated_by_faculty(day_date, faculty_totals,
+                                                query)
+
+    def get_storage_allocated_by_faculty_vault_last_run_date(self):
+        return self.get_max_date('storage_allocated_by_faculty_vault')
+
+    def save_storage_allocated_by_faculty_vault(self, day_date,
+                                                  faculty_totals):
+        query = "INSERT OR REPLACE INTO " \
+                "storage_allocated_by_faculty_vault (%s) " \
+                "VALUES (%s);"
+        self._save_storage_allocated_by_faculty(day_date, faculty_totals,
+                                                query)

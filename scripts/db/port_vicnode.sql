@@ -421,6 +421,10 @@ GROUP BY faculty;
 
 -- gives us the grand totals...
 
+-- But we also want it broken down by storage product
+
+
+
 -- ----------------------------------------------------------------------------
 -- 3: Storage capacity by type
 -- ----------------------------------------------------------------------------

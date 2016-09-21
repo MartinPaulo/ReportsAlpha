@@ -38,7 +38,8 @@ class CloudAllocated(models.Model):
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False,
                             primary_key=True,
-                            help_text="The date on which the values in the row were calculated")
+                            help_text="The date on which the values "
+                                      "in the row were calculated")
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
     vas = models.IntegerField(db_column='VAS', blank=False, null=False)
     fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
@@ -64,7 +65,8 @@ class CloudUsed(models.Model):
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False,
                             primary_key=True,
-                            help_text="The date on which the values in the row were calculated")
+                            help_text="The date on which the values "
+                                      "in the row were calculated")
     foa = models.IntegerField(db_column='FoA', blank=False, null=False)
     vas = models.IntegerField(db_column='VAS', blank=False, null=False)
     fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
@@ -88,17 +90,23 @@ class CloudActiveUsers(models.Model):
     Contains the active users.
     """
     date = models.TextField(primary_key=True, blank=False, null=False,
-                            help_text="The date on which the values in the row were calculated")
+                            help_text="The date on which the values in "
+                                      "the row were calculated")
     at_uom_only = models.IntegerField(blank=False, null=False,
-                                      help_text="The number of UoM users who are only running VM's in UoM cells")
+                                      help_text="The number of UoM users who "
+                                                "are only running VM's in UoM "
+                                                "cells")
     elsewhere_only = models.IntegerField(blank=False, null=False,
-                                         help_text="The number of UoM users who are only "
-                                                   "running VM's in cells outside of UoM")
+                                         help_text="The number of UoM users "
+                                                   "who are only running VM's "
+                                                   "in cells outside of UoM")
     in_both = models.IntegerField(blank=False, null=False,
-                                  help_text="The number of UoM users who are running VM's "
-                                            "in both UoM cells and cells outside of UoM")
+                                  help_text="The number of UoM users who are "
+                                            "running VM's in both UoM cells "
+                                            "and cells outside of UoM")
     others_at_uom = models.IntegerField(blank=False, null=False,
-                                        help_text="Users not from UoM who are running VM's in UoM cells")
+                                        help_text="Users not from UoM who are "
+                                                  "running VM's in UoM cells")
 
     class Meta:
         managed = False
@@ -110,7 +118,8 @@ class CloudTopTwenty(models.Model):
     The top twenty UoM users of the cloud, by date.
     """
     date = models.TextField(primary_key=True,
-                            help_text="The date on which the values were calculated")
+                            help_text="The date on which the values "
+                                      "were calculated")
     project_id = models.CharField(primary_key=True, max_length=32,
                                   help_text="The project ID")
     vcpus = models.IntegerField(help_text="The project VCPU count on the date")
@@ -143,7 +152,7 @@ class StorageAllocated(models.Model):
         db_table = 'storage_allocated'
 
 
-class StorageAllocatedByFaculty(models.Model):
+class StorageAllocatedBase(models.Model):
     date = models.TextField(primary_key=True, blank=False, null=False)
     foa = models.DecimalField(db_column='FoA', blank=False, null=False,
                               decimal_places=2,
@@ -184,4 +193,32 @@ class StorageAllocatedByFaculty(models.Model):
 
     class Meta:
         managed = False
+        abstract = True
+
+
+class StorageAllocatedByFaculty(StorageAllocatedBase):
+
+    class Meta:
+        managed = False
         db_table = 'storage_allocated_by_faculty'
+
+
+class StorageAllocatedByFacultyCompute(StorageAllocatedBase):
+
+    class Meta:
+        managed = False
+        db_table = 'storage_allocated_by_faculty_compute'
+
+
+class StorageAllocatedByFacultyMarket(StorageAllocatedBase):
+
+    class Meta:
+        managed = False
+        db_table = 'storage_allocated_by_faculty_market'
+
+
+class StorageAllocatedByFacultyVault(StorageAllocatedBase):
+
+    class Meta:
+        managed = False
+        db_table = 'storage_allocated_by_faculty_vault'

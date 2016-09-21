@@ -70,12 +70,20 @@ class DB(object):
         self._db_cur.execute(q_allocated, {'day_date': day_date})
         return self._db_cur.fetchall()
 
-    def get_allocated_by_faculty(self, day_date):
+    def get_allocated_by_faculty(self, day_date, product='all'):
         """
+        :param product:
         :param self:
         :param day_date:
         :return:
         """
+        products = (1, 4, 10)
+        if product == 'computational':
+            products = (1,)
+        elif product == 'market':
+            products = (4,)
+        elif product == 'vault':
+            products = (10,)
         q_allocated = """
             SELECT
               sum(size)          AS used,
@@ -112,10 +120,13 @@ class DB(object):
               LEFT JOIN applications_suborganization
                 ON applications_request.institution_faculty_id =
                    applications_suborganization.id
-            WHERE storage_product_id IN (1, 4, 10)
+            WHERE storage_product_id IN %(products)s
                   AND applications_allocation.last_modified <
                       (%(day_date)s :: DATE + '1 day' :: INTERVAL)
             GROUP BY faculty;
         """
-        self._db_cur.execute(q_allocated, {'day_date': day_date})
+        # print(self._db_cur.mogrify(q_allocated,
+        #                      {'products': products, 'day_date': day_date}))
+        self._db_cur.execute(q_allocated,
+                             {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()

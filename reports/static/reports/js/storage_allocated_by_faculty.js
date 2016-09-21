@@ -31,8 +31,12 @@ report.d3 = function () {
     };
 
     var render = function () {
+        var type = utils.findType();
+        if (type=='total') {
+            type = '';
+        }
         //var data_path = '/reports/manufactured/faculty_allocated/?from=' + utils.findFrom() + '&type=' + utils.findType();
-        var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=StorageAllocatedByFaculty';
+        var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=StorageAllocatedByFaculty' + type;
         d3.select('#a_data').attr('href', data_path);
         //d3.json(data_path, utils.getStorageChart({'useFacultyColours': true}));
         d3.csv(data_path, function (error, csv) {
