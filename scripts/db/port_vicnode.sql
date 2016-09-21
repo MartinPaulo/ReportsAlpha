@@ -424,7 +424,6 @@ GROUP BY faculty;
 -- But we also want it broken down by storage product
 
 
-
 -- ----------------------------------------------------------------------------
 -- 3: Storage capacity by type
 -- ----------------------------------------------------------------------------
@@ -657,6 +656,28 @@ WHERE storage_product_id IN (1, 4, 10)
                  t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
           )
 GROUP BY storage_product_id;
+
+-- or:
+SELECT
+  sum(used_capacity),
+  CASE
+  WHEN storage_product_id = 1
+    THEN 'computational'
+  WHEN storage_product_id = 4
+    THEN 'market'
+  ELSE 'vault' END AS product
+FROM applications_ingest t1
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = t1.collection_id
+                 AND t2.storage_product_id = t1.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY product;
 
 -- ----------------------------------------------------------------------------
 -- 8: Storage used by faculty

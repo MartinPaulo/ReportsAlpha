@@ -132,7 +132,7 @@ class CloudTopTwenty(models.Model):
         unique_together = (('date', 'project_id'),)
 
 
-class StorageAllocated(models.Model):
+class StorageTotals(models.Model):
     date = models.TextField(primary_key=True)
     computational = models.DecimalField(blank=False,
                                         null=False,
@@ -149,7 +149,19 @@ class StorageAllocated(models.Model):
 
     class Meta:
         managed = False
+        abstract = True
+
+
+class StorageAllocated(StorageTotals):
+    class Meta:
+        managed = False
         db_table = 'storage_allocated'
+
+
+class StorageUsed(StorageTotals):
+    class Meta:
+        managed = False
+        db_table = 'storage_used'
 
 
 class StorageAllocatedBase(models.Model):
@@ -197,28 +209,24 @@ class StorageAllocatedBase(models.Model):
 
 
 class StorageAllocatedByFaculty(StorageAllocatedBase):
-
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty'
 
 
 class StorageAllocatedByFacultyCompute(StorageAllocatedBase):
-
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty_compute'
 
 
 class StorageAllocatedByFacultyMarket(StorageAllocatedBase):
-
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty_market'
 
 
 class StorageAllocatedByFacultyVault(StorageAllocatedBase):
-
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty_vault'

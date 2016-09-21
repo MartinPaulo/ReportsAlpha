@@ -105,3 +105,17 @@ def build_allocated_by_faculty_vault(extract_db, load_db, start_day=None,
             faculty_totals[result['faculty']] += result["used"]
         load_db.save_storage_allocated_by_faculty_vault(day_date,
                                                         faculty_totals)
+
+
+def build_used(extract_db, load_db, start_day, end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_storage_used_last_run_date()
+    logging.info("Building storage used from %s till %s",
+                 start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building storage used for %s", day_date)
+        product_totals = {'computational': 0, 'market': 0, 'vault': 0}
+        result_set = extract_db.get_storage_used(day_date)
+        for result in result_set:
+            product_totals[result['product']] += result["sum"]
+        load_db.save_storage_used(day_date, product_totals)
