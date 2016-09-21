@@ -141,3 +141,47 @@ class StorageAllocated(models.Model):
     class Meta:
         managed = False
         db_table = 'storage_allocated'
+
+
+class StorageAllocatedByFaculty(models.Model):
+    date = models.TextField(primary_key=True, blank=False, null=False)
+    foa = models.DecimalField(db_column='FoA', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    vas = models.DecimalField(db_column='VAS', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    fbe = models.DecimalField(db_column='FBE', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    mse = models.DecimalField(db_column='MSE', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    mgse = models.DecimalField(db_column='MGSE', blank=False, null=False,
+                               decimal_places=2,
+                               max_digits=15)
+    mdhs = models.DecimalField(db_column='MDHS', blank=False, null=False,
+                               decimal_places=2,
+                               max_digits=15)
+    fos = models.DecimalField(db_column='FoS', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    abp = models.DecimalField(db_column='ABP', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    mls = models.DecimalField(db_column='MLS', blank=False, null=False,
+                              decimal_places=2,
+                              max_digits=15)
+    vcamcm = models.DecimalField(db_column='VCAMCM', blank=False, null=False,
+                                 decimal_places=2,
+                                 max_digits=15)
+    external = models.DecimalField(blank=False, null=False, decimal_places=2,
+                                   max_digits=15)
+    services = models.DecimalField(blank=False, null=False, decimal_places=2,
+                                   max_digits=15)
+    unknown = models.DecimalField(blank=False, null=False, decimal_places=2,
+                                  max_digits=15)
+
+    class Meta:
+        managed = False
+        db_table = 'storage_allocated_by_faculty'

@@ -59,7 +59,7 @@ class DB(object):
                 self.quote_identifier(table_name)
         self._db_cur.execute(query)
         row = self._db_cur.fetchone()
-        if row is None:
+        if row is None or row[0] is None:
             logging.warning("No last date found for table %s", table_name)
         else:
             last_date = datetime.strptime(row[0], "%Y-%m-%d").date()
@@ -170,4 +170,19 @@ class DB(object):
                  "VALUES (%s);" % \
                  (columns, value_placeholder)
         self._db_cur.execute(update, day_totals)
+        self._db_connection.commit()
+
+    def get_storage_allocated_by_faculty_last_run_date(self):
+        return self.get_max_date('storage_allocated_by_faculty')
+
+    def save_storage_allocated_by_faculty(self, day_date, faculty_totals):
+        faculty_totals['date'] = day_date.strftime("%Y-%m-%d")
+        columns = ', '.join(faculty_totals.keys())
+        value_placeholder = ', '.join(
+            [':%s' % k for k in faculty_totals.keys()])
+        # TODO: escape columns?
+        update = "INSERT OR REPLACE INTO storage_allocated_by_faculty (%s) " \
+                 "VALUES (%s);" % \
+                 (columns, value_placeholder)
+        self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()

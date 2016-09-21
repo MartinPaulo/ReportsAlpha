@@ -76,7 +76,55 @@ class DB(object):
                  (%(day_date)s :: DATE + '1 day' :: INTERVAL)
                  ) c;
         """
-        if not day_date:
-            day_date = date.today()
+        self._db_cur.execute(q_allocated, {'day_date': day_date})
+        return self._db_cur.fetchall()
+
+    def get_allocated_by_faculty(self, day_date):
+        """
+        :param self:
+        :param day_date:
+        :return:
+        """
+        q_allocated = """
+            SELECT
+              sum(size)          AS used,
+              CASE
+              WHEN institution_id != 2
+                THEN 'external'
+              WHEN applications_suborganization.id = 1
+                THEN 'ABP'
+              WHEN applications_suborganization.id = 2
+                THEN 'FBE'
+              WHEN applications_suborganization.id = 3
+                THEN 'FoA'
+              WHEN applications_suborganization.id = 4
+                THEN 'MGSE'
+              WHEN applications_suborganization.id = 5
+                THEN 'MSE'
+              WHEN applications_suborganization.id = 6
+                THEN 'MLS'
+              WHEN applications_suborganization.id = 7
+                THEN 'MDHS'
+              WHEN applications_suborganization.id = 8
+                THEN 'FoS'
+              WHEN applications_suborganization.id = 9
+                THEN 'VAS'
+              WHEN applications_suborganization.id = 10
+                THEN 'VCAMCM'
+              WHEN applications_suborganization.id = 11
+                THEN 'services'
+              ELSE 'unknown' END AS faculty
+            FROM applications_allocation
+              LEFT JOIN applications_request
+                ON applications_allocation.application_id =
+                   applications_request.id
+              LEFT JOIN applications_suborganization
+                ON applications_request.institution_faculty_id =
+                   applications_suborganization.id
+            WHERE storage_product_id IN (1, 4, 10)
+                  AND applications_allocation.last_modified <
+                      (%(day_date)s :: DATE + '1 day' :: INTERVAL)
+            GROUP BY faculty;
+        """
         self._db_cur.execute(q_allocated, {'day_date': day_date})
         return self._db_cur.fetchall()

@@ -305,8 +305,9 @@ GROUP BY name;
 -- or more portably
 
 SELECT
-  count(applications_allocation.id) AS found,
-  sum(size)                         AS computational_size,
+  count(applications_allocation.id)            AS found,
+  sum(size)                                    AS computational_size,
+  coalesce(applications_suborganization.id, 0) AS suborganization_id,
   coalesce(nullif(name, ''), 'External') -- handles nulls and empty strings
 FROM applications_allocation
   LEFT JOIN applications_request
@@ -314,9 +315,95 @@ FROM applications_allocation
   LEFT JOIN applications_suborganization
     ON applications_request.institution_faculty_id =
        applications_suborganization.id
-WHERE storage_product_id = 10
+WHERE storage_product_id IN (1, 4, 10)
 --      AND applications_allocation.last_modified < ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
-GROUP BY name;
+GROUP BY suborganization_id, name;
+
+-- But this groups the external orgs with the unknown...
+
+SELECT
+  applications_allocation.id                   AS found,
+  size                                         AS computational_size,
+  institution_id,
+  coalesce(applications_suborganization.id, 0) AS suborganization_id,
+  CASE
+  WHEN institution_id != 2
+    THEN 'External'
+  WHEN applications_suborganization.id = 1
+    THEN 'ABP'
+  WHEN applications_suborganization.id = 2
+    THEN 'FBE'
+  WHEN applications_suborganization.id = 3
+    THEN 'FoA'
+  WHEN applications_suborganization.id = 4
+    THEN 'MGSE'
+  WHEN applications_suborganization.id = 5
+    THEN 'MSE'
+  WHEN applications_suborganization.id = 6
+    THEN 'MLS'
+  WHEN applications_suborganization.id = 7
+    THEN 'MDHS'
+  WHEN applications_suborganization.id = 8
+    THEN 'FoS'
+  WHEN applications_suborganization.id = 9
+    THEN 'VAS'
+  WHEN applications_suborganization.id = 10
+    THEN 'VCAMCM'
+  WHEN applications_suborganization.id = 11
+    THEN 'US'
+  ELSE 'Unknown' END                           AS faculty,
+  name
+FROM applications_allocation
+  LEFT JOIN applications_request
+    ON applications_allocation.application_id = applications_request.id
+  LEFT JOIN applications_suborganization
+    ON applications_request.institution_faculty_id =
+       applications_suborganization.id
+WHERE storage_product_id IN (1, 4, 10);
+
+-- breaks it out
+
+-- and
+SELECT
+  sum(size)          AS used,
+  CASE
+  WHEN institution_id != 2
+    THEN 'external'
+  WHEN applications_suborganization.id = 1
+    THEN 'ABP'
+  WHEN applications_suborganization.id = 2
+    THEN 'FBE'
+  WHEN applications_suborganization.id = 3
+    THEN 'FoA'
+  WHEN applications_suborganization.id = 4
+    THEN 'MGSE'
+  WHEN applications_suborganization.id = 5
+    THEN 'MSE'
+  WHEN applications_suborganization.id = 6
+    THEN 'MLS'
+  WHEN applications_suborganization.id = 7
+    THEN 'MDHS'
+  WHEN applications_suborganization.id = 8
+    THEN 'FoS'
+  WHEN applications_suborganization.id = 9
+    THEN 'VAS'
+  WHEN applications_suborganization.id = 10
+    THEN 'VCAMCM'
+  WHEN applications_suborganization.id = 11
+    THEN 'services'
+  ELSE 'unknown' END AS faculty
+FROM applications_allocation
+  LEFT JOIN applications_request
+    ON applications_allocation.application_id = applications_request.id
+  LEFT JOIN applications_suborganization
+    ON applications_request.institution_faculty_id =
+       applications_suborganization.id
+WHERE storage_product_id IN (1, 4, 10)
+      AND applications_allocation.last_modified <
+          ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+GROUP BY faculty;
+
+-- gives us the grand totals...
 
 -- ----------------------------------------------------------------------------
 -- 3: Storage capacity by type
@@ -473,7 +560,7 @@ ORDER BY collection_id, storage_product_id;
 SELECT
   sum(allocated_capacity - used_capacity) AS headroom,
   coalesce(nullif(name, ''),
-           'External') AS name -- handles nulls and empty strings
+           'External')                    AS name -- handles nulls and empty strings
 FROM applications_ingest ingest
   LEFT JOIN (
               SELECT
