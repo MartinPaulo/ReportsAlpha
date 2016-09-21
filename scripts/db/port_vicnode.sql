@@ -153,6 +153,22 @@ FROM
 
 -- 84400	258400	697000
 
+-- Ps: technically same as;
+
+SELECT
+  sum(size),
+  CASE
+  WHEN storage_product_id = 1
+    THEN 'computational'
+  WHEN storage_product_id = 4
+    THEN 'market'
+  ELSE 'vault' END AS product
+FROM applications_allocation
+WHERE storage_product_id IN (1, 4, 10)
+      AND applications_allocation.last_modified <
+          ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+GROUP BY storage_product_id;
+
 -- but there's a sad issue with the above
 -- not all of UoM (institution_id = 2)'s storage product is used by UoM only
 
@@ -400,7 +416,7 @@ FROM applications_allocation
        applications_suborganization.id
 WHERE storage_product_id IN (1, 4, 10)
       AND applications_allocation.last_modified <
-          ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+          ('2016-08-16' :: DATE + '1 day' :: INTERVAL)
 GROUP BY faculty;
 
 -- gives us the grand totals...

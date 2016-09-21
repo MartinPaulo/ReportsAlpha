@@ -53,28 +53,19 @@ class DB(object):
         :return:
         """
         q_allocated = """
-        SELECT *
-        FROM
-          (SELECT sum(size) AS computational
-           FROM applications_allocation
-           WHERE storage_product_id = 1
-                 AND last_modified <
-                 (%(day_date)s :: DATE + '1 day' :: INTERVAL)
-                 ) a
-          CROSS JOIN
-          (SELECT sum(size) AS market
-           FROM applications_allocation
-           WHERE storage_product_id = 4
-                 AND last_modified <
-                 (%(day_date)s :: DATE + '1 day' :: INTERVAL)
-                 ) b
-          CROSS JOIN
-          (SELECT sum(size) AS vault
-           FROM applications_allocation
-           WHERE storage_product_id = 10
-                 AND last_modified <
-                 (%(day_date)s :: DATE + '1 day' :: INTERVAL)
-                 ) c;
+            SELECT
+              sum(size),
+              CASE
+              WHEN storage_product_id = 1
+                THEN 'computational'
+              WHEN storage_product_id = 4
+                THEN 'market'
+              ELSE 'vault' END AS product
+            FROM applications_allocation
+            WHERE storage_product_id IN (1, 4, 10)
+                  AND applications_allocation.last_modified <
+                      (%(day_date)s :: DATE + '1 day' :: INTERVAL)
+            GROUP BY storage_product_id;
         """
         self._db_cur.execute(q_allocated, {'day_date': day_date})
         return self._db_cur.fetchall()

@@ -12,9 +12,11 @@ def build_allocated(extract_db, load_db, start_day=None, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage data allocated for %s", day_date)
+        product_totals = {'computational': 0, 'market': 0, 'vault': 0}
         result_set = extract_db.get_allocated(day_date)
         for result in result_set:
-            load_db.save_storage_allocated(day_date, result)
+            product_totals[result['product']] += result["sum"]
+        load_db.save_storage_allocated(day_date, product_totals)
 
 
 def build_allocated_by_faculty(extract_db, load_db, start_day=None,
