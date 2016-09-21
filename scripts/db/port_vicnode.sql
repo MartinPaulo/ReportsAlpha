@@ -739,11 +739,48 @@ ORDER BY collection_id, storage_product_id, name;
 SELECT
   sum(used_capacity),
   coalesce(nullif(name, ''),
+           'external') AS name -- handles nulls and empty strings
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(nullif(name, ''),
+                         'unknown') AS name -- handles nulls and empty strings
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY name;
+
+-- but the above doesn't give us the faculty abbreviations we might prefer
+-- so:
+
+SELECT
+  collection_id        AS project_id,
+  extraction_date,
+  used_capacity,
+  storage_product_id,
+  coalesce(suborg_id, 0),
+  coalesce(nullif(name, ''),
            'External') AS name -- handles nulls and empty strings
 FROM applications_ingest ingest
   LEFT JOIN (
               SELECT
                 request.id,
+                coalesce(suborganization.id, -1) AS suborg_id,
                 coalesce(nullif(name, ''),
                          'Unknown') AS name -- handles nulls and empty strings
               FROM applications_request request
@@ -763,4 +800,87 @@ WHERE storage_product_id IN (1, 4, 10)
                  AND
                  t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
           )
-GROUP BY name;
+ORDER BY collection_id, storage_product_id, name;
+
+-- which allows:
+
+SELECT
+  sum(used_capacity),
+  coalesce(suborg_id, 0) AS faculty
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(suborganization.id, -1) AS suborg_id
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY faculty;
+
+-- or
+
+SELECT
+  sum(used_capacity),
+  CASE
+    WHEN suborg_id IS NULL
+      THEN 'external'
+    WHEN suborg_id = 1
+      THEN 'ABP'
+    WHEN suborg_id = 2
+      THEN 'FBE'
+    WHEN suborg_id = 3
+      THEN 'FoA'
+    WHEN suborg_id = 4
+      THEN 'MGSE'
+    WHEN suborg_id = 5
+      THEN 'MSE'
+    WHEN suborg_id = 6
+      THEN 'MLS'
+    WHEN suborg_id = 7
+      THEN 'MDHS'
+    WHEN suborg_id = 8
+      THEN 'FoS'
+    WHEN suborg_id = 9
+      THEN 'VAS'
+    WHEN suborg_id = 10
+      THEN 'VCAMCM'
+    WHEN suborg_id = 11
+      THEN 'services'
+    ELSE 'unknown' END AS faculty
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(suborganization.id, -1) AS suborg_id
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY faculty;

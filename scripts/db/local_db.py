@@ -173,9 +173,8 @@ class DB(object):
 
     def save_storage_allocated(self, day_date, totals):
         query = "INSERT OR REPLACE INTO storage_allocated (%s) " \
-                 "VALUES (%s);"
+                "VALUES (%s);"
         self._save_storage(day_date, totals, query)
-
 
     def get_storage_used_last_run_date(self):
         return self.get_max_date('storage_used')
@@ -184,6 +183,14 @@ class DB(object):
         query = "INSERT OR REPLACE INTO storage_used (%s) " \
                 "VALUES (%s);"
         self._save_storage(day_date, totals, query)
+
+    def get_storage_used_by_faculty_last_run_date(self):
+        return self.get_max_date('storage_used_by_faculty')
+
+    def save_storage_used_by_faculty(self, day_date, faculty_totals):
+        query = "INSERT OR REPLACE INTO storage_used_by_faculty (%s) " \
+                "VALUES (%s);"
+        self._save_storage(day_date, faculty_totals, query)
 
     def get_storage_allocated_by_faculty_last_run_date(self):
         return self.get_max_date('storage_allocated_by_faculty')
