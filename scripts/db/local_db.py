@@ -184,14 +184,6 @@ class DB(object):
                 "VALUES (%s);"
         self._save_storage(day_date, totals, query)
 
-    def get_storage_used_by_faculty_last_run_date(self):
-        return self.get_max_date('storage_used_by_faculty')
-
-    def save_storage_used_by_faculty(self, day_date, faculty_totals):
-        query = "INSERT OR REPLACE INTO storage_used_by_faculty (%s) " \
-                "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
-
     def get_storage_allocated_by_faculty_last_run_date(self):
         return self.get_max_date('storage_allocated_by_faculty')
 
@@ -227,5 +219,38 @@ class DB(object):
                                                 faculty_totals):
         query = "INSERT OR REPLACE INTO " \
                 "storage_allocated_by_faculty_vault (%s) " \
+                "VALUES (%s);"
+        self._save_storage(day_date, faculty_totals, query)
+
+    def get_storage_used_by_faculty_last_run_date(self):
+        return self.get_max_date('storage_used_by_faculty')
+
+    def save_storage_used_by_faculty(self, day_date, faculty_totals):
+        query = "INSERT OR REPLACE INTO storage_used_by_faculty (%s) " \
+                "VALUES (%s);"
+        self._save_storage(day_date, faculty_totals, query)
+
+    def get_storage_used_by_faculty_compute_last_run_date(self):
+        return self.get_max_date('storage_used_by_faculty_compute')
+
+    def save_storage_used_by_faculty_compute(self, day_date, faculty_totals):
+        query = "INSERT OR REPLACE INTO " \
+                "storage_used_by_faculty_compute (%s) " \
+                "VALUES (%s);"
+        self._save_storage(day_date, faculty_totals, query)
+
+    def get_storage_used_by_faculty_market_last_run_date(self):
+        return self.get_max_date('storage_used_by_faculty_market')
+
+    def save_storage_used_by_faculty_market(self, day_date, faculty_totals):
+        query = "INSERT OR REPLACE INTO storage_used_by_faculty_market (%s) " \
+                "VALUES (%s);"
+        self._save_storage(day_date, faculty_totals, query)
+
+    def get_storage_used_by_faculty_vault_last_run_date(self):
+        return self.get_max_date('storage_used_by_faculty_vault')
+
+    def save_storage_used_by_faculty_vault(self, day_date, faculty_totals):
+        query = "INSERT OR REPLACE INTO storage_used_by_faculty_vault (%s) " \
                 "VALUES (%s);"
         self._save_storage(day_date, faculty_totals, query)

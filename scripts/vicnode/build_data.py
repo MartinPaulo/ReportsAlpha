@@ -129,3 +129,48 @@ def build_used_by_faculty(extract_db, load_db, start_day,
         for result in result_set:
             faculty_totals[result['faculty']] += result["used"]
         load_db.save_storage_used_by_faculty(day_date, faculty_totals)
+
+
+def build_used_by_faculty_compute(extract_db, load_db, start_day,
+                                  end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_storage_used_by_faculty_compute_last_run_date()
+    logging.info("Building storage compute used by faculty from %s till %s",
+                 start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building storage compute used by faculty for %s", day_date)
+        faculty_totals = _get_faculty_totals()
+        result_set = extract_db.get_used_by_faculty(day_date, 'compute')
+        for result in result_set:
+            faculty_totals[result['faculty']] += result["used"]
+        load_db.save_storage_used_by_faculty_compute(day_date, faculty_totals)
+
+
+def build_used_by_faculty_market(extract_db, load_db, start_day,
+                                 end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_storage_used_by_faculty_market_last_run_date()
+    logging.info("Building storage market used by faculty from %s till %s",
+                 start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building storage market used by faculty for %s", day_date)
+        faculty_totals = _get_faculty_totals()
+        result_set = extract_db.get_used_by_faculty(day_date, 'market')
+        for result in result_set:
+            faculty_totals[result['faculty']] += result["used"]
+        load_db.save_storage_used_by_faculty_market(day_date, faculty_totals)
+
+
+def build_used_by_faculty_vault(extract_db, load_db, start_day,
+                                end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_storage_used_by_faculty_vault_last_run_date()
+    logging.info("Building storage vault used by faculty from %s till %s",
+                 start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building storage vault used by faculty for %s", day_date)
+        faculty_totals = _get_faculty_totals()
+        result_set = extract_db.get_used_by_faculty(day_date, 'vault')
+        for result in result_set:
+            faculty_totals[result['faculty']] += result["used"]
+        load_db.save_storage_used_by_faculty_vault(day_date, faculty_totals)

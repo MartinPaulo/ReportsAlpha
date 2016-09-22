@@ -14,14 +14,7 @@ class Report(models.Model):
 
     def was_published_recently(self):
         """
-        Return True if was published in the last day, False otherwise
-
-        >>> import datetime
-        >>> from django.utils import timezone
-        >>> from reports.models import Report
-        >>> future_report = Report(pub_date=timezone.now()+ datetime.timedelta(days=30), report_title="Futurama")
-        >>> future_report.was_published_recently()
-        False
+        :return: True if was published in the last day, False otherwise
         """
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
@@ -31,10 +24,7 @@ class Report(models.Model):
     was_published_recently.short_description = 'Published recently?'
 
 
-class CloudAllocated(models.Model):
-    """
-    Contains the totals for the vcpu's allocated by each faculty
-    """
+class CloudTotalsByFaculty(models.Model):
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False,
                             primary_key=True,
@@ -55,30 +45,23 @@ class CloudAllocated(models.Model):
 
     class Meta:
         managed = False
+        abstract = True
+
+
+class CloudAllocated(CloudTotalsByFaculty):
+    """
+    Contains the totals for the vcpu's allocated by each faculty
+    """
+
+    class Meta:
+        managed = False
         db_table = 'cloud_allocated'
 
 
-class CloudUsed(models.Model):
+class CloudUsed(CloudTotalsByFaculty):
     """
     Contains the totals for the number of vcpu's fired up by each faculty
     """
-    # All field names lowercased.
-    date = models.TextField(unique=True, blank=False, null=False,
-                            primary_key=True,
-                            help_text="The date on which the values "
-                                      "in the row were calculated")
-    foa = models.IntegerField(db_column='FoA', blank=False, null=False)
-    vas = models.IntegerField(db_column='VAS', blank=False, null=False)
-    fbe = models.IntegerField(db_column='FBE', blank=False, null=False)
-    mse = models.IntegerField(db_column='MSE', blank=False, null=False)
-    mgse = models.IntegerField(db_column='MGSE', blank=False, null=False)
-    mdhs = models.IntegerField(db_column='MDHS', blank=False, null=False)
-    fos = models.IntegerField(db_column='FoS', blank=False, null=False)
-    abp = models.IntegerField(db_column='ABP', blank=False, null=False)
-    mls = models.IntegerField(db_column='MLS', blank=False, null=False)
-    vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)
-    other = models.IntegerField(db_column='Other', blank=False, null=False)
-    unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)
 
     class Meta:
         managed = False
@@ -132,8 +115,11 @@ class CloudTopTwenty(models.Model):
         unique_together = (('date', 'project_id'),)
 
 
-class StorageTotals(models.Model):
-    date = models.TextField(primary_key=True)
+class StorageTotalsByProduct(models.Model):
+    date = models.TextField(primary_key=True, blank=False, null=False,
+                            help_text="The date on which the values in "
+                                      "the row were calculated"
+                            )
     computational = models.DecimalField(blank=False,
                                         null=False,
                                         decimal_places=2,
@@ -152,20 +138,22 @@ class StorageTotals(models.Model):
         abstract = True
 
 
-class StorageAllocated(StorageTotals):
+class StorageAllocated(StorageTotalsByProduct):
     class Meta:
         managed = False
         db_table = 'storage_allocated'
 
 
-class StorageUsed(StorageTotals):
+class StorageUsed(StorageTotalsByProduct):
     class Meta:
         managed = False
         db_table = 'storage_used'
 
 
-class StorageAllocatedBase(models.Model):
-    date = models.TextField(primary_key=True, blank=False, null=False)
+class StorageTotalsByFaculty(models.Model):
+    date = models.TextField(primary_key=True, blank=False, null=False,
+                            help_text="The date on which the values in "
+                                      "the row were calculated")
     foa = models.DecimalField(db_column='FoA', blank=False, null=False,
                               decimal_places=2,
                               max_digits=15)
@@ -208,25 +196,49 @@ class StorageAllocatedBase(models.Model):
         abstract = True
 
 
-class StorageAllocatedByFaculty(StorageAllocatedBase):
+class StorageAllocatedByFaculty(StorageTotalsByFaculty):
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty'
 
 
-class StorageAllocatedByFacultyCompute(StorageAllocatedBase):
+class StorageAllocatedByFacultyCompute(StorageTotalsByFaculty):
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty_compute'
 
 
-class StorageAllocatedByFacultyMarket(StorageAllocatedBase):
+class StorageAllocatedByFacultyMarket(StorageTotalsByFaculty):
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty_market'
 
 
-class StorageAllocatedByFacultyVault(StorageAllocatedBase):
+class StorageAllocatedByFacultyVault(StorageTotalsByFaculty):
     class Meta:
         managed = False
         db_table = 'storage_allocated_by_faculty_vault'
+
+
+class StorageUsedByFaculty(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_used_by_faculty'
+
+
+class StorageUsedByFacultyCompute(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_used_by_faculty_compute'
+
+
+class StorageUsedByFacultyMarket(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_used_by_faculty_market'
+
+
+class StorageUsedByFacultyVault(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_used_by_faculty_vault'

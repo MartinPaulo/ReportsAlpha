@@ -157,7 +157,14 @@ class DB(object):
         self._db_cur.execute(q_used, {'day_date': day_date})
         return self._db_cur.fetchall()
 
-    def get_used_by_faculty(self, day_date):
+    def get_used_by_faculty(self, day_date, product='all'):
+        products = (1, 4, 10)
+        if product == 'computational':
+            products = (1,)
+        elif product == 'market':
+            products = (4,)
+        elif product == 'vault':
+            products = (10,)
         q_used = """
             SELECT
               sum(used_capacity),
@@ -199,7 +206,7 @@ class DB(object):
                             request.institution_id = '2'
                           ORDER BY id
                         ) AS names ON names.id = ingest.collection_id
-            WHERE storage_product_id IN (1, 4, 10)
+            WHERE storage_product_id IN %(products)s
                   -- and this is the last record
                   AND extraction_date =
                       (SELECT MAX(extraction_date)
@@ -212,5 +219,6 @@ class DB(object):
                       )
             GROUP BY faculty;
         """
-        self._db_cur.execute(q_used, {'day_date': day_date})
+        self._db_cur.execute(q_used,
+                             {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()
