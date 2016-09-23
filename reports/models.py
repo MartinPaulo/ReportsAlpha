@@ -150,6 +150,12 @@ class StorageUsed(StorageTotalsByProduct):
         db_table = 'storage_used'
 
 
+class StorageHeadroomUnused(StorageTotalsByProduct):
+    class Meta:
+        managed = False
+        db_table = 'storage_headroom_unused'
+
+
 class StorageTotalsByFaculty(models.Model):
     date = models.TextField(primary_key=True, blank=False, null=False,
                             help_text="The date on which the values in "
@@ -242,3 +248,27 @@ class StorageUsedByFacultyVault(StorageTotalsByFaculty):
     class Meta:
         managed = False
         db_table = 'storage_used_by_faculty_vault'
+
+
+class StorageHeadroomUnusedByFaculty(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_headroom_unused_by_faculty'
+
+
+class StorageHeadroomUnusedByFacultyCompute(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_headroom_unused_by_faculty_compute'
+
+
+class StorageHeadroomUnusedByFacultyMarket(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_headroom_unused_by_faculty_market'
+
+
+class StorageHeadroomUnusedByFacultyVault(StorageTotalsByFaculty):
+    class Meta:
+        managed = False
+        db_table = 'storage_headroom_unused_by_faculty_vault'
