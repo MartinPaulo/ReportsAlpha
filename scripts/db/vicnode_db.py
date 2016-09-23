@@ -244,10 +244,68 @@ class DB(object):
                        FROM applications_ingest t2
                        WHERE t2.collection_id = t1.collection_id
                              AND t2.storage_product_id = t1.storage_product_id
-                             ANDt2.extraction_date <
+                             AND t2.extraction_date <
                                 (%(day_date)s :: DATE + '1 day' :: INTERVAL)
                       )
             GROUP BY storage_product_id;
         """
         self._db_cur.execute(q_used, {'day_date': day_date})
+        return self._db_cur.fetchall()
+
+    def get_headroom_unused_by_faculty(self, day_date, product='all'):
+        products = self.get_product_code(product)
+        q_used = """
+            SELECT  sum(allocated_capacity - used_capacity) AS headroom,
+                  CASE
+                    WHEN suborg_id IS NULL
+                      THEN 'external'
+                    WHEN suborg_id = 1
+                      THEN 'ABP'
+                    WHEN suborg_id = 2
+                      THEN 'FBE'
+                    WHEN suborg_id = 3
+                      THEN 'FoA'
+                    WHEN suborg_id = 4
+                      THEN 'MGSE'
+                    WHEN suborg_id = 5
+                      THEN 'MSE'
+                    WHEN suborg_id = 6
+                      THEN 'MLS'
+                    WHEN suborg_id = 7
+                      THEN 'MDHS'
+                    WHEN suborg_id = 8
+                      THEN 'FoS'
+                    WHEN suborg_id = 9
+                      THEN 'VAS'
+                    WHEN suborg_id = 10
+                      THEN 'VCAMCM'
+                    WHEN suborg_id = 11
+                      THEN 'services'
+                    ELSE 'unknown' END AS faculty
+            FROM applications_ingest ingest
+            LEFT JOIN (
+                      SELECT
+                        request.id,
+                        coalesce(suborganization.id, -1) AS suborg_id
+                      FROM applications_request request
+                        LEFT JOIN applications_suborganization suborganization
+                          ON institution_faculty_id = suborganization.id
+                      WHERE
+                        request.institution_id = '2'
+                      ORDER BY id
+                    ) AS names ON names.id = ingest.collection_id
+            WHERE storage_product_id IN %(products)s
+                  -- and this is the last record
+                  AND extraction_date =
+                      (SELECT MAX(extraction_date)
+                       FROM applications_ingest t2
+                       WHERE t2.collection_id = ingest.collection_id
+                             AND t2.storage_product_id = ingest.storage_product_id
+                             AND t2.extraction_date <
+                                        (%(day_date)s :: DATE + '1 day' :: INTERVAL)
+                      )
+            GROUP BY faculty;
+            """
+        self._db_cur.execute(q_used,
+                             {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()

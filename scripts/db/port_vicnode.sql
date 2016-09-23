@@ -605,6 +605,61 @@ WHERE storage_product_id IN (1, 4, 10)
           )
 GROUP BY name;
 
+-- But we want the abbreviated faculty names, so
+
+SELECT
+  sum(allocated_capacity - used_capacity) AS headroom,
+  CASE
+    WHEN suborg_id IS NULL
+      THEN 'external'
+    WHEN suborg_id = 1
+      THEN 'ABP'
+    WHEN suborg_id = 2
+      THEN 'FBE'
+    WHEN suborg_id = 3
+      THEN 'FoA'
+    WHEN suborg_id = 4
+      THEN 'MGSE'
+    WHEN suborg_id = 5
+      THEN 'MSE'
+    WHEN suborg_id = 6
+      THEN 'MLS'
+    WHEN suborg_id = 7
+      THEN 'MDHS'
+    WHEN suborg_id = 8
+      THEN 'FoS'
+    WHEN suborg_id = 9
+      THEN 'VAS'
+    WHEN suborg_id = 10
+      THEN 'VCAMCM'
+    WHEN suborg_id = 11
+      THEN 'services'
+    ELSE 'unknown' END AS faculty
+FROM applications_ingest ingest
+  LEFT JOIN (
+              SELECT
+                request.id,
+                coalesce(suborganization.id, -1) AS suborg_id
+              FROM applications_request request
+                LEFT JOIN applications_suborganization suborganization
+                  ON institution_faculty_id = suborganization.id
+              WHERE
+                request.institution_id = '2'
+              ORDER BY id
+            ) AS names ON names.id = ingest.collection_id
+WHERE storage_product_id IN (1, 4, 10)
+      -- and this is the last record
+      AND extraction_date =
+          (SELECT MAX(extraction_date)
+           FROM applications_ingest t2
+           WHERE t2.collection_id = ingest.collection_id
+                 AND t2.storage_product_id = ingest.storage_product_id
+                 AND
+                 t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
+          )
+GROUP BY faculty;
+
+
 -- ----------------------------------------------------------------------------
 -- 7: Storage used by type
 -- ----------------------------------------------------------------------------
