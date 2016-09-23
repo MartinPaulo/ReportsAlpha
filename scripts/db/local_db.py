@@ -54,7 +54,7 @@ class DB(object):
 
     def get_max_date(self, table_name):
         # default is a year ago...
-        last_date = date.today() - timedelta(days=364)
+        last_date = date.today() - timedelta(days=365)
         query = "SELECT MAX(date) AS max_date FROM %s;" % \
                 self.quote_identifier(table_name)
         self._db_cur.execute(query)
