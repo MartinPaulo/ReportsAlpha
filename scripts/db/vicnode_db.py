@@ -7,6 +7,10 @@ from sshtunnel import SSHTunnelForwarder
 
 from scripts.config import Configuration
 
+VAULT = 'vault'
+COMPUTATIONAL = 'computational'
+MARKET = 'market'
+
 
 class DB(object):
     _db_connection = None
@@ -40,6 +44,17 @@ class DB(object):
         logging.info("Stopping the ssh tunnel")
         self._server.stop()
         logging.info("The VicNode DB connection is closed")
+
+    @staticmethod
+    def get_product_code(product):
+        products = (1, 4, 10)
+        if product == COMPUTATIONAL:
+            products = (1,)
+        elif product == MARKET:
+            products = (4,)
+        elif product == VAULT:
+            products = (10,)
+        return products
 
     def test_connection(self):
         self._db_cur.execute("SELECT * FROM applications_suborganization;")
@@ -77,13 +92,7 @@ class DB(object):
         :param day_date:
         :return:
         """
-        products = (1, 4, 10)
-        if product == 'computational':
-            products = (1,)
-        elif product == 'market':
-            products = (4,)
-        elif product == 'vault':
-            products = (10,)
+        products = self.get_product_code(product)
         q_allocated = """
             SELECT
               sum(size)          AS used,
@@ -158,13 +167,7 @@ class DB(object):
         return self._db_cur.fetchall()
 
     def get_used_by_faculty(self, day_date, product='all'):
-        products = (1, 4, 10)
-        if product == 'computational':
-            products = (1,)
-        elif product == 'market':
-            products = (4,)
-        elif product == 'vault':
-            products = (10,)
+        products = self.get_product_code(product)
         q_used = """
             SELECT
               sum(used_capacity),
@@ -196,27 +199,27 @@ class DB(object):
                 ELSE 'unknown' END AS faculty
             FROM applications_ingest ingest
               LEFT JOIN (
-                          SELECT
-                            request.id,
-                            coalesce(suborganization.id, -1) AS suborg_id
-                          FROM applications_request request
-                            LEFT JOIN applications_suborganization suborganization
-                              ON institution_faculty_id = suborganization.id
-                          WHERE
-                            request.institution_id = '2'
-                          ORDER BY id
-                        ) AS names ON names.id = ingest.collection_id
+                      SELECT
+                        request.id,
+                        coalesce(suborganization.id, -1) AS suborg_id
+                      FROM applications_request request
+                        LEFT JOIN applications_suborganization suborganization
+                          ON institution_faculty_id = suborganization.id
+                      WHERE
+                        request.institution_id = '2'
+                      ORDER BY id
+                    ) AS names ON names.id = ingest.collection_id
             WHERE storage_product_id IN %(products)s
-                  -- and this is the last record
-                  AND extraction_date =
-                      (SELECT MAX(extraction_date)
-                       FROM applications_ingest t2
-                       WHERE t2.collection_id = ingest.collection_id
-                             AND t2.storage_product_id = ingest.storage_product_id
-                             AND
-                             t2.extraction_date <
-                                (%(day_date)s :: DATE + '1 day' :: INTERVAL)
-                      )
+              -- and this is the last record
+              AND extraction_date =
+                  (SELECT MAX(extraction_date)
+                   FROM applications_ingest t2
+                   WHERE t2.collection_id = ingest.collection_id
+                         AND t2.storage_product_id = ingest.storage_product_id
+                         AND
+                         t2.extraction_date <
+                            (%(day_date)s :: DATE + '1 day' :: INTERVAL)
+                  )
             GROUP BY faculty;
         """
         self._db_cur.execute(q_used,

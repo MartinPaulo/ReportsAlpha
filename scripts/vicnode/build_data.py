@@ -1,8 +1,8 @@
 import logging
-
-from datetime import date, timedelta
+from datetime import date
 
 from scripts.cloud.utility import date_range
+from scripts.db.vicnode_db import VAULT, COMPUTATIONAL, MARKET
 
 
 def _get_faculty_totals():
@@ -19,7 +19,7 @@ def build_allocated(extract_db, load_db, start_day=None, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage data allocated for %s", day_date)
-        product_totals = {'computational': 0, 'market': 0, 'vault': 0}
+        product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
         result_set = extract_db.get_allocated(day_date)
         for result in result_set:
             product_totals[result['product']] += result["sum"]
@@ -55,7 +55,7 @@ def build_allocated_by_faculty_compute(extract_db, load_db, start_day=None,
                      day_date)
         faculty_totals = _get_faculty_totals()
         result_set = extract_db.get_allocated_by_faculty(day_date,
-                                                         'computational')
+                                                         COMPUTATIONAL)
         for result in result_set:
             faculty_totals[result['faculty']] += result["used"]
         load_db.save_storage_allocated_by_faculty_compute(day_date,
@@ -75,7 +75,7 @@ def build_allocated_by_faculty_market(extract_db, load_db, start_day=None,
                      day_date)
         faculty_totals = _get_faculty_totals()
         result_set = extract_db.get_allocated_by_faculty(day_date,
-                                                         'market')
+                                                         MARKET)
         for result in result_set:
             faculty_totals[result['faculty']] += result["used"]
         load_db.save_storage_allocated_by_faculty_market(day_date,
@@ -95,7 +95,7 @@ def build_allocated_by_faculty_vault(extract_db, load_db, start_day=None,
                      day_date)
         faculty_totals = _get_faculty_totals()
         result_set = extract_db.get_allocated_by_faculty(day_date,
-                                                         'vault')
+                                                         VAULT)
         for result in result_set:
             faculty_totals[result['faculty']] += result["used"]
         load_db.save_storage_allocated_by_faculty_vault(day_date,
@@ -109,7 +109,7 @@ def build_used(extract_db, load_db, start_day, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage used for %s", day_date)
-        product_totals = {'computational': 0, 'market': 0, 'vault': 0}
+        product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
         result_set = extract_db.get_storage_used(day_date)
         for result in result_set:
             product_totals[result['product']] += result["sum"]
@@ -127,7 +127,7 @@ def build_used_by_faculty(extract_db, load_db, start_day,
         faculty_totals = _get_faculty_totals()
         result_set = extract_db.get_used_by_faculty(day_date)
         for result in result_set:
-            faculty_totals[result['faculty']] += result["used"]
+            faculty_totals[result['faculty']] += result["sum"]
         load_db.save_storage_used_by_faculty(day_date, faculty_totals)
 
 
@@ -138,11 +138,12 @@ def build_used_by_faculty_compute(extract_db, load_db, start_day,
     logging.info("Building storage compute used by faculty from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
-        logging.info("Building storage compute used by faculty for %s", day_date)
+        logging.info("Building storage compute used by faculty for %s",
+                     day_date)
         faculty_totals = _get_faculty_totals()
-        result_set = extract_db.get_used_by_faculty(day_date, 'compute')
+        result_set = extract_db.get_used_by_faculty(day_date, COMPUTATIONAL)
         for result in result_set:
-            faculty_totals[result['faculty']] += result["used"]
+            faculty_totals[result['faculty']] += result["sum"]
         load_db.save_storage_used_by_faculty_compute(day_date, faculty_totals)
 
 
@@ -153,11 +154,12 @@ def build_used_by_faculty_market(extract_db, load_db, start_day,
     logging.info("Building storage market used by faculty from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
-        logging.info("Building storage market used by faculty for %s", day_date)
+        logging.info("Building storage market used by faculty for %s",
+                     day_date)
         faculty_totals = _get_faculty_totals()
-        result_set = extract_db.get_used_by_faculty(day_date, 'market')
+        result_set = extract_db.get_used_by_faculty(day_date, MARKET)
         for result in result_set:
-            faculty_totals[result['faculty']] += result["used"]
+            faculty_totals[result['faculty']] += result["sum"]
         load_db.save_storage_used_by_faculty_market(day_date, faculty_totals)
 
 
@@ -170,7 +172,7 @@ def build_used_by_faculty_vault(extract_db, load_db, start_day,
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage vault used by faculty for %s", day_date)
         faculty_totals = _get_faculty_totals()
-        result_set = extract_db.get_used_by_faculty(day_date, 'vault')
+        result_set = extract_db.get_used_by_faculty(day_date, VAULT)
         for result in result_set:
-            faculty_totals[result['faculty']] += result["used"]
+            faculty_totals[result['faculty']] += result["sum"]
         load_db.save_storage_used_by_faculty_vault(day_date, faculty_totals)

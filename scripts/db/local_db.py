@@ -2,7 +2,6 @@ import codecs
 import logging
 import sqlite3
 from datetime import datetime, date, timedelta
-
 from decimal import Decimal
 
 from scripts.config import Configuration
@@ -254,3 +253,4 @@ class DB(object):
         query = "INSERT OR REPLACE INTO storage_used_by_faculty_vault (%s) " \
                 "VALUES (%s);"
         self._save_storage(day_date, faculty_totals, query)
+
