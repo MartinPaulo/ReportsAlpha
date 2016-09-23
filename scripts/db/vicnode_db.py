@@ -225,3 +225,29 @@ class DB(object):
         self._db_cur.execute(q_used,
                              {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()
+
+    def get_headroom_unused(self, day_date):
+        q_used = """
+            SELECT
+              sum(allocated_capacity - used_capacity) AS headroom,
+              CASE
+              WHEN storage_product_id = 1
+                THEN 'computational'
+              WHEN storage_product_id = 4
+                THEN 'market'
+              ELSE 'vault' END AS product
+            FROM applications_ingest AS t1
+            WHERE storage_product_id IN (1, 4, 10)
+                  -- and this is the last record
+                  AND extraction_date =
+                      (SELECT MAX(extraction_date)
+                       FROM applications_ingest t2
+                       WHERE t2.collection_id = t1.collection_id
+                             AND t2.storage_product_id = t1.storage_product_id
+                             ANDt2.extraction_date <
+                                (%(day_date)s :: DATE + '1 day' :: INTERVAL)
+                      )
+            GROUP BY storage_product_id;
+        """
+        self._db_cur.execute(q_used, {'day_date': day_date})
+        return self._db_cur.fetchall()

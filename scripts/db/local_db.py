@@ -254,3 +254,10 @@ class DB(object):
                 "VALUES (%s);"
         self._save_storage(day_date, faculty_totals, query)
 
+    def get_headroom_unused_last_run_date(self):
+        return self.get_max_date('storage_headroom_unused')
+
+    def save_headroom_unused(self, day_date, totals):
+        query = "INSERT OR REPLACE INTO storage_headroom_unused (%s) " \
+                "VALUES (%s);"
+        self._save_storage(day_date, totals, query)
