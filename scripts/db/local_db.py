@@ -25,7 +25,11 @@ ALLOWED_COLUMN_NAMES = {'date', 'computational', 'vault', 'market',
                         'MGSE', 'MDHS', 'FoS', 'ABP',
                         'MLS', 'VCAMCM',
                         'unknown', 'external', 'services',
-                        'Other', 'Unknown'}
+                        # following are cloud faculty extensions
+                        'Other', 'Unknown',
+                        # following are cloud_capacity
+                        'nectar_contribution', 'uom_contribution',
+                        'co_contribution'}
 
 
 class ColumnNameNotAllowed(Exception):
@@ -72,6 +76,15 @@ class DB(object):
     def __del__(self):
         self._db_connection.close()
 
+    def _save_to_local_db(self, day_date, totals, query):
+        self._ensure_sanitized(totals)
+        totals['date'] = day_date.strftime("%Y-%m-%d")
+        columns = ', '.join(totals.keys())
+        value_placeholder = ', '.join([':%s' % k for k in totals.keys()])
+        update = query % (columns, value_placeholder)
+        self._db_cur.execute(update, totals)
+        self._db_connection.commit()
+
     def query(self, query, params):
         return self._db_cur.execute(query, params)
 
@@ -101,20 +114,21 @@ class DB(object):
         self._db_cur.execute(update, user_counts)
         self._db_connection.commit()
 
+    def get_cloud_capacity_last_run_date(self):
+        return self.get_max_date('cloud_capacity')
+
+    def save_cloud_capacity(self, day_date, capacity_totals):
+        query = "INSERT OR REPLACE INTO cloud_capacity (%s) " \
+                "VALUES (%s);"
+        self._save_to_local_db(day_date, capacity_totals, query)
+
     def get_faculty_allocated_last_run_date(self):
         return self.get_max_date('cloud_allocated')
 
     def save_faculty_allocated(self, day_date, faculty_totals):
-        faculty_totals['date'] = day_date.strftime("%Y-%m-%d")
-        columns = ', '.join(faculty_totals.keys())
-        value_placeholder = ', '.join(
-            [':%s' % k for k in faculty_totals.keys()])
-        # TODO: escape
-        update = "INSERT OR REPLACE INTO cloud_allocated (%s) " \
-                 "VALUES (%s);" % \
-                 (columns, value_placeholder)
-        self._db_cur.execute(update, faculty_totals)
-        self._db_connection.commit()
+        query = "INSERT OR REPLACE INTO cloud_allocated (%s) " \
+                "VALUES (%s);"
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_top_twenty_last_run_date(self):
         return self.get_max_date('cloud_top_twenty')
@@ -180,22 +194,13 @@ class DB(object):
             faculties = ['Unknown']
         return faculties
 
-    def _save_storage(self, day_date, totals, query):
-        self._ensure_sanitized(totals)
-        totals['date'] = day_date.strftime("%Y-%m-%d")
-        columns = ', '.join(totals.keys())
-        value_placeholder = ', '.join([':%s' % k for k in totals.keys()])
-        update = query % (columns, value_placeholder)
-        self._db_cur.execute(update, totals)
-        self._db_connection.commit()
-
     def get_storage_allocated_last_run_date(self):
         return self.get_max_date('storage_allocated')
 
     def save_storage_allocated(self, day_date, totals):
         query = "INSERT OR REPLACE INTO storage_allocated (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, totals, query)
+        self._save_to_local_db(day_date, totals, query)
 
     def get_storage_used_last_run_date(self):
         return self.get_max_date('storage_used')
@@ -203,7 +208,7 @@ class DB(object):
     def save_storage_used(self, day_date, totals):
         query = "INSERT OR REPLACE INTO storage_used (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, totals, query)
+        self._save_to_local_db(day_date, totals, query)
 
     def get_storage_allocated_by_faculty_last_run_date(self):
         return self.get_max_date('storage_allocated_by_faculty')
@@ -211,7 +216,7 @@ class DB(object):
     def save_storage_allocated_by_faculty(self, day_date, faculty_totals):
         query = "INSERT OR REPLACE INTO storage_allocated_by_faculty (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_allocated_by_faculty_compute_last_run_date(self):
         return self.get_max_date('storage_allocated_by_faculty_compute')
@@ -221,7 +226,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "storage_allocated_by_faculty_compute (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_allocated_by_faculty_market_last_run_date(self):
         return self.get_max_date('storage_allocated_by_faculty_market')
@@ -231,7 +236,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "storage_allocated_by_faculty_market (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_allocated_by_faculty_vault_last_run_date(self):
         return self.get_max_date('storage_allocated_by_faculty_vault')
@@ -241,7 +246,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "storage_allocated_by_faculty_vault (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_used_by_faculty_last_run_date(self):
         return self.get_max_date('storage_used_by_faculty')
@@ -249,7 +254,7 @@ class DB(object):
     def save_storage_used_by_faculty(self, day_date, faculty_totals):
         query = "INSERT OR REPLACE INTO storage_used_by_faculty (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_used_by_faculty_compute_last_run_date(self):
         return self.get_max_date('storage_used_by_faculty_compute')
@@ -258,7 +263,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "storage_used_by_faculty_compute (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_used_by_faculty_market_last_run_date(self):
         return self.get_max_date('storage_used_by_faculty_market')
@@ -266,7 +271,7 @@ class DB(object):
     def save_storage_used_by_faculty_market(self, day_date, faculty_totals):
         query = "INSERT OR REPLACE INTO storage_used_by_faculty_market (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_storage_used_by_faculty_vault_last_run_date(self):
         return self.get_max_date('storage_used_by_faculty_vault')
@@ -274,7 +279,7 @@ class DB(object):
     def save_storage_used_by_faculty_vault(self, day_date, faculty_totals):
         query = "INSERT OR REPLACE INTO storage_used_by_faculty_vault (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_headroom_unused_last_run_date(self):
         return self.get_max_date('storage_headroom_unused')
@@ -282,7 +287,7 @@ class DB(object):
     def save_headroom_unused(self, day_date, totals):
         query = "INSERT OR REPLACE INTO storage_headroom_unused (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, totals, query)
+        self._save_to_local_db(day_date, totals, query)
 
     def get_headroom_unused_by_faculty_last_run_date(self):
         return self.get_max_date('storage_headroom_unused_by_faculty')
@@ -292,7 +297,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "  storage_headroom_unused_by_faculty (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_headroom_unused_by_faculty_compute_last_run_date(self):
         return self.get_max_date('storage_headroom_unused_by_faculty_compute')
@@ -302,7 +307,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "  storage_headroom_unused_by_faculty_compute (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_headroom_unused_by_faculty_market_last_run_date(self):
         return self.get_max_date('storage_headroom_unused_by_faculty_market')
@@ -312,7 +317,7 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "  storage_headroom_unused_by_faculty_market (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
 
     def get_headroom_unused_by_faculty_vault_last_run_date(self):
         return self.get_max_date('storage_headroom_unused_by_faculty_vault')
@@ -322,4 +327,4 @@ class DB(object):
         query = "INSERT OR REPLACE INTO " \
                 "  storage_headroom_unused_by_faculty_vault (%s) " \
                 "VALUES (%s);"
-        self._save_storage(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, faculty_totals, query)
