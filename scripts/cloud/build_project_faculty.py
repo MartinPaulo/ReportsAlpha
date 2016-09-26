@@ -1,16 +1,20 @@
 import logging
 import sys
-from datetime import date
 
 from ldap3 import Server, Connection
 
 from scripts.cloud.utility import get_faculty
 
-ldap_server = Server('centaur.unimelb.edu.au')
-ldap_connection = Connection(ldap_server)
-if not ldap_connection.bind():
-    print("Could not bind to LDAP server")
-    sys.exit(1)
+ldap_connection = None
+
+
+def bind_to_server():
+    nonlocal ldap_connection
+    ldap_server = Server('centaur.unimelb.edu.au')
+    ldap_connection = Connection(ldap_server)
+    if not ldap_connection.bind():
+        print("Could not bind to LDAP server")
+        sys.exit(1)
 
 
 def build_project_faculty(extract_db, load_db):
@@ -37,6 +41,8 @@ def build_project_faculty(extract_db, load_db):
 
 
 def find_project_leader_faculty(project_leader):
+    if not ldap_connection:
+        bind_to_server()
     query = '(&(objectclass=person)(mail=%s))' % project_leader
     ldap_connection.search('o=unimelb', query,
                            attributes=['department',
