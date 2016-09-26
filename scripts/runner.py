@@ -42,6 +42,9 @@ def main():
     load_db = local_db.DB()
     extract_db = reporting_db.DB()
 
+    # This builds fake data...
+    nectar.build_capacity(load_db, start_day)
+
     build_project_faculty(extract_db, load_db)
 
     nectar.build_active(extract_db, load_db, start_day)
