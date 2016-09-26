@@ -1,5 +1,7 @@
 import logging
+import random
 from datetime import date
+from operator import sub, add
 
 from scripts.cloud.utility import date_range, get_new_faculty_totals
 
@@ -81,3 +83,36 @@ def build_faculty_allocated(extract_db, load_db, start_day=None,
                 # currently each faculty will be assigned the projects cores...
                 faculty_totals[faculty] += row["cores"]
         load_db.save_faculty_allocated(day_date, faculty_totals)
+
+
+def build_capacity(load_db, start_day=None, end_day=date.today()):
+    """
+    Fixed to just generate random data across the day.
+    :param load_db:
+    :param start_day:
+    :param end_day:
+    :return:
+    """
+    if not start_day:
+        start_day = load_db.get_cloud_capacity_last_run_date()
+    logging.info("Building cloud capacity data from %s till %s",
+                 start_day, end_day)
+    nectar_contribution = random.randrange(100)
+    uom_contribution = random.randrange(100)
+    co_contribution = random.randrange(100)
+    ops = (add, sub)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building cloud capacity data for %s", day_date)
+        op = random.choice(ops)
+        nectar_contribution = op(nectar_contribution, random.randrange(10))
+        op = random.choice(ops)
+        uom_contribution = op(uom_contribution, random.randrange(10))
+        op = random.choice(ops)
+        co_contribution = op(co_contribution, random.randrange(10))
+        capacity_totals = {
+            'date': day_date,
+            'nectar_contribution': nectar_contribution,
+            'uom_contribution': uom_contribution,
+            'co_contribution': co_contribution
+        }
+        load_db.save_cloud_capacity(day_date, capacity_totals)
