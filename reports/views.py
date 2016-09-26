@@ -14,12 +14,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
-from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views import generic
 
-from reports.fake_data import factory
 from reports.graphite.capacity import fetch, GRAPHITE_JSON, GRAPHITE_CAPACITY
 from .models import Report
 
@@ -149,16 +147,6 @@ def data(request, path):
     # print("S %s" % os.path.getsize(filename))
     response['Content-Disposition'] = 'attachment; filename=%s' % filename
     return response
-
-
-@xmlhttp_login_required
-def manufactured(request, path):
-    # TODO remove this...
-    # Still used by the cloud capacity
-    duration = request.GET.get('from', YEAR)
-    storage_type = request.GET.get('type', 'total')
-    quota = factory.get(path, duration, storage_type)
-    return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})
 
 
 @xmlhttp_login_required
