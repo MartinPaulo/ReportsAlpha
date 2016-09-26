@@ -9,7 +9,7 @@ ldap_connection = None
 
 
 def bind_to_server():
-    nonlocal ldap_connection
+    global ldap_connection
     ldap_server = Server('centaur.unimelb.edu.au')
     ldap_connection = Connection(ldap_server)
     if not ldap_connection.bind():
