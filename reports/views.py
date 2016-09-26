@@ -24,16 +24,20 @@ from reports.graphite.capacity import fetch, GRAPHITE_JSON, GRAPHITE_CAPACITY
 from .models import Report
 
 LOGIN_URL = '/login/'
-
 YEAR = 'year'
 
-first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
-
-def convert(name):
-    s1 = first_cap_re.sub(r'\1_\2', name)
-    return all_cap_re.sub(r'\1_\2', s1).lower()
+def _convert(name):
+    """
+    Converts the name parameter from CamelCase to snake case
+    i.e.: CamelCase -> camel_case
+    See:
+    http://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
+    :param name: The camel case name to be converted
+    :return: The input name as snake_case
+    """
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
 class BrowseView(LoginRequiredMixin, generic.ListView):
@@ -64,9 +68,6 @@ class BrowseView(LoginRequiredMixin, generic.ListView):
         result = super().get_context_data(**kwargs)
         result['set'] = self.selected_set
         return result
-
-    def dispatch(self, request, *args, **kwargs):
-        return super(BrowseView, self).dispatch(request, *args, **kwargs)
 
 
 class DetailView(LoginRequiredMixin, generic.DetailView):
@@ -123,7 +124,7 @@ def _get_start_date(duration):
 
 # from
 # http://stackoverflow.com/questions/22196422/django-login-required-on-ajax-call
-def ajax_login_required(view):
+def xmlhttp_login_required(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated():
@@ -132,7 +133,7 @@ def ajax_login_required(view):
     return wrapper
 
 
-@ajax_login_required
+@xmlhttp_login_required
 def data(request, path):
     # TODO remove this...
     # Still used by storage capacity and storage headroom unallocated
@@ -150,7 +151,7 @@ def data(request, path):
     return response
 
 
-@ajax_login_required
+@xmlhttp_login_required
 def manufactured(request, path):
     # TODO remove this...
     # Still used by the cloud capacity and storage quota graphs
@@ -160,7 +161,7 @@ def manufactured(request, path):
     return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})
 
 
-@ajax_login_required
+@xmlhttp_login_required
 def actual(request, path):
     """
     :return: A response with the model data presented as CSV. The data is
@@ -175,7 +176,7 @@ def actual(request, path):
         date_range_desired = (date_desired, date_desired)
     desired_model = request.GET.get('model', 'unknown')
     response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment;filename=%s.csv' % convert(
+    response['Content-Disposition'] = 'attachment;filename=%s.csv' % _convert(
         desired_model)
     writer = csv.writer(response)
     # if not specified 'unknown' will not be found and an error raised
@@ -187,7 +188,7 @@ def actual(request, path):
     return response
 
 
-@ajax_login_required
+@xmlhttp_login_required
 def graphite(request, path):
     duration = request.GET.get('from', YEAR)
     capacity = request.GET.get('type', GRAPHITE_CAPACITY)
