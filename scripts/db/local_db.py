@@ -20,6 +20,17 @@ def float2decimal(val):
 
 sqlite3.register_converter("decimal", float2decimal)
 
+ALLOWED_COLUMN_NAMES = {'date', 'computational', 'vault', 'market',
+                        'FoA', 'VAS', 'FBE', 'MSE',
+                        'MGSE', 'MDHS', 'FoS', 'ABP',
+                        'MLS', 'VCAMCM',
+                        'unknown', 'external', 'services',
+                        'Other', 'Unknown'}
+
+
+class ColumnNameNotAllowed(Exception):
+    pass
+
 
 class DB(object):
     _db_connection = None
@@ -39,6 +50,18 @@ class DB(object):
             replacement, _ = error_handler(error)
             encodable = encodable.replace("\x00", replacement)
         return "\"" + encodable.replace("\"", "\"\"") + "\""
+
+    @staticmethod
+    def _ensure_sanitized(totals):
+        """
+        Make sure that the column names in the totals are valid
+        :param totals: A dictionary with the column names and their values
+        :raise: ColumnNameNotAllowed if anything not expected is found
+        """
+        for key in totals.keys():
+            if key not in ALLOWED_COLUMN_NAMES:
+                raise ColumnNameNotAllowed(
+                    "Column name %s is forbidden " % key)
 
     def __init__(self):
         self._db_connection = sqlite3.connect(
@@ -111,10 +134,10 @@ class DB(object):
         return self.get_max_date('cloud_used')
 
     def save_used_data(self, faculty_totals):
+        self._ensure_sanitized(faculty_totals)
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(
             [':%s' % k for k in faculty_totals.keys()])
-        # TODO: escape
         update = "INSERT OR REPLACE INTO cloud_used (%s) " \
                  "VALUES (%s);" % (columns, value_placeholder)
         self._db_cur.execute(update, faculty_totals)
@@ -157,12 +180,11 @@ class DB(object):
             faculties = ['Unknown']
         return faculties
 
-    def _save_storage(self, day_date, totals,
-                      query):
+    def _save_storage(self, day_date, totals, query):
+        self._ensure_sanitized(totals)
         totals['date'] = day_date.strftime("%Y-%m-%d")
         columns = ', '.join(totals.keys())
         value_placeholder = ', '.join([':%s' % k for k in totals.keys()])
-        # TODO: escape columns?
         update = query % (columns, value_placeholder)
         self._db_cur.execute(update, totals)
         self._db_connection.commit()
