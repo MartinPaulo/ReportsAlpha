@@ -24,6 +24,17 @@ class Report(models.Model):
     was_published_recently.short_description = 'Published recently?'
 
 
+class CloudCapacity(models.Model):
+    date = models.TextField(primary_key=True)
+    nectar_contribution = models.IntegerField()
+    uom_contribution = models.IntegerField()
+    co_contribution = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'cloud_capacity'
+
+
 class CloudTotalsByFaculty(models.Model):
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False,
