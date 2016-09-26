@@ -1,6 +1,5 @@
 import logging
 from json import dumps
-from operator import itemgetter
 from urllib.parse import urlencode
 
 import requests
@@ -8,6 +7,8 @@ from django.conf import settings
 
 GRAPHITE_JSON = 'json'
 GRAPHITE_CAPACITY = 'capacity_768'
+
+LOG = logging.getLogger("reports.graphite")
 
 
 def _translate_data(response):
@@ -104,8 +105,8 @@ def fetch(capacity, desired_format, duration):
          cell, alias in cells])
     graphite_url = settings.GRAPHITE_SERVER.rstrip('/') \
                    + "/render/?" + urlencode(graphite_args)
-    logging.info("Fetching: " + graphite_url)
-    response = requests.get(graphite_url)
+    LOG.info("From graphite fetching: %s", graphite_url)
+    response = requests.get(graphite_url, timeout=10)
     response.raise_for_status()
     if desired_format == 'json':
         graphite_response = dumps(_translate_data(response.json()))

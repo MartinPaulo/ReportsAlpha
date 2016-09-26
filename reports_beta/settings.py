@@ -129,7 +129,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 LOGIN_REDIRECT_URL = '/'
 
-# see http://www.webforefront.com/django/setupdjangologging.html
+# See:
+# http://www.webforefront.com/django/setupdjangologging.html
+# https://www.caktusgroup.com/blog/2015/01/27/Django-Logging-Configuration-logging_config-default-settings-logger/
+# https://docs.djangoproject.com/en/1.10/topics/logging/
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': True,
@@ -171,7 +175,13 @@ LOGGING = {
             'class': 'logging.FileHandler',
             'filename': '/var/log/flow_reports/dev.log',
             'formatter': 'verbose'
-        }
+        },
+    },
+    # By default root is set at WARNING: hence my reports loggers won't
+    # show anything at a lower level :(
+    # This simply resets it to
+    'root': {
+        'level': 'DEBUG'
     },
     'loggers': {
         'django': {
@@ -181,10 +191,14 @@ LOGGING = {
         'py.warnings': {
             'handlers': ['console', 'development_logfile'],
         },
+        'reports': {
+            'handlers': ['console', 'development_logfile'],
+        },
     }
 }
 
-# from http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
+# From:
+# http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
 try:
     from reports_beta.local_settings import *
 except ImportError as e:
