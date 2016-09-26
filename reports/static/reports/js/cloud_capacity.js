@@ -4,21 +4,40 @@ var report = report || {};
 
 report.d3 = function () {
 
+    const NECTAR = 'NeCTAR Contribution';
+    const UOM = 'UoM Contribution';
+    const CO_CONTRIB = 'Co Contribution';
+
     utils.createDateButtons();
 
     function getColour(key) {
         switch (key) {
-            case 'NeCTAR Contribution':
+            case NECTAR:
                 return 'orange';
-            case 'UoM Contribution':
+            case UOM:
                 return 'blue';
-            default:
+            case CO_CONTRIB:
                 return 'lightblue';
+            default:
+                return 'black';
+        }
+    }
+
+    function getKey(key_name) {
+        switch (key_name) {
+            case 'nectar_contribution':
+                return NECTAR;
+            case 'uom_contribution':
+                return UOM;
+            case 'co_contribution':
+                return CO_CONTRIB;
+            default:
+                return 'Unknown';
         }
     }
 
     var render = function () {
-        var data_path = '/reports/actual/?from=' + utils.findFrom()+ '&model=CloudCapacity';
+        var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=CloudCapacity';
 
         d3.select('#a_data').attr('href', data_path);
         d3.csv(data_path, function (error, csv) {
@@ -36,7 +55,7 @@ report.d3 = function () {
                 'nectar_contribution', 'uom_contribution', 'co_contribution'];
             for (var i = 0; i < sources.length; i++) {
                 var o = {};
-                o.key = sources[i];
+                o.key = getKey(sources[i]);
                 o.values = csv.map(function (d) {
                     return [new Date(d['date']).getTime(), parseInt(d[sources[i].toLowerCase()])];
                 });
