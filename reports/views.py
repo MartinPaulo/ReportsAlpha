@@ -2,6 +2,7 @@ import csv
 import os
 import re
 from datetime import date
+from functools import wraps
 from wsgiref.util import FileWrapper
 
 import django
@@ -9,6 +10,9 @@ from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from django.apps import AppConfig
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -18,6 +22,8 @@ from django.views import generic
 from reports.fake_data import factory
 from reports.graphite.capacity import fetch, GRAPHITE_JSON, GRAPHITE_CAPACITY
 from .models import Report
+
+LOGIN_URL = '/login/'
 
 YEAR = 'year'
 
@@ -30,7 +36,8 @@ def convert(name):
     return all_cap_re.sub(r'\1_\2', s1).lower()
 
 
-class BrowseView(generic.ListView):
+class BrowseView(LoginRequiredMixin, generic.ListView):
+    login_url = '/login/'
     template_name = 'reports/reports.html'
     context_object_name = 'latest_report_list'
 
@@ -58,8 +65,12 @@ class BrowseView(generic.ListView):
         result['set'] = self.selected_set
         return result
 
+    def dispatch(self, request, *args, **kwargs):
+        return super(BrowseView, self).dispatch(request, *args, **kwargs)
 
-class DetailView(generic.DetailView):
+
+class DetailView(LoginRequiredMixin, generic.DetailView):
+    login_url = LOGIN_URL
     model = Report
     template_name = 'reports/details.html'
 
@@ -84,6 +95,7 @@ def about(request):
                   {'details': values, 'debug': settings.DEBUG})
 
 
+@login_required(login_url=LOGIN_URL)
 def search(request):
     q = request.GET.get('q', None)
     if not q:
@@ -97,7 +109,32 @@ def search(request):
         return render(request, 'reports/search_form.html', {'query': q})
 
 
+def _get_start_date(duration):
+    if duration == 'oneMonth':
+        return date.today() - relativedelta(months=1)
+    elif duration == 'threeMonths':
+        return date.today() - relativedelta(months=3)
+    elif duration == 'sixMonths':
+        return date.today() - relativedelta(months=6)
+    else:
+        # duration == YEAR:
+        return date.today() - relativedelta(months=12)
+
+
+# from
+# http://stackoverflow.com/questions/22196422/django-login-required-on-ajax-call
+def ajax_login_required(view):
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            raise PermissionDenied
+        return view(request, *args, **kwargs)
+    return wrapper
+
+
+@ajax_login_required
 def data(request, path):
+    # TODO remove this...
     duration = request.GET.get('from', '')
     data_format = request.GET.get('format', 'json')
     filename = '%s%s.%s' % (path, duration, data_format)
@@ -112,25 +149,16 @@ def data(request, path):
     return response
 
 
+@ajax_login_required
 def manufactured(request, path):
+    # TODO remove this...
     duration = request.GET.get('from', YEAR)
     storage_type = request.GET.get('type', 'total')
     quota = factory.get(path, duration, storage_type)
     return JsonResponse(quota, safe=False, json_dumps_params={'indent': 2})
 
 
-def get_start_date(duration):
-    if duration == 'oneMonth':
-        return date.today() - relativedelta(months=1)
-    elif duration == 'threeMonths':
-        return date.today() - relativedelta(months=3)
-    elif duration == 'sixMonths':
-        return date.today() - relativedelta(months=6)
-    else:
-        # duration == YEAR:
-        return date.today() - relativedelta(months=12)
-
-
+@ajax_login_required
 def actual(request, path):
     """
     :return: A response with the model data presented as CSV. The data is
@@ -138,7 +166,7 @@ def actual(request, path):
     """
     duration = request.GET.get('from', YEAR)
     # we default to a date range
-    date_range_desired = (get_start_date(duration), date.today())
+    date_range_desired = (_get_start_date(duration), date.today())
     on = request.GET.get('on')
     if on:
         date_desired = parse(on).date()
@@ -157,6 +185,7 @@ def actual(request, path):
     return response
 
 
+@ajax_login_required
 def graphite(request, path):
     duration = request.GET.get('from', YEAR)
     capacity = request.GET.get('type', GRAPHITE_CAPACITY)
