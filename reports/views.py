@@ -154,7 +154,7 @@ def data(request, path):
 @xmlhttp_login_required
 def manufactured(request, path):
     # TODO remove this...
-    # Still used by the cloud capacity and storage quota graphs
+    # Still used by the cloud capacity
     duration = request.GET.get('from', YEAR)
     storage_type = request.GET.get('type', 'total')
     quota = factory.get(path, duration, storage_type)
