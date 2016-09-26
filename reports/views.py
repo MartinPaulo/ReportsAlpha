@@ -135,6 +135,7 @@ def ajax_login_required(view):
 @ajax_login_required
 def data(request, path):
     # TODO remove this...
+    # Still used by storage capacity and storage headroom unallocated
     duration = request.GET.get('from', '')
     data_format = request.GET.get('format', 'json')
     filename = '%s%s.%s' % (path, duration, data_format)
@@ -152,6 +153,7 @@ def data(request, path):
 @ajax_login_required
 def manufactured(request, path):
     # TODO remove this...
+    # Still used by the cloud capacity and storage quota graphs
     duration = request.GET.get('from', YEAR)
     storage_type = request.GET.get('type', 'total')
     quota = factory.get(path, duration, storage_type)
