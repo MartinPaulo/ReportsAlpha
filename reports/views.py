@@ -132,24 +132,6 @@ def xmlhttp_login_required(view):
 
 
 @xmlhttp_login_required
-def data(request, path):
-    # TODO remove this...
-    # Still used by storage capacity and storage headroom unallocated
-    duration = request.GET.get('from', '')
-    data_format = request.GET.get('format', 'json')
-    filename = '%s%s.%s' % (path, duration, data_format)
-    file_path = os.path.join(settings.BASE_DIR, 'reports', 'static',
-                             'fake_data', filename)
-    mime_type = 'application/json' if data_format == 'json' else 'text/csv'
-    wrapper = FileWrapper(open(file_path))
-    response = HttpResponse(wrapper, content_type=mime_type)
-    # response['Content-Length'] = os.path.getsize(filename)
-    # print("S %s" % os.path.getsize(filename))
-    response['Content-Disposition'] = 'attachment; filename=%s' % filename
-    return response
-
-
-@xmlhttp_login_required
 def actual(request, path):
     """
     :return: A response with the model data presented as CSV. The data is
