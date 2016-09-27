@@ -9,6 +9,7 @@ def date_range(start_date, end_date):
     :param end_date: the day after the last date to be yielded.
     :return: yields the next date on
     """
+    if not start_date < end_date: raise AssertionError
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
 
