@@ -9,7 +9,7 @@ report.d3 = function () {
     var render = function () {
         var data_path = '/reports/actual/?from=' + utils.findFrom() +
             '&model=StorageHeadroomUnused';
-                // set the download link on the page
+        // set the download link on the page
         d3.select('#a_data').attr('href', data_path);
         utils.renderStorageChart(data_path, utils.STORAGE_PRODUCT_TYPES);
     };
