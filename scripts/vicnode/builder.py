@@ -12,6 +12,11 @@ def _get_faculty_totals():
             'unknown': 0, 'external': 0, 'services': 0}
 
 
+def _get_product_totals():
+    product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
+    return product_totals
+
+
 def build_allocated(extract_db, load_db, start_day=None, end_day=date.today()):
     if not start_day:
         start_day = load_db.get_storage_allocated_last_run_date()
@@ -19,7 +24,7 @@ def build_allocated(extract_db, load_db, start_day=None, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage data allocated for %s", day_date)
-        product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
+        product_totals = _get_product_totals()
         result_set = extract_db.get_allocated(day_date)
         for result in result_set:
             product_totals[result['product']] += result["sum"]
@@ -109,7 +114,7 @@ def build_used(extract_db, load_db, start_day, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage used for %s", day_date)
-        product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
+        product_totals = _get_product_totals()
         result_set = extract_db.get_storage_used(day_date)
         for result in result_set:
             product_totals[result['product']] += result["sum"]
@@ -186,7 +191,7 @@ def build_headroom_unused(extract_db, load_db, start_day,
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage headroom unused for %s", day_date)
-        product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
+        product_totals = _get_product_totals()
         result_set = extract_db.get_headroom_unused(day_date)
         for result in result_set:
             product_totals[result['product']] += result["headroom"]
@@ -267,3 +272,17 @@ def build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
             faculty_totals[result['faculty']] += result["headroom"]
         load_db.save_storage_headroom_unused_by_faculty_vault(day_date,
                                                               faculty_totals)
+
+
+def build_capacity(unknown_source, load_db, start_day, end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_storage_capacity_last_run_date()
+    logging.info(
+        "Building storage capacity from %s till %s", start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building storage capacity for %s", day_date)
+        product_totals = _get_product_totals()
+        result_set = unknown_source.get_storage_capacity(day_date)
+        for result in result_set:
+            product_totals[result['product']] += result["capacity"]
+        load_db.save_storage_capacity(day_date, product_totals)

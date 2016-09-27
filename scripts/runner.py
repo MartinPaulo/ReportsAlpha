@@ -11,6 +11,22 @@ from scripts.db import vicnode_db
 from scripts.vicnode import builder as vicnode
 
 
+class UnknownSource:
+    """Fake data provider for storage capacity"""
+
+    def get_storage_capacity(self, day_date):
+        return [{
+            'product': 'computational',
+            'capacity': 288.00,
+        }, {
+            'product': 'market',
+            'capacity': 1482.00,
+        }, {
+            'product': 'vault',
+            'capacity': 1263.15
+        }]
+
+
 def parse_args():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('--loglevel', action='store', required=False,
@@ -85,6 +101,8 @@ def main():
     vicnode.build_headroom_unused_by_faculty_vault(vicnode_source_db,
                                                    load_db,
                                                    start_day)
+    unknown_source = UnknownSource()
+    vicnode.build_capacity(unknown_source, load_db, start_day)
 
 
 if __name__ == '__main__':
