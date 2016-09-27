@@ -12,9 +12,9 @@ report.d3 = function () {
     };
 
     var storageColours = {
-        'market': 'blue',
-        'computational': 'lightblue',
-        'vault': 'orange',
+        'Market': 'blue',
+        'Computational': 'lightblue',
+        'Vault': 'orange',
 
         get: getColour
     };
