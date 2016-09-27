@@ -331,9 +331,6 @@ class DB(object):
                 "VALUES (%s);"
         self._save_to_local_db(day_date, faculty_totals, query)
 
-    def get_storage_capacity_last_run_date(self):
-        return self.get_max_date('storage_capacity')
-
     def save_storage_capacity(self, day_date, capacity_totals):
         query = "INSERT OR REPLACE INTO storage_capacity (%s) " \
                 "VALUES (%s);"

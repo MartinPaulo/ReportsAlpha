@@ -2,7 +2,6 @@ import logging
 
 import psycopg2
 import psycopg2.extras
-from datetime import date
 from sshtunnel import SSHTunnelForwarder
 
 from scripts.config import Configuration
@@ -308,4 +307,20 @@ class DB(object):
             """
         self._db_cur.execute(q_used,
                              {'products': products, 'day_date': day_date})
+        return self._db_cur.fetchall()
+
+    def get_storage_capacity(self):
+        query = """
+            SELECT
+              capacity * 1000   AS capacity,
+              CASE
+              WHEN id = 1
+                THEN 'computational'
+              WHEN id = 4
+                THEN 'market'
+              ELSE 'vault' END AS product
+            FROM applications_storageproduct
+            WHERE id IN (1, 4, 10);
+        """
+        self._db_cur.execute(query)
         return self._db_cur.fetchall()

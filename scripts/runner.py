@@ -16,7 +16,7 @@ from scripts.vicnode import builder as vicnode
 class FakeStorageCapacityData:
     """Fake data provider for storage capacity"""
 
-    def get_storage_capacity(self, day_date):
+    def get_storage_capacity(self):
         return [{
             'product': 'computational',
             'capacity': 288000.00,
@@ -126,7 +126,9 @@ def main():
                                                    load_db,
                                                    start_day)
     unknown_source = FakeStorageCapacityData()
-    vicnode.build_capacity(unknown_source, load_db, start_day)
+    # vicnode.build_capacity(unknown_source, load_db)
+    vicnode.build_capacity(vicnode_source_db, load_db)
+    vicnode.build_headroom_unallocated(load_db, start_day)
 
 
 if __name__ == '__main__':
