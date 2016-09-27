@@ -18,6 +18,11 @@ def bind_to_server():
 
 
 def build_project_faculty(extract_db, load_db):
+    # TODO:
+    # Only look the people up on LDAP if the lead has changed
+    # Log the projects that have changed faculty
+    # Log the number that were not updated
+    # Add the hooks that will be used to send required emails...
     logging.info("Building project faculty data for all projects")
     result_set = extract_db.get_uom_project_contact_email()
     faculty_members_found = 0
