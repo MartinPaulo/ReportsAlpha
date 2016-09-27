@@ -23,7 +23,6 @@ report.d3 = function () {
         return key_name.charAt(0).toUpperCase() + key_name.slice(1);
     }
 
-
     var render = function () {
         var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=StorageCapacity';
         d3.select('#a_data').attr('href', data_path);
