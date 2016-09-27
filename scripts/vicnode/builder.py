@@ -228,7 +228,6 @@ def build_headroom_unused_by_faculty_compute(extract_db, load_db, start_day,
             faculty_totals[result['faculty']] += result["headroom"]
         load_db.save_storage_headroom_unused_by_faculty_compute(day_date,
                                                                 faculty_totals)
-    return None
 
 
 def build_headroom_unused_by_faculty_market(extract_db, load_db, start_day,
@@ -249,7 +248,6 @@ def build_headroom_unused_by_faculty_market(extract_db, load_db, start_day,
             faculty_totals[result['faculty']] += result["headroom"]
         load_db.save_storage_headroom_unused_by_faculty_market(day_date,
                                                                faculty_totals)
-    return None
 
 
 def build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
@@ -269,4 +267,3 @@ def build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
             faculty_totals[result['faculty']] += result["headroom"]
         load_db.save_storage_headroom_unused_by_faculty_vault(day_date,
                                                               faculty_totals)
-    return None
