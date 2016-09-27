@@ -173,6 +173,12 @@ class StorageCapacity(StorageTotalsByProduct):
         db_table = 'storage_capacity'
 
 
+class StorageHeadroomUnallocated(StorageTotalsByProduct):
+    class Meta:
+        managed = False
+        db_table = 'storage_headroom_unallocated'
+
+
 class StorageTotalsByFaculty(models.Model):
     date = models.TextField(primary_key=True, blank=False, null=False,
                             help_text="The date on which the values in "
