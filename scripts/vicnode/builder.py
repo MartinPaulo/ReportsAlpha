@@ -286,3 +286,19 @@ def build_capacity(unknown_source, load_db, start_day, end_day=date.today()):
         for result in result_set:
             product_totals[result['product']] += result["capacity"]
         load_db.save_storage_capacity(day_date, product_totals)
+
+
+def build_headroom_unallocated(load_db, start_day, end_day=date.today()):
+    if not start_day:
+        start_day = load_db.get_storage_headroom_unallocated_last_run_date()
+    logging.info("Building storage headroom unallocated from %s till %s",
+                 start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building storage headroom unallocated for %s", day_date)
+        result_set = load_db.get_storage_headroom_unallocated(day_date)
+        for result in result_set:
+            product_totals = _get_product_totals()
+            product_totals[COMPUTATIONAL] += int(result["compute_headroom"])
+            product_totals[MARKET] += int(result["market_headroom"])
+            product_totals[VAULT] += int(result["vault_headroom"])
+        load_db.save_storage_headroom_unallocated(day_date, product_totals)

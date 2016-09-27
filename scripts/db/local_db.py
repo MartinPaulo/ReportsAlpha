@@ -71,6 +71,8 @@ class DB(object):
         self._db_connection = sqlite3.connect(
             Configuration.get_uom_db(),
             detect_types=sqlite3.PARSE_DECLTYPES)
+        # we would prefer to have a dictionary cursor, so:
+        self._db_connection.row_factory = sqlite3.Row
         self._db_cur = self._db_connection.cursor()
 
     def __del__(self):
@@ -332,7 +334,30 @@ class DB(object):
     def get_storage_capacity_last_run_date(self):
         return self.get_max_date('storage_capacity')
 
-    def save_storage_capacity(self, day_date, faculty_totals):
+    def save_storage_capacity(self, day_date, capacity_totals):
         query = "INSERT OR REPLACE INTO storage_capacity (%s) " \
                 "VALUES (%s);"
-        self._save_to_local_db(day_date, faculty_totals, query)
+        self._save_to_local_db(day_date, capacity_totals, query)
+
+    def get_storage_headroom_unallocated_last_run_date(self):
+        return self.get_max_date('storage_headroom_unallocated')
+
+    def save_storage_headroom_unallocated(self, day_date, unallocated_totals):
+        query = "INSERT OR REPLACE INTO storage_headroom_unallocated (%s) " \
+                "VALUES (%s);"
+        self._save_to_local_db(day_date, unallocated_totals, query)
+
+    def get_storage_headroom_unallocated(self, day_date):
+        query = """
+        SELECT
+          capacity.date,
+          capacity.computational - allocated.computational AS compute_headroom,
+          capacity.market - allocated.market AS market_headroom,
+          capacity.vault - allocated.vault AS vault_headroom
+        FROM storage_capacity capacity, storage_allocated allocated
+        WHERE capacity.date = allocated.date
+        AND capacity.date = :day_date;
+        """
+        day_chosen = day_date.strftime("%Y-%m-%d")
+        self._db_cur.execute(query, {'day_date': day_chosen})
+        return self._db_cur.fetchall()
