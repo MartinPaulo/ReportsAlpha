@@ -7,7 +7,6 @@ urlpatterns = [
     url(r'^$', views.BrowseView.as_view(), name='reports'),
     url(r'^data/(.*)', views.data, name='data'),
     url(r'^graphite/(.*)', views.graphite, name='graphite'),
-    url(r'^manufactured/(.*)', views.manufactured, name='manufactured'),
     url(r'^actual/(.*)', views.actual, name='actual'),
     url(r'^about/$', views.about, name='about'),
     url(r'^search/$', views.search, name='search'),
