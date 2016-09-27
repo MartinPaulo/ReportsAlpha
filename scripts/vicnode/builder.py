@@ -295,9 +295,9 @@ def build_headroom_unallocated(load_db, start_day, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building storage headroom unallocated for %s", day_date)
+        product_totals = _get_product_totals()
         result_set = load_db.get_storage_headroom_unallocated(day_date)
         for result in result_set:
-            product_totals = _get_product_totals()
             product_totals[COMPUTATIONAL] += int(result["compute_headroom"])
             product_totals[MARKET] += int(result["market_headroom"])
             product_totals[VAULT] += int(result["vault_headroom"])
