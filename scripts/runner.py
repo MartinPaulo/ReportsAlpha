@@ -1,6 +1,8 @@
 import argparse
 import logging
+import random
 from datetime import date, timedelta
+from operator import add, sub
 
 from scripts.cloud import builder as nectar
 from scripts.cloud.build_project_faculty import build_project_faculty
@@ -11,7 +13,7 @@ from scripts.db import vicnode_db
 from scripts.vicnode import builder as vicnode
 
 
-class UnknownSource:
+class FakeStorageCapacityData:
     """Fake data provider for storage capacity"""
 
     def get_storage_capacity(self, day_date):
@@ -25,6 +27,28 @@ class UnknownSource:
             'product': 'vault',
             'capacity': 1263.15
         }]
+
+
+class FakeCloudCapacityData:
+    """Fake data provider for cloud capacity"""
+    _ops = (add, sub)
+
+    def get_cloud_capacity(self, day_date):
+        nectar_contribution = random.randrange(100)
+        uom_contribution = random.randrange(100)
+        co_contribution = random.randrange(100)
+        op = random.choice(self._ops)
+        nectar_contribution = op(nectar_contribution, random.randrange(10))
+        op = random.choice(self._ops)
+        uom_contribution = op(uom_contribution, random.randrange(10))
+        op = random.choice(self._ops)
+        co_contribution = op(co_contribution, random.randrange(10))
+        return {
+            'date': day_date,
+            'nectar_contribution': nectar_contribution,
+            'uom_contribution': uom_contribution,
+            'co_contribution': co_contribution
+        }
 
 
 def parse_args():
@@ -58,8 +82,8 @@ def main():
     load_db = local_db.DB()
     extract_db = reporting_db.DB()
 
-    # This builds fake data...
-    nectar.build_capacity(load_db, start_day)
+    unknown_source = FakeCloudCapacityData()
+    nectar.build_capacity(unknown_source, load_db, start_day)
 
     build_project_faculty(extract_db, load_db)
 
@@ -101,7 +125,7 @@ def main():
     vicnode.build_headroom_unused_by_faculty_vault(vicnode_source_db,
                                                    load_db,
                                                    start_day)
-    unknown_source = UnknownSource()
+    unknown_source = FakeStorageCapacityData()
     vicnode.build_capacity(unknown_source, load_db, start_day)
 
 
