@@ -65,11 +65,12 @@ var utils = function () {
 
     var storageColours = {
         'Market': 'blue',
-        'Compute': 'lightblue',
+        'Computational': 'lightblue',
         'Vault': 'orange',
 
         get: getColour
     };
+
 
     var cellColours = {
         'QH2': 'chocolate',
@@ -127,23 +128,73 @@ var utils = function () {
             .on('click')();
     }
 
-    function getStorageChart(options) {
-        options = options || {};
-        var colours = ('useFacultyColours' in options && options.useFacultyColours) ? facultyColours : storageColours;
-        return function (error, data) {
+    const SPINNER_OPTIONS = {
+        lines: 9, // The number of lines to draw
+        length: 9, // The length of each line
+        width: 5, // The line thickness
+        radius: 14, // The radius of the inner circle
+        color: 'blue', // #rgb or #rrggbb or array of colors
+        speed: 1.9, // Rounds per second
+        trail: 40, // Afterglow percentage
+        className: 'spinner' // The CSS class to assign to the spinner
+    };
 
-            // for examples of these options see: http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
+    function upperCaseFirstLetter(key_name) {
+        return key_name.charAt(0).toUpperCase() + key_name.slice(1);
+    }
+
+    const STORAGE_PRODUCT_TYPES = ['computational', 'market', 'vault'];
+
+    /**
+     * Converts csv into a format that nvd3 can use.
+     * @param csv The source data in csv format
+     * @param columnNames
+     * @returns {Array} The translated data
+     */
+    function convertCsvToNvd3Format(csv, columnNames) {
+        var result = [];
+        csv.sort(function (a, b) {
+            return new Date(a['date']) - new Date(b['date']);
+        });
+        for (var i = 0; i < columnNames.length; i++) {
+            var o = {};
+            o.key = upperCaseFirstLetter(columnNames[i]);
+            o.values = csv.map(function (d) {
+                return [new Date(d['date']).getTime(), parseInt(d[columnNames[i]])];
+            });
+            result.push(o)
+        }
+        return result;
+    }
+
+    function renderStorageChart(data_path, series_names) {
+        var colours = (series_names == STORAGE_PRODUCT_TYPES) ? storageColours : facultyColours;
+        var spinner = new Spinner(SPINNER_OPTIONS);
+        spinner.spin(document.getElementById('chart'));
+
+        d3.csv(data_path, function (error, csv) {
+            if (error) {
+                console.log("Error on loading data: " + error);
+                spinner.stop();
+                utils.showError(error);
+                return;
+            }
+            var nvd3Data = convertCsvToNvd3Format(csv, series_names);
+
+            // for examples of these options see:
+            // http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
             var chart = nv.models.stackedAreaChart()
-                .margin({right: 100})
+                .margin({right: 80})
                 .x(function (d) {
                     return d[0]
                 })
                 .y(function (d) {
                     return d[1]
                 })
-                .useInteractiveGuideline(true)  // Tooltips which show the data points. Very nice!
-                .rightAlignYAxis(true)          // Move the y-axis to the right side.
-                .showControls(false)            // Don't allow user to choose 'Stacked', 'Stream' etc...
+                .useInteractiveGuideline(true)
+                .rightAlignYAxis(true)
+                // Don't allow user to choose 'Stacked', 'Stream' etc...
+                .showControls(false)
                 .clipEdge(true)
                 .noData('No Data available')
                 .color(function (d) {
@@ -161,15 +212,17 @@ var utils = function () {
                 .axisLabel('TB');
 
             d3.select('#chart svg')
-                .datum(data)
+                .datum(nvd3Data)
                 .transition().duration(500)
                 .call(chart);
 
             // Update chart when the window resizes
             nv.utils.windowResize(chart.update);
 
+            spinner.stop();
+
             return chart;
-        };
+        });
     }
 
     var showError = function (error) {
@@ -193,14 +246,15 @@ var utils = function () {
     };
 
     return { // exports
+        STORAGE_PRODUCT_TYPES: STORAGE_PRODUCT_TYPES,
         generateFacultyKey: generateFacultyKey,
-        getStorageChart: getStorageChart,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
         findFrom: findFrom,
         findType: findType,
         cellColours: cellColours,
         facultyColors: facultyColours,
+        renderStorageChart: renderStorageChart,
         showError: showError
     }
 }();
