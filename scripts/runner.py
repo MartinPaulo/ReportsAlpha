@@ -19,13 +19,13 @@ class FakeStorageCapacityData:
     def get_storage_capacity(self, day_date):
         return [{
             'product': 'computational',
-            'capacity': 288.00,
+            'capacity': 288000.00,
         }, {
             'product': 'market',
-            'capacity': 1482.00,
+            'capacity': 1482000.00,
         }, {
             'product': 'vault',
-            'capacity': 1263.15
+            'capacity': 1263150.00
         }]
 
 
