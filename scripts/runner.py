@@ -59,11 +59,14 @@ def parse_args():
                         help='Specify the log level')
     parser.add_argument('-d', '--days', action='store',
                         required=False, default=0,
-                        help='Rebuild the last n days of data')
+                        help='Rebuild the last n days of data for all reports')
     return parser.parse_args()
 
 
 def main():
+    # TODO:
+    # Offer up a menu of reports to run?
+    # Add support for an all flag that won't show the menu
     args = parse_args()
     log_config = {
         'format': "%(asctime)s %(levelname)s: %(message)s",
