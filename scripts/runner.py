@@ -63,11 +63,17 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    # TODO:
-    # Offer up a menu of reports to run?
-    # Add support for an all flag that won't show the menu
-    args = parse_args()
+def get_start_day(args):
+    result = None
+    days_past = int(args.days)
+    if days_past:
+        result = date.today() - timedelta(days=days_past)
+    # result = date.today() - timedelta(days=360)
+    logging.info("Start date chosen is %s", result)
+    return result
+
+
+def configure_logging(args):
     log_config = {
         'format': "%(asctime)s %(levelname)s: %(message)s",
         'datefmt': '%Y-%m-%d %X',
@@ -75,12 +81,14 @@ def main():
     }
     logging.basicConfig(**log_config)
 
-    start_day = None
-    days_past = int(args.days)
-    if days_past:
-        start_day = date.today() - timedelta(days=days_past)
-    # start_day = date.today() - timedelta(days=360)
-    logging.info("Start date chosen is %s", start_day)
+
+def main():
+    # TODO:
+    # Offer up a menu of reports to run?
+    # Add support for an all flag that won't show the menu
+    args = parse_args()
+    configure_logging(args)
+    start_day = get_start_day(args)
 
     load_db = local_db.DB()
     extract_db = reporting_db.DB()
@@ -101,6 +109,12 @@ def main():
     try:
         args = {'extract_db': vicnode_source_db,
                 'load_db': load_db, 'start_day': start_day}
+        # # Following is one way to get/call all the methods in the module
+        # # allows us to build a menu system?
+        # all_functions = inspect.getmembers(vicnode, inspect.isfunction)
+        # for name, function in all_functions:
+        #     if name.startswith('build'):
+        #         function(**args)
         vicnode.build_allocated(**args)
         vicnode.build_allocated_by_faculty(**args)
         vicnode.build_allocated_by_faculty_compute(**args)
@@ -116,12 +130,13 @@ def main():
         vicnode.build_headroom_unused_by_faculty_compute(**args)
         vicnode.build_headroom_unused_by_faculty_market(**args)
         vicnode.build_headroom_unused_by_faculty_vault(**args)
-        unknown_source = FakeStorageCapacityData()
-        # vicnode.build_capacity(unknown_source, load_db)
         vicnode.build_capacity(**args)
         vicnode.build_headroom_unallocated(**args)
+        # unknown_source = FakeStorageCapacityData()
+        # vicnode.build_capacity(unknown_source, load_db)
     finally:
         vicnode_source_db.close_connection()
+
 
 if __name__ == '__main__':
     main()
