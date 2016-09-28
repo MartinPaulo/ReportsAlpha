@@ -1,4 +1,5 @@
 import logging
+from functools import wraps
 
 import psycopg2
 import psycopg2.extras
@@ -9,6 +10,22 @@ from scripts.config import Configuration
 VAULT = 'vault'
 COMPUTATIONAL = 'computational'
 MARKET = 'market'
+
+
+def connection_required(f):
+    """
+    It is possible that you might close the connection: and then try to use
+    the instance later on. This simply throws an exception if you try to do
+    this. Better than hunting down odd exceptions?
+    :param f:
+    :return:
+    """
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        if not self._server:
+            raise Exception("Connection has been closed")
+        return f(self, *args, **kwargs)
+    return wrapper
 
 
 class DB(object):
@@ -38,11 +55,16 @@ class DB(object):
         self.test_connection()
 
     def __del__(self):
-        logging.info("Closing the VicNode DB connection")
-        self._db_connection.close()
-        logging.info("Stopping the ssh tunnel")
-        self._server.stop()
-        logging.info("The VicNode DB connection is closed")
+        self.close_connection()
+
+    def close_connection(self):
+        if self._server:
+            logging.info("Closing the VicNode DB connection")
+            self._db_connection.close()
+            logging.info("Stopping the ssh tunnel")
+            self._server.stop()
+            logging.info("The VicNode DB connection is closed")
+            self._server = None
 
     @staticmethod
     def get_product_code(product):
@@ -55,11 +77,13 @@ class DB(object):
             products = (10,)
         return products
 
+    @connection_required
     def test_connection(self):
         self._db_cur.execute("SELECT * FROM applications_suborganization;")
         rows = self._db_cur.fetchall()
         # print(rows)
 
+    @connection_required
     def get_allocated(self, day_date):
         """
         :param self:
@@ -84,6 +108,7 @@ class DB(object):
         self._db_cur.execute(q_allocated, {'day_date': day_date})
         return self._db_cur.fetchall()
 
+    @connection_required
     def get_allocated_by_faculty(self, day_date, product='all'):
         """
         :param product:
@@ -139,6 +164,7 @@ class DB(object):
                              {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()
 
+    @connection_required
     def get_storage_used(self, day_date):
         q_used = """
             SELECT
@@ -165,6 +191,7 @@ class DB(object):
         self._db_cur.execute(q_used, {'day_date': day_date})
         return self._db_cur.fetchall()
 
+    @connection_required
     def get_used_by_faculty(self, day_date, product='all'):
         products = self.get_product_code(product)
         q_used = """
@@ -225,6 +252,7 @@ class DB(object):
                              {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()
 
+    @connection_required
     def get_headroom_unused(self, day_date):
         q_used = """
             SELECT
@@ -251,6 +279,7 @@ class DB(object):
         self._db_cur.execute(q_used, {'day_date': day_date})
         return self._db_cur.fetchall()
 
+    @connection_required
     def get_headroom_unused_by_faculty(self, day_date, product='all'):
         products = self.get_product_code(product)
         q_used = """
@@ -309,6 +338,7 @@ class DB(object):
                              {'products': products, 'day_date': day_date})
         return self._db_cur.fetchall()
 
+    @connection_required
     def get_storage_capacity(self):
         query = """
             SELECT

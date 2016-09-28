@@ -274,7 +274,7 @@ def build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
                                                               faculty_totals)
 
 
-def build_capacity(extract_db, load_db):
+def build_capacity(extract_db, load_db, **kwargs):
     # start_day = date.today()
     # start_day = start_day.replace(year=start_day.year-2)
     # end_day = date.today()
@@ -298,7 +298,8 @@ def build_capacity(extract_db, load_db):
     load_db.save_storage_capacity(day_date, product_totals)
 
 
-def build_headroom_unallocated(load_db, start_day, end_day=date.today()):
+def build_headroom_unallocated(load_db, start_day, end_day=date.today(),
+                               **kwargs):
     if not start_day:
         start_day = load_db.get_storage_headroom_unallocated_last_run_date()
     logging.info("Building storage headroom unallocated from %s till %s",

@@ -99,40 +99,30 @@ def main():
         read_national(load_db)
 
     vicnode_source_db = vicnode_db.DB()
-    vicnode.build_allocated(vicnode_source_db, load_db, start_day)
-    vicnode.build_allocated_by_faculty(vicnode_source_db, load_db,
-                                       start_day)
-    vicnode.build_allocated_by_faculty_compute(vicnode_source_db, load_db,
-                                               start_day)
-    vicnode.build_allocated_by_faculty_market(vicnode_source_db, load_db,
-                                              start_day)
-    vicnode.build_allocated_by_faculty_vault(vicnode_source_db, load_db,
-                                             start_day)
-    vicnode.build_used(vicnode_source_db, load_db, start_day)
-    vicnode.build_used_by_faculty(vicnode_source_db, load_db, start_day)
-    vicnode.build_used_by_faculty_compute(vicnode_source_db, load_db,
-                                          start_day)
-    vicnode.build_used_by_faculty_market(vicnode_source_db, load_db,
-                                         start_day)
-    vicnode.build_used_by_faculty_vault(vicnode_source_db, load_db,
-                                        start_day)
-    vicnode.build_headroom_unused(vicnode_source_db, load_db, start_day)
-    vicnode.build_headroom_unused_by_faculty(vicnode_source_db, load_db,
-                                             start_day)
-    vicnode.build_headroom_unused_by_faculty_compute(vicnode_source_db,
-                                                     load_db,
-                                                     start_day)
-    vicnode.build_headroom_unused_by_faculty_market(vicnode_source_db,
-                                                    load_db,
-                                                    start_day)
-    vicnode.build_headroom_unused_by_faculty_vault(vicnode_source_db,
-                                                   load_db,
-                                                   start_day)
-    unknown_source = FakeStorageCapacityData()
-    # vicnode.build_capacity(unknown_source, load_db)
-    vicnode.build_capacity(vicnode_source_db, load_db)
-    vicnode.build_headroom_unallocated(load_db, start_day)
-
+    try:
+        args = {'extract_db': vicnode_source_db,
+                'load_db': load_db, 'start_day': start_day}
+        vicnode.build_allocated(**args)
+        vicnode.build_allocated_by_faculty(**args)
+        vicnode.build_allocated_by_faculty_compute(**args)
+        vicnode.build_allocated_by_faculty_market(**args)
+        vicnode.build_allocated_by_faculty_vault(**args)
+        vicnode.build_used(**args)
+        vicnode.build_used_by_faculty(**args)
+        vicnode.build_used_by_faculty_compute(**args)
+        vicnode.build_used_by_faculty_market(**args)
+        vicnode.build_used_by_faculty_vault(**args)
+        vicnode.build_headroom_unused(**args)
+        vicnode.build_headroom_unused_by_faculty(**args)
+        vicnode.build_headroom_unused_by_faculty_compute(**args)
+        vicnode.build_headroom_unused_by_faculty_market(**args)
+        vicnode.build_headroom_unused_by_faculty_vault(**args)
+        unknown_source = FakeStorageCapacityData()
+        # vicnode.build_capacity(unknown_source, load_db)
+        vicnode.build_capacity(**args)
+        vicnode.build_headroom_unallocated(**args)
+    finally:
+        vicnode_source_db.close_connection()
 
 if __name__ == '__main__':
     main()
