@@ -85,11 +85,7 @@ def main():
     load_db = local_db.DB()
     extract_db = reporting_db.DB()
 
-    unknown_source = FakeCloudCapacityData()
-    nectar.build_capacity(unknown_source, load_db, start_day)
-
     build_project_faculty(extract_db, load_db)
-
     nectar.build_active(extract_db, load_db, start_day)
     nectar.build_faculty_allocated(extract_db, load_db, start_day)
     nectar.build_top_twenty(extract_db, load_db, start_day)
@@ -97,6 +93,9 @@ def main():
 
     if False:
         read_national(load_db)
+
+    unknown_source = FakeCloudCapacityData()
+    nectar.build_capacity(unknown_source, load_db, start_day)
 
     vicnode_source_db = vicnode_db.DB()
     try:
