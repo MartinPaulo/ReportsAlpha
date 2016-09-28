@@ -31,8 +31,8 @@ def build_allocated(extract_db, load_db, start_day=None, end_day=date.today()):
         load_db.save_storage_allocated(day_date, product_totals)
 
 
-def build_allocated_by_faculty(extract_db, load_db, start_day=None,
-                               end_day=date.today()):
+def _build_allocated_by_faculty(extract_db, load_db, start_day=None,
+                                end_day=date.today()):
     if not start_day:
         start_day = load_db.get_storage_allocated_by_faculty_last_run_date()
     logging.info("Building storage allocated by faculty from %s till %s",
@@ -47,8 +47,8 @@ def build_allocated_by_faculty(extract_db, load_db, start_day=None,
         load_db.save_storage_allocated_by_faculty(day_date, faculty_totals)
 
 
-def build_allocated_by_faculty_compute(extract_db, load_db, start_day=None,
-                                       end_day=date.today()):
+def _build_allocated_by_faculty_compute(extract_db, load_db, start_day=None,
+                                        end_day=date.today()):
     if not start_day:
         start_day = \
             load_db.get_storage_allocated_by_faculty_compute_last_run_date()
@@ -67,8 +67,8 @@ def build_allocated_by_faculty_compute(extract_db, load_db, start_day=None,
                                                           faculty_totals)
 
 
-def build_allocated_by_faculty_market(extract_db, load_db, start_day=None,
-                                      end_day=date.today()):
+def _build_allocated_by_faculty_market(extract_db, load_db, start_day=None,
+                                       end_day=date.today()):
     if not start_day:
         start_day = \
             load_db.get_storage_allocated_by_faculty_market_last_run_date()
@@ -87,8 +87,8 @@ def build_allocated_by_faculty_market(extract_db, load_db, start_day=None,
                                                          faculty_totals)
 
 
-def build_allocated_by_faculty_vault(extract_db, load_db, start_day=None,
-                                     end_day=date.today()):
+def _build_allocated_by_faculty_vault(extract_db, load_db, start_day=None,
+                                      end_day=date.today()):
     if not start_day:
         start_day = \
             load_db.get_storage_allocated_by_faculty_vault_last_run_date()
@@ -96,7 +96,8 @@ def build_allocated_by_faculty_vault(extract_db, load_db, start_day=None,
                  "from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
-        logging.info("Building storage vault allocated by faculty for %s",
+        logging.info("Building storage vault allocated by faculty "
+                     "for %s",
                      day_date)
         faculty_totals = _get_faculty_totals()
         result_set = extract_db.get_allocated_by_faculty(day_date,
@@ -105,6 +106,13 @@ def build_allocated_by_faculty_vault(extract_db, load_db, start_day=None,
             faculty_totals[result['faculty']] += result["used"]
         load_db.save_storage_allocated_by_faculty_vault(day_date,
                                                         faculty_totals)
+
+
+def build_allocated_by_faculty(**kwargs):
+    _build_allocated_by_faculty(**kwargs)
+    _build_allocated_by_faculty_compute(**kwargs)
+    _build_allocated_by_faculty_market(**kwargs)
+    _build_allocated_by_faculty_vault(**kwargs)
 
 
 def build_used(extract_db, load_db, start_day, end_day=date.today()):
@@ -121,8 +129,8 @@ def build_used(extract_db, load_db, start_day, end_day=date.today()):
         load_db.save_storage_used(day_date, product_totals)
 
 
-def build_used_by_faculty(extract_db, load_db, start_day,
-                          end_day=date.today()):
+def _build_used_by_faculty(extract_db, load_db, start_day,
+                           end_day=date.today()):
     if not start_day:
         start_day = load_db.get_storage_used_by_faculty_last_run_date()
     logging.info("Building storage used by faculty from %s till %s",
@@ -136,8 +144,8 @@ def build_used_by_faculty(extract_db, load_db, start_day,
         load_db.save_storage_used_by_faculty(day_date, faculty_totals)
 
 
-def build_used_by_faculty_compute(extract_db, load_db, start_day,
-                                  end_day=date.today()):
+def _build_used_by_faculty_compute(extract_db, load_db, start_day,
+                                   end_day=date.today()):
     if not start_day:
         start_day = load_db.get_storage_used_by_faculty_compute_last_run_date()
     logging.info("Building storage compute used by faculty from %s till %s",
@@ -152,8 +160,8 @@ def build_used_by_faculty_compute(extract_db, load_db, start_day,
         load_db.save_storage_used_by_faculty_compute(day_date, faculty_totals)
 
 
-def build_used_by_faculty_market(extract_db, load_db, start_day,
-                                 end_day=date.today()):
+def _build_used_by_faculty_market(extract_db, load_db, start_day,
+                                  end_day=date.today()):
     if not start_day:
         start_day = load_db.get_storage_used_by_faculty_market_last_run_date()
     logging.info("Building storage market used by faculty from %s till %s",
@@ -168,8 +176,8 @@ def build_used_by_faculty_market(extract_db, load_db, start_day,
         load_db.save_storage_used_by_faculty_market(day_date, faculty_totals)
 
 
-def build_used_by_faculty_vault(extract_db, load_db, start_day,
-                                end_day=date.today()):
+def _build_used_by_faculty_vault(extract_db, load_db, start_day,
+                                 end_day=date.today()):
     if not start_day:
         start_day = load_db.get_storage_used_by_faculty_vault_last_run_date()
     logging.info("Building storage vault used by faculty from %s till %s",
@@ -181,6 +189,13 @@ def build_used_by_faculty_vault(extract_db, load_db, start_day,
         for result in result_set:
             faculty_totals[result['faculty']] += result["sum"]
         load_db.save_storage_used_by_faculty_vault(day_date, faculty_totals)
+
+
+def build_used_by_faculty(**kwargs):
+    _build_used_by_faculty(**kwargs)
+    _build_used_by_faculty_compute(**kwargs)
+    _build_used_by_faculty_market(**kwargs)
+    _build_used_by_faculty_vault(**kwargs)
 
 
 def build_headroom_unused(extract_db, load_db, start_day,
@@ -198,8 +213,8 @@ def build_headroom_unused(extract_db, load_db, start_day,
         load_db.save_headroom_unused(day_date, product_totals)
 
 
-def build_headroom_unused_by_faculty(extract_db, load_db, start_day,
-                                     end_day=date.today()):
+def _build_headroom_unused_by_faculty(extract_db, load_db, start_day,
+                                      end_day=date.today()):
     if not start_day:
         start_day = load_db.get_headroom_unused_by_faculty_last_run_date()
     logging.info("Building storage headroom unused by faculty from %s till %s",
@@ -215,8 +230,8 @@ def build_headroom_unused_by_faculty(extract_db, load_db, start_day,
                                                         faculty_totals)
 
 
-def build_headroom_unused_by_faculty_compute(extract_db, load_db, start_day,
-                                             end_day=date.today()):
+def _build_headroom_unused_by_faculty_compute(extract_db, load_db, start_day,
+                                              end_day=date.today()):
     if not start_day:
         start_day = load_db.get_headroom_unused_by_faculty_compute_last_run_date()
     logging.info(
@@ -235,8 +250,8 @@ def build_headroom_unused_by_faculty_compute(extract_db, load_db, start_day,
                                                                 faculty_totals)
 
 
-def build_headroom_unused_by_faculty_market(extract_db, load_db, start_day,
-                                            end_day=date.today()):
+def _build_headroom_unused_by_faculty_market(extract_db, load_db, start_day,
+                                             end_day=date.today()):
     if not start_day:
         start_day = load_db.get_headroom_unused_by_faculty_market_last_run_date()
     logging.info(
@@ -255,8 +270,8 @@ def build_headroom_unused_by_faculty_market(extract_db, load_db, start_day,
                                                                faculty_totals)
 
 
-def build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
-                                           end_day=date.today()):
+def _build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
+                                            end_day=date.today()):
     if not start_day:
         start_day = load_db.get_headroom_unused_by_faculty_vault_last_run_date()
     logging.info(
@@ -272,6 +287,13 @@ def build_headroom_unused_by_faculty_vault(extract_db, load_db, start_day,
             faculty_totals[result['faculty']] += result["headroom"]
         load_db.save_storage_headroom_unused_by_faculty_vault(day_date,
                                                               faculty_totals)
+
+
+def build_headroom_unused_by_faculty(**kwargs):
+    _build_headroom_unused_by_faculty(**kwargs)
+    _build_headroom_unused_by_faculty_compute(**kwargs)
+    _build_headroom_unused_by_faculty_market(**kwargs)
+    _build_headroom_unused_by_faculty_vault(**kwargs)
 
 
 def build_capacity(extract_db, load_db, **kwargs):
