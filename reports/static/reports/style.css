@@ -1,5 +1,8 @@
 /* Images from: http://alvinalexander.com/design/html-css-sketch-prototyping */
 /* UniMelb blue is #002952ff */
+/* Consider:  */
+/* https://blog.mariano.io/common-css-mistakes-and-how-to-fix-them-8ee0f5e88d64#.6hmkec9hz */
+/* https://medium.freecodecamp.com/css-floats-explained-by-riding-an-escalator-57fa55232333 */
 
 li a {
     color: green;
@@ -95,7 +98,8 @@ input[type="button"].active {
 .modalClose {
     background: #606061;
     color: #FFFFFF;
-    line-height: 25px;
+    font-size: 25px;
+    line-height: 1.5;
     position: absolute;
     right: -12px;
     text-align: center;
