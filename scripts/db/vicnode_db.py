@@ -29,6 +29,9 @@ def connection_required(f):
 
 
 class DB(object):
+    """
+    Read: https://colinnewell.wordpress.com/2016/01/21/hand-coding-sql-with-psycopg2-for-odoo/
+    """
     _db_connection = None
     _db_cur = None
     _server = None
