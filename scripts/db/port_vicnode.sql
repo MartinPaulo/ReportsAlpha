@@ -1,3 +1,5 @@
+--: TODO: Go through the units!
+
 -- ----------------------------------------------------------------------------
 -- 0: Some of the queries required in setting up the database
 -- ----------------------------------------------------------------------------
@@ -166,7 +168,8 @@ SELECT
 FROM applications_allocation
 WHERE storage_product_id IN (1, 4, 10)
       AND applications_allocation.last_modified <
-          ('2015-05-15' :: DATE + '1 day' :: INTERVAL)
+          ('2015-05-15' :: DATE +
+           '1 day' :: INTERVAL) -- TODO: remove the intervals!
 GROUP BY storage_product_id;
 
 -- but there's a sad issue with the above
@@ -186,6 +189,7 @@ WHERE storage_product_id = 10;
 
 -- for example, reveals other institutions using storage product 10. 1 and 4
 -- are even more exiting...
+-- CHECK: Sum is additive.
 
 -- So Andy says "Show the grand total allocated here"
 
@@ -443,6 +447,9 @@ WHERE applications_storageproduct.id IN (1, 4, 10);
 -- and the first record we can't rebuild over time!
 -- But surely there is a historical record we can add manually?
 
+-- TODO: wouldn't it be better to take the readings from the ingest data and
+-- then to plot this as a line on the axis?
+
 -- ----------------------------------------------------------------------------
 -- 4: Storage headroom unallocated by type
 -- ----------------------------------------------------------------------------
@@ -610,31 +617,31 @@ GROUP BY name;
 SELECT
   sum(allocated_capacity - used_capacity) AS headroom,
   CASE
-    WHEN suborg_id IS NULL
-      THEN 'external'
-    WHEN suborg_id = 1
-      THEN 'ABP'
-    WHEN suborg_id = 2
-      THEN 'FBE'
-    WHEN suborg_id = 3
-      THEN 'FoA'
-    WHEN suborg_id = 4
-      THEN 'MGSE'
-    WHEN suborg_id = 5
-      THEN 'MSE'
-    WHEN suborg_id = 6
-      THEN 'MLS'
-    WHEN suborg_id = 7
-      THEN 'MDHS'
-    WHEN suborg_id = 8
-      THEN 'FoS'
-    WHEN suborg_id = 9
-      THEN 'VAS'
-    WHEN suborg_id = 10
-      THEN 'VCAMCM'
-    WHEN suborg_id = 11
-      THEN 'services'
-    ELSE 'unknown' END AS faculty
+  WHEN suborg_id IS NULL
+    THEN 'external'
+  WHEN suborg_id = 1
+    THEN 'ABP'
+  WHEN suborg_id = 2
+    THEN 'FBE'
+  WHEN suborg_id = 3
+    THEN 'FoA'
+  WHEN suborg_id = 4
+    THEN 'MGSE'
+  WHEN suborg_id = 5
+    THEN 'MSE'
+  WHEN suborg_id = 6
+    THEN 'MLS'
+  WHEN suborg_id = 7
+    THEN 'MDHS'
+  WHEN suborg_id = 8
+    THEN 'FoS'
+  WHEN suborg_id = 9
+    THEN 'VAS'
+  WHEN suborg_id = 10
+    THEN 'VCAMCM'
+  WHEN suborg_id = 11
+    THEN 'services'
+  ELSE 'unknown' END                      AS faculty
 FROM applications_ingest ingest
   LEFT JOIN (
               SELECT
@@ -658,7 +665,6 @@ WHERE storage_product_id IN (1, 4, 10)
                  t2.extraction_date < (DATE '2016-02-06' + INTERVAL '1' DAY)
           )
 GROUP BY faculty;
-
 
 -- ----------------------------------------------------------------------------
 -- 7: Storage used by type
@@ -694,6 +700,7 @@ WHERE storage_product_id IN (1, 4, 10)
 ORDER BY collection_id, storage_product_id;
 
 -- a slow running query :(
+-- TODO: Do the skips in time mean that the allocation has been taken away?
 
 -- and the sum used on or before that given date, say '2016-02-06'
 SELECT
@@ -837,7 +844,7 @@ FROM applications_ingest ingest
                 request.id,
                 coalesce(suborganization.id, -1) AS suborg_id,
                 coalesce(nullif(name, ''),
-                         'Unknown') AS name -- handles nulls and empty strings
+                         'Unknown')              AS name -- handles nulls and empty strings
               FROM applications_request request
                 LEFT JOIN applications_suborganization suborganization
                   ON institution_faculty_id = suborganization.id
@@ -891,31 +898,31 @@ GROUP BY faculty;
 SELECT
   sum(used_capacity),
   CASE
-    WHEN suborg_id IS NULL
-      THEN 'external'
-    WHEN suborg_id = 1
-      THEN 'ABP'
-    WHEN suborg_id = 2
-      THEN 'FBE'
-    WHEN suborg_id = 3
-      THEN 'FoA'
-    WHEN suborg_id = 4
-      THEN 'MGSE'
-    WHEN suborg_id = 5
-      THEN 'MSE'
-    WHEN suborg_id = 6
-      THEN 'MLS'
-    WHEN suborg_id = 7
-      THEN 'MDHS'
-    WHEN suborg_id = 8
-      THEN 'FoS'
-    WHEN suborg_id = 9
-      THEN 'VAS'
-    WHEN suborg_id = 10
-      THEN 'VCAMCM'
-    WHEN suborg_id = 11
-      THEN 'services'
-    ELSE 'unknown' END AS faculty
+  WHEN suborg_id IS NULL
+    THEN 'external'
+  WHEN suborg_id = 1
+    THEN 'ABP'
+  WHEN suborg_id = 2
+    THEN 'FBE'
+  WHEN suborg_id = 3
+    THEN 'FoA'
+  WHEN suborg_id = 4
+    THEN 'MGSE'
+  WHEN suborg_id = 5
+    THEN 'MSE'
+  WHEN suborg_id = 6
+    THEN 'MLS'
+  WHEN suborg_id = 7
+    THEN 'MDHS'
+  WHEN suborg_id = 8
+    THEN 'FoS'
+  WHEN suborg_id = 9
+    THEN 'VAS'
+  WHEN suborg_id = 10
+    THEN 'VCAMCM'
+  WHEN suborg_id = 11
+    THEN 'services'
+  ELSE 'unknown' END AS faculty
 FROM applications_ingest ingest
   LEFT JOIN (
               SELECT
