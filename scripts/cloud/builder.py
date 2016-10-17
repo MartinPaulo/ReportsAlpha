@@ -1,3 +1,4 @@
+# coding=UTF-8
 import logging
 import random
 from datetime import date
