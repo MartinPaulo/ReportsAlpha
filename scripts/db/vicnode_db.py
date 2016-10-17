@@ -38,12 +38,12 @@ class DB(object):
 
     def __init__(self):
         db_config = Configuration.get_vicnode_db()
-        ssh_host = Configuration.get_ssh_tunnel_info()
+        ssh_intermediate = Configuration.get_ssh_tunnel_info()
 
         self._server = SSHTunnelForwarder(
-            ('118.138.243.250', 22),
-            ssh_username="ubuntu",
-            ssh_pkey='/Users/mpaulo/.ssh/new_mbp.pem',
+            ((ssh_intermediate['host']), (ssh_intermediate['port'])),
+            ssh_username=(ssh_intermediate['username']),
+            ssh_pkey=(ssh_intermediate['private_key_file']),
             remote_bind_address=(db_config['host'], 5432)
         )
         self._server.start()
