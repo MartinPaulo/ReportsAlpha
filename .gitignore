@@ -4,16 +4,8 @@
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # User-specific stuff:
-.idea/workspace.xml
 .idea/tasks.xml
-.idea/dictionaries
-.idea/vcs.xml
-.idea/jsLibraryMappings.xml
-
 # Sensitive or high-churn files:
-.idea/dataSources.ids
-.idea/dataSources.xml
-.idea/dataSources.local.xml
 .idea/sqlDataSources.xml
 .idea/dynamic.xml
 .idea/uiDesigner.xml
@@ -52,3 +44,6 @@ reports/migrations/__pycache__/
 reports_beta/__pycache__/
 reports_beta/local_settings.py
 /scripts/db/add_hoc/
+__pycache__/
+*.py[cod]
+.DS_Store
