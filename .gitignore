@@ -47,3 +47,4 @@ reports_beta/local_settings.py
 __pycache__/
 *.py[cod]
 .DS_Store
+db/
