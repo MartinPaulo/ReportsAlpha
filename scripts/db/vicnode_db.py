@@ -42,10 +42,11 @@ class DB(object):
 
         self._server = SSHTunnelForwarder(
             ((ssh_intermediate['host']), (int(ssh_intermediate['port']))),
+            ssh_password=ssh_intermediate['ssh_password'],
             ssh_username=(ssh_intermediate['username']),
             ssh_pkey=(ssh_intermediate['private_key_file']),
             remote_bind_address=(db_config['host'], 5432),
-            allow_agent=True
+            allow_agent=False
         )
         self._server.start()
         # we are about to bind to a 'local' server by means of an ssh tunnel
