@@ -1,6 +1,7 @@
 import argparse
 import logging
 import random
+import sys
 from datetime import date, timedelta
 from operator import add, sub
 
@@ -80,6 +81,7 @@ def configure_logging(args):
         'level': (getattr(logging, args.loglevel.upper())),
     }
     logging.basicConfig(**log_config)
+    logging.info("Python version: %s", sys.version)
 
 
 def main():
