@@ -1,7 +1,8 @@
-from .forms import ContactForm
-from django.shortcuts import render
+from django.core.mail import mail_admins
 from django.shortcuts import HttpResponseRedirect
-from django.core.mail import send_mail
+from django.shortcuts import render
+
+from .forms import ContactForm
 
 
 def contact(request):
@@ -9,15 +10,12 @@ def contact(request):
         form = ContactForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            # send_mail(
-            #     cd['subject'],
-            #     cd['message'],
-            #     cd.get('email', 'noreply@reports.org.au'),
-            #     ['admin@reports.org.au'],
-            # )
+            mail_admins(
+                cd['subject'],
+                cd['message'])
             return HttpResponseRedirect('/')
     else:
         form = ContactForm(
-            initial={'subject': 'This is interesting!'}
+            initial={'subject': 'A question'}
         )
     return render(request, 'contact/contact_form.html', {'form': form})
