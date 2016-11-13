@@ -23,5 +23,6 @@ urlpatterns = [
     url(r'^reports/', include('reports.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^contact/', include('contact.urls')),
-    url('^', include('django.contrib.auth.urls'))
+    url('^', include('django.contrib.auth.urls')),
+    url('^registration/', include('registration.urls')),
 ]

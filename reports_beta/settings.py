@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'registration',
     'contact'
     # 'reports',
 ]
@@ -77,6 +78,11 @@ TEMPLATES = [
         },
     },
 ]
+
+# Following two are settings for
+# django-inspectional-registration
+REGISTRATION_SUPPLEMENT_CLASS = None
+ACCOUNT_ACTIVATION_DAYS = 7  # One week activation window
 
 WSGI_APPLICATION = 'reports_beta.wsgi.application'
 

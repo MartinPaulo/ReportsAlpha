@@ -31,8 +31,9 @@ NECTAR_NAGIOS_URL = "http://mon.test.nectar.org.au/cgi-bin/nagios3/"
 SECRET_KEY = 'g8hkvxw54%k-$ymtp90ig*4ai8c%6ra4p@(&m##6b_#g=@0v)!'
 
 # Debug defaults to False
-# DEBUG = True
+DEBUG = False
 # Hence the following allowed hosts will stop the server from running...
+# So you need to set it to be whatever server the software is running on
 ALLOWED_HOSTS = []
 
 # These are the people that email will flow to...
@@ -47,3 +48,17 @@ DATABASES = {
         # 'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
     }
 }
+
+
+# If running in debug mode, this will connect to the python debugging server
+# launched as follows:
+# python -m smtpd -n -c DebuggingServer localhost:1025
+# The debugging server will simply print all email sent by the application to
+# the command line.
+if DEBUG:
+    EMAIL_HOST = 'localhost'
+    EMAIL_PORT = 1025
+    EMAIL_HOST_USER = ''
+    EMAIL_HOST_PASSWORD = ''
+    EMAIL_USE_TLS = False
+    DEFAULT_FROM_EMAIL = 'debug@reporting.uom.edu.au'

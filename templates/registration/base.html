@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}{% endblock %}</title>
+    {% load staticfiles %}
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'reports/style.css' %}"/>
+</head>
+<body>
+{% include 'nav.html' %}
+{% block content_title %}{% endblock %}
+{% block contents %}
+{% endblock %}
+{% block footer %}
+    <p>Version: {{ SOURCE_REVISION }}</p>
+{% endblock %}
+</body>
+</html>
