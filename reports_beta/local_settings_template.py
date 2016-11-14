@@ -42,6 +42,14 @@ ADMINS = (
     ('Two Admin', 'two.admin@somewhere.edu.au')
 )
 
+MANAGERS = (
+    ('One Manager', 'one.manager@somewhere.edu.au'),
+    ('Two Manager', 'two.manager@somewhere.edu.au')
+)
+
+# enable and set if you don't want email to come from root@localhost
+# SERVER_EMAIL = 'who@where.com.au'
+
 DATABASES = {
     'default': {
         #'ENGINE': 'django.db.backends.sqlite3',
