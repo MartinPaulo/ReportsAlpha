@@ -6,17 +6,29 @@
 
 {% block content %}
 
+    <p>This is a front end to a classic reporting database. As such, it
+       offers a read only view of operational data.</p>
+    <p>If you wish to gain access to the reports, you will need to
+        <a href="{% url 'registration:registration_register' %}">register</a>...
+    </p><p>A manager will view your registration, and either approve or
+           decline it.</p>
+    <p>If approved, an email will be sent to the email address you provided
+       with information on the further steps you will need to take to complete
+       your account creation process.</p>
 
     {% if debug %}
-    <table>
-    <t><th>Field</th><th>Value</th></t>
-        {% for key, value in details %}
-            <tr>
-                <td>{{ key }}</td>
-                <td>{{ value }}</td>
-            </tr>
-        {% endfor %}
-    </table>
+        <table>
+            <t>
+                <th>Field</th>
+                <th>Value</th>
+            </t>
+            {% for key, value in details %}
+                <tr>
+                    <td>{{ key }}</td>
+                    <td>{{ value }}</td>
+                </tr>
+            {% endfor %}
+        </table>
     {% endif %}
 
 {% endblock %}
