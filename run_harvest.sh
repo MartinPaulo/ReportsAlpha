@@ -15,5 +15,5 @@ export PYTHONUNBUFFERED
 export PYTHONPATH=$( cd $(dirname $0) ; pwd -P )
 
 # but we are going work in the home directory of the scripts themselves
-cd scripts
+cd ${PYTHONPATH}/scripts
 python runner.py
