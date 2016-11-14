@@ -12,9 +12,9 @@
         <li>
             <a href="reports/">All Reports</a>
         </li>
-        {% if user.is_authenticated %}
+        {% if user.is_superuser %}
             <li>
-                <a href="admin/">Admin Console</a>
+                <a href="{% url 'admin:index' %}">Admin Console</a>
             </li>
         {% endif %}
     </ul>
