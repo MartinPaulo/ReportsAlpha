@@ -82,6 +82,7 @@ TEMPLATES = [
 
 # Following two are settings for
 # django-inspectional-registration
+# https://github.com/lambdalisue/django-inspectional-registration
 REGISTRATION_SUPPLEMENT_CLASS = None
 ACCOUNT_ACTIVATION_DAYS = 7  # One week activation window
 
@@ -130,7 +131,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
-
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 

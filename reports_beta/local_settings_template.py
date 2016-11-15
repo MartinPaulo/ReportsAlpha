@@ -48,7 +48,7 @@ MANAGERS = (
 )
 
 # enable and set if you don't want email to come from root@localhost
-# SERVER_EMAIL = 'who@where.com.au'
+# SERVER_EMAIL = 'rc-melbourne@nectar.org.au'
 
 DATABASES = {
     'default': {
@@ -57,6 +57,9 @@ DATABASES = {
     }
 }
 
+# set to wherever you want your static files to live
+# https://docs.djangoproject.com/en/1.10/howto/static-files/
+# STATIC_ROOT = '/var/www/static'
 
 # If running in debug mode, this will connect to the python debugging server
 # launched as follows:
