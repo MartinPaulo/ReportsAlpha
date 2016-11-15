@@ -49,6 +49,10 @@ MANAGERS = (
 
 # enable and set if you don't want email to come from root@localhost
 # SERVER_EMAIL = 'rc-melbourne@nectar.org.au'
+# DEFAULT_FROM_EMAIL = 'rc-melbourne@nectar.org.au'
+
+# enable and point to the static files location
+# STATIC_ROOT = '/var/www/static'
 
 DATABASES = {
     'default': {
