@@ -178,7 +178,7 @@ report.d3 = function () {
                         })
                         //.staggerLabels(true)
                         .wrapLabels(true)
-                        .noData('No Data available')
+                        .noData('Hover the mouse over the above graph to see the top 20 on the day')
                         .rotateLabels(45)
                         .color(function (d, i) {
                             if (!topTwentyColours.hasOwnProperty(d[0])) {
