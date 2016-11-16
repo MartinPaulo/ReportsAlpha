@@ -132,6 +132,7 @@ report.d3 = function () {
     function generateTopTwenty(date) {
         var data_path = '/reports/actual/?model=CloudTopTwenty&on=' + date;
 
+        d3.select('#extra_link p').remove();
 
         d3.csv(data_path, function (error, csv) {
             if (error) {
@@ -145,6 +146,14 @@ report.d3 = function () {
                 .insert('h3')
                 .text('The top 20 projects as at ' + date)
             ;
+
+            if (csv.length > 0) {
+                // we need to give a download link...
+                d3.select('#extra_link').append("p").html(
+                    '<p>The <a id="a_data" href="'
+                    + data_path
+                    + '">data file</a> behind this graph</p>');
+            }
 
             csv.sort(function (a, b) {
                 // By the number of vcpu's used.

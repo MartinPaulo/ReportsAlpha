@@ -2,7 +2,8 @@
 {% block title %}Report Details{% endblock %}
 {% block header_lines %}
     {% load static %}
-    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css"/>
+    <link rel="stylesheet" type="text/css"
+          href="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css"/>
     <style>
 
         {# We want to fill the page with as much of the graph as is possible#}
@@ -20,7 +21,8 @@
 {% block h1 %}{{ report.report_title }}{% endblock %}
 {% block content %}
 
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>
+    {% endif %}
 
     <div class="row">
         <div id="graph-buttons" class="btn-group pull-right">
@@ -38,15 +40,15 @@
     </div>
 
     <p>{{ report.description }}</p>
-    {% if debug %}
-        <p>The <a id="a_data" href="">data file</a> behind this graph</p>
-    {% endif %}
+    <p>The <a id="a_data" href="">data file</a> behind this graph</p>
     <div id="extra" style="width: 95%">
         <div id="extra_title"></div>
         <svg></svg>
+        <div id="extra_link"></div>
     </div>
 
-    <a href="/reports/?set={{ set }}">Back {% if not set %}to all reports {% endif %}...</a>
+    <a href="/reports/?set={{ set }}">Back {% if not set %}to all
+                                      reports {% endif %}...</a>
 
     <script src="//d3js.org/d3.v3.js"></script>
     {#  From: https://cdnjs.com/libraries/nvd3 #}
