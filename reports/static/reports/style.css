@@ -40,6 +40,11 @@ table.form input {
     background-color: #f3f3f3;
 }
 
+/* hide svg elements that contain nothing */
+svg:empty {
+   display: none;
+}
+
 /**
  * FORMS
  */
