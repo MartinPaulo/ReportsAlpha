@@ -7,7 +7,7 @@ set -e
 # activate the environment with the required python libraries
 ENV=reporting
 # if there is no workon home ie: being run by cron, then hardwire the path :(
-WORKON_HOME="${WORKON_HOME:-default /home/rapporteur/Virtualenvs}"
+WORKON_HOME="${WORKON_HOME:-/home/rapporteur/Virtualenvs}"
 # shellcheck source=/dev/null
 source "$WORKON_HOME/$ENV/bin/activate"
 
