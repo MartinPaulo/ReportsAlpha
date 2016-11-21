@@ -1,9 +1,11 @@
 import logging
-
 import sys
 
 
 class Configuration(object):
+    """
+    Loads the configuration to be used from the django settings file.
+    """
     reporting_db = None
     production_db = None
     vicnode_db = None
