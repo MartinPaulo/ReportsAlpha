@@ -299,3 +299,19 @@ class StorageHeadroomUnusedByFacultyVault(StorageTotalsByFaculty):
     class Meta:
         managed = False
         db_table = 'storage_headroom_unused_by_faculty_vault'
+
+
+class BroadcastEmail(models.Model):
+    """
+    Email that is sent to all users of the application.
+    """
+    subject = models.CharField(max_length=200)
+    created = models.DateTimeField(default=timezone.now)
+    message = models.TextField()
+
+    def __str__(self):
+        return self.subject
+
+    class Meta:
+        verbose_name = "Broadcast Email"
+        verbose_name_plural = "Broadcast Emails"
