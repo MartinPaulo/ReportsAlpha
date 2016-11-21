@@ -17,7 +17,7 @@ def bind_to_server():
         sys.exit(1)
 
 
-def build_project_faculty(extract_db, load_db):
+def build_project_faculty(extract_db, load_db, start_day):
     # TODO:
     # Only look the people up on LDAP if the lead has changed
     # Log the projects that have changed faculty

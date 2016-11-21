@@ -1,3 +1,8 @@
+"""
+This file manages the loading of the data from the production databases
+and into the reporting databases.
+"""
+
 import argparse
 import logging
 import random
@@ -69,7 +74,6 @@ def get_start_day(args):
     days_past = int(args.days)
     if days_past:
         result = date.today() - timedelta(days=days_past)
-    # result = date.today() - timedelta(days=360)
     logging.info("Start date chosen is %s", result)
     return result
 
@@ -86,20 +90,24 @@ def configure_logging(args):
 
 def main():
     # TODO:
-    # Offer up a menu of reports to run?
-    # Add support for an all flag that won't show the menu
+    # Offer up a menu of scripts to run?
+    # Add support for an all flag that won't show the menu?
     args = parse_args()
     configure_logging(args)
     start_day = get_start_day(args)
 
     load_db = local_db.DB()
-    extract_db = reporting_db.DB()
+    # extract_db = reporting_db.DB()
+    # A short hand that stops us from having to type out repeated arguments
+    # Indicates a smell, methinks.
+    _args = {'extract_db': reporting_db.DB(),
+             'load_db': load_db, 'start_day': start_day}
 
-    build_project_faculty(extract_db, load_db)
-    nectar.build_active(extract_db, load_db, start_day)
-    nectar.build_faculty_allocated(extract_db, load_db, start_day)
-    nectar.build_top_twenty(extract_db, load_db, start_day)
-    nectar.build_used(extract_db, load_db, start_day)
+    build_project_faculty(**_args)
+    nectar.build_active(**_args)
+    nectar.build_faculty_allocated(**_args)
+    nectar.build_top_twenty(**_args)
+    nectar.build_used(**_args)
 
     if False:
         read_national(load_db)
@@ -109,22 +117,23 @@ def main():
 
     vicnode_source_db = vicnode_db.DB()
     try:
-        args = {'extract_db': vicnode_source_db,
-                'load_db': load_db, 'start_day': start_day}
+        # _args = {'extract_db': vicnode_source_db,
+        #                  'load_db': load_db, 'start_day': start_day}
+        _args['extract_db'] = vicnode_source_db
         # # Following is one way to get/call all the methods in the module
         # # allows us to build a menu system?
         # all_functions = inspect.getmembers(vicnode, inspect.isfunction)
         # for name, function in all_functions:
         #     if name.startswith('build'):
         #         function(**args)
-        vicnode.build_allocated(**args)
-        vicnode.build_allocated_by_faculty(**args)
-        vicnode.build_used(**args)
-        vicnode.build_used_by_faculty(**args)
-        vicnode.build_headroom_unused(**args)
-        vicnode.build_headroom_unused_by_faculty(**args)
-        vicnode.build_capacity(**args)
-        vicnode.build_headroom_unallocated(**args)
+        vicnode.build_allocated(**_args)
+        vicnode.build_allocated_by_faculty(**_args)
+        vicnode.build_used(**_args)
+        vicnode.build_used_by_faculty(**_args)
+        vicnode.build_headroom_unused(**_args)
+        vicnode.build_headroom_unused_by_faculty(**_args)
+        vicnode.build_capacity(**_args)
+        vicnode.build_headroom_unallocated(**_args)
         # unknown_source = FakeStorageCapacityData()
         # vicnode.build_capacity(unknown_source, load_db)
     finally:
