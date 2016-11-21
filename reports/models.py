@@ -8,12 +8,16 @@ class Report(models.Model):
     pub_date = models.DateTimeField('date published')
     d3_file_name = models.CharField(max_length=100, default='.js')
     description = models.TextField(blank=True, null=True)
+    related = models.OneToOneField('Report', on_delete=models.DO_NOTHING,
+                                   null=True, blank=True)
 
     def __str__(self):
         return self.report_title
 
     def was_published_recently(self):
         """
+        A handy field to let us see the newly created reports in the
+        Admin console.
         :return: True if was published in the last day, False otherwise
         """
         now = timezone.now()

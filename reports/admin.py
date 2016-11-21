@@ -8,7 +8,9 @@ from .models import Report
 class ReportAdmin(admin.ModelAdmin):
     fieldsets = [
         ('Date information', {'fields': ['pub_date'], }),
-        ('Report information', {'fields': ['report_title', 'description', 'd3_file_name']}),
+        ('Report information',
+         {'fields': ['report_title', 'description', 'd3_file_name',
+                     'related']}),
     ]
     list_display = ('report_title', 'pub_date', 'was_published_recently')
     list_filter = ['pub_date']

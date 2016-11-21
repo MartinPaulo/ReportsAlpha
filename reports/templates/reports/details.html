@@ -41,11 +41,16 @@
 
     <p>{{ report.description }}</p>
     <p>The <a id="a_data" href="">data file</a> behind this graph</p>
-    <div id="extra" style="width: 95%">
-        <div id="extra_title"></div>
-        <svg></svg>
-        <div id="extra_link"></div>
-    </div>
+
+    {% if report.related %}
+        <div id="extra" style="width: 95%">
+
+            <div id="extra_title"></div>
+            {#  <p>{{ report.related.report_title }}</p> #}
+            <svg></svg>
+            <div id="extra_link"></div>
+        </div>
+    {% endif %}
 
     <a href="/reports/?set={{ set }}">Back {% if not set %}to all
                                       reports {% endif %}...</a>
