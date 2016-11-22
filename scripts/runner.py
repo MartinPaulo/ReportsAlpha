@@ -5,10 +5,13 @@ and into the reporting databases.
 
 import argparse
 import logging
+import os
 import random
 import sys
 from datetime import date, timedelta
 from operator import add, sub
+
+import django
 
 from scripts.cloud import builder as nectar
 from scripts.cloud.build_project_faculty import build_project_faculty
@@ -59,10 +62,6 @@ class FakeCloudCapacityData:
 
 def parse_args():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('--loglevel', action='store', required=False,
-                        choices=['critical', 'error', 'debug',
-                                 'info', 'warning'], default='debug',
-                        help='Specify the log level')
     parser.add_argument('-d', '--days', action='store',
                         required=False, default=0,
                         help='Rebuild the last n days of data for all reports')
@@ -78,31 +77,26 @@ def get_start_day(args):
     return result
 
 
-def configure_logging(args):
-    log_config = {
-        'format': "%(asctime)s %(levelname)s: %(message)s",
-        'datefmt': '%Y-%m-%d %X',
-        'level': (getattr(logging, args.loglevel.upper())),
-    }
-    logging.basicConfig(**log_config)
-    logging.info("Python version: %s", sys.version)
-
-
 def main():
     # TODO:
     # Offer up a menu of scripts to run?
     # Add support for an all flag that won't show the menu?
     args = parse_args()
-    configure_logging(args)
+    # see:
+    # http://stackoverflow.com/questions/15048963/alternative-to-the-deprecated-setup-environ-for-one-off-django-scripts
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reports_beta.settings")
+    django.setup()
+
+    logging.info("Python version: %s", sys.version)
+
     start_day = get_start_day(args)
 
     load_db = local_db.DB()
-    # extract_db = reporting_db.DB()
     # A short hand that stops us from having to type out repeated arguments
     # Indicates a smell, methinks.
     _args = {'extract_db': reporting_db.DB(),
              'load_db': load_db, 'start_day': start_day}
-
+    nectar.test_db(**_args)
     build_project_faculty(**_args)
     nectar.build_active(**_args)
     nectar.build_faculty_allocated(**_args)

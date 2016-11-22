@@ -760,3 +760,8 @@ WHERE
 # |  8841 | Graphana reports 7578
 # +-------+
 
+
+# We want to know how many instances have been launched since the start date
+SELECT count(*)
+FROM instance
+WHERE created >= '2016-09-09'

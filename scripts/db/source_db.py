@@ -40,3 +40,10 @@ class BaseDB(object):
             in the allocation database for all projects that are deemed to
             belong to UoM
         """
+
+    @abc.abstractmethod
+    def count_instances_since(self, start_day):
+        """
+        :return:
+        The number of instances launched since start day date.
+        """

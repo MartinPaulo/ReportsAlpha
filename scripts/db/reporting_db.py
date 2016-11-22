@@ -379,3 +379,15 @@ class DB(BaseDB):
             AND a.contact_email IS NOT NULL;
             """)
         return self._db_cur.fetchall()
+
+    def count_instances_since(self, start_day):
+        """
+        :return:
+        The number of instances launched since start day date.
+        """
+        self._db_cur.execute("""
+            SELECT COUNT(*) AS total
+            FROM instance
+            WHERE created >= '{0}'
+            """.format(start_day.strftime("%Y-%m-%d")))
+        return self._db_cur.fetchone()["total"]

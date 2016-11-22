@@ -1,8 +1,8 @@
 # coding=UTF-8
 import logging
-import random
 from datetime import date
-from operator import sub, add
+
+from django.core.mail import mail_admins
 
 from scripts.cloud.utility import date_range, get_new_faculty_totals
 
@@ -86,7 +86,30 @@ def build_faculty_allocated(extract_db, load_db, start_day=None,
         load_db.save_faculty_allocated(day_date, faculty_totals)
 
 
-def build_capacity(unknown_source, load_db, start_day=None, end_day=date.today()):
+def test_db(extract_db, load_db, start_day=None, end_day=date.today()):
+    """
+    There are two tests that we need to do on the extract db:
+    1) Is the reporting database still fetching data (it sometimes fails)
+    2) Have new cells been added to the list of known cells?
+    """
+    # find out when we last took readings from the instances table
+    if not start_day:
+        start_day = load_db.get_used_last_run_date()
+    logging.info("Checking if entries since last run date %s ", start_day)
+    count = extract_db.count_instances_since(start_day)
+    if count <= 0:
+        warning_message = "No instances have been launched since %s"
+        mail_admins("No instance warning!", warning_message % start_day)
+        logging.warn(warning_message, start_day)
+    else:
+        logging.info("There have been %s instances launched since %s", count,
+                     start_day)
+
+    return None
+
+
+def build_capacity(unknown_source, load_db, start_day=None,
+                   end_day=date.today()):
     if not start_day:
         start_day = load_db.get_cloud_capacity_last_run_date()
     logging.info("Building cloud capacity data from %s till %s",
