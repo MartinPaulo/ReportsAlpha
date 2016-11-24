@@ -184,12 +184,6 @@ LOGGING = {
             'formatter': 'verbose'
         },
     },
-    # By default root is set at WARNING: hence my reports loggers won't
-    # show anything at a lower level :(
-    # This simply resets it to
-    'root': {
-        'level': 'DEBUG'
-    },
     'loggers': {
         'django': {
             'handlers': ['console', 'development_logfile',
@@ -204,6 +198,14 @@ LOGGING = {
     }
 }
 
+CELL_NAMES = {'nectar!melbourne!qh2', 'nectar!sa-cw', 'nectar!qld-upstart',
+              'nectar!intersect-01', 'nectar!monash!monash-01', 'nectar!NCI',
+              'nectar!monash!monash-02', 'nectar!pawsey-01', 'NULL',
+              'nectar!melbourne!np', 'nectar!tas!tas-m', 'nectar!qh2-uom',
+              'nectar!qld', 'nectar!intersect-02', 'nectar!monash',
+              'nectar!tas!tas-s', 'nectar!monash!monash-test',
+              'nectar!monash-03', 'nectar!melbourne', 'nectar!tas'}
+
 # From:
 # http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
 try:
@@ -216,7 +218,10 @@ except ImportError as e:
 # debug flag
 if DEBUG:
     logging.warning('Overwriting logging output files...')
-    LOGGING.get('handlers').get('production_logfile')[
+    LOGGING['handlers']['production_logfile'][
         'filename'] = '/tmp/flow_reports_production.log'
-    LOGGING.get('handlers').get('development_logfile')[
+    LOGGING['handlers']['development_logfile'][
         'filename'] = '/tmp/flow_reports_dev.log'
+    # By default root is set at WARNING: hence my reports loggers won't
+    # show anything at a lower level :(
+    LOGGING['root'] = {'level': 'DEBUG'}

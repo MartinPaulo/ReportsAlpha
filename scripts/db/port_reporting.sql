@@ -765,3 +765,7 @@ WHERE
 SELECT count(*)
 FROM instance
 WHERE created >= '2016-09-09'
+
+# we want to know the cell names that are in use
+SELECT DISTINCT cell_name
+FROM instance;

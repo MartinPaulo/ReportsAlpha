@@ -45,5 +45,12 @@ class BaseDB(object):
     def count_instances_since(self, start_day):
         """
         :return:
-        The number of instances launched since start day date.
+            The number of instances launched since start day date.
+        """
+
+    @abc.abstractmethod
+    def get_cell_names(self):
+        """
+        :return:
+            The set of the cell names in the reporting database
         """

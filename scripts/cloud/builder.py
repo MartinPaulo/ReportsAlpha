@@ -2,6 +2,7 @@
 import logging
 from datetime import date
 
+from django.conf import settings
 from django.core.mail import mail_admins
 
 from scripts.cloud.utility import date_range, get_new_faculty_totals
@@ -100,11 +101,17 @@ def test_db(extract_db, load_db, start_day=None, end_day=date.today()):
     if count <= 0:
         warning_message = "No instances have been launched since %s"
         mail_admins("No instance warning!", warning_message % start_day)
-        logging.warn(warning_message, start_day)
+        logging.warning(warning_message, start_day)
     else:
         logging.info("There have been %s instances launched since %s", count,
                      start_day)
-
+    found_cell_names = extract_db.get_cell_names()
+    if settings.CELL_NAMES != found_cell_names:
+        warning_message = "NeCTAR cell names have been changed"
+        mail_admins(warning_message,
+                    "Differences are: %s" %
+                    (settings.CELL_NAMES ^ found_cell_names))
+        logging.warning(warning_message)
     return None
 
 

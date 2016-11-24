@@ -383,7 +383,7 @@ class DB(BaseDB):
     def count_instances_since(self, start_day):
         """
         :return:
-        The number of instances launched since start day date.
+            The number of instances launched since start day date.
         """
         self._db_cur.execute("""
             SELECT COUNT(*) AS total
@@ -391,3 +391,18 @@ class DB(BaseDB):
             WHERE created >= '{0}'
             """.format(start_day.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["total"]
+
+    def get_cell_names(self):
+        """
+        :return:
+            The set of the cell names in the reporting database
+        """
+        result = set()
+        self._db_cur.execute("""
+          SELECT DISTINCT cell_name
+          FROM instance;
+          """)
+        result_set = self._db_cur.fetchall()
+        for row in result_set:
+            result.add(row['cell_name'] if row['cell_name'] else 'NULL')
+        return result
