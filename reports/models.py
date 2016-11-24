@@ -1,6 +1,7 @@
 import datetime
 from django.db import models
 from django.utils import timezone
+from markdown import markdown
 
 
 class Report(models.Model):
@@ -8,6 +9,7 @@ class Report(models.Model):
     pub_date = models.DateTimeField('date published')
     d3_file_name = models.CharField(max_length=100, default='.js')
     description = models.TextField(blank=True, null=True)
+    description_html = models.TextField(editable=False, default='')
     related = models.OneToOneField('Report', on_delete=models.DO_NOTHING,
                                    null=True, blank=True)
 
@@ -22,6 +24,10 @@ class Report(models.Model):
         """
         now = timezone.now()
         return now - datetime.timedelta(days=1) <= self.pub_date <= now
+
+    def save(self, *args, **kwargs):
+        self.description_html = markdown(self.description)
+        super(Report, self).save(*args, *kwargs)
 
     was_published_recently.admin_order_field = 'pub_date'
     was_published_recently.boolean = True

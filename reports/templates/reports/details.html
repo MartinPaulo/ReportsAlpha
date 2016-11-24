@@ -39,7 +39,7 @@
         <svg></svg>
     </div>
 
-    <p>{{ report.description }}</p>
+    <p>{{ report.description_html|safe }}</p>
     <p>The <a id="a_data" href="">data file</a> behind this graph</p>
 
     {% if report.related %}
