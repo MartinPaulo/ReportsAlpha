@@ -20,11 +20,13 @@ def connection_required(f):
     :param f:
     :return:
     """
+
     @wraps(f)
     def wrapper(self, *args, **kwargs):
         if not self._server:
             raise Exception("Connection has been closed")
         return f(self, *args, **kwargs)
+
     return wrapper
 
 
@@ -359,3 +361,24 @@ class DB(object):
         """
         self._db_cur.execute(query)
         return self._db_cur.fetchall()
+
+    @connection_required
+    def get_storage_types(self):
+        """
+        :return:
+            The set of storage types in the vicnode database
+        """
+        query = """
+            SELECT
+              value
+            FROM applications_storageproduct
+              LEFT JOIN labels_label
+                ON labels_label.id =
+                  applications_storageproduct.product_name_id;
+        """
+        result = set()
+        self._db_cur.execute(query)
+        result_set = self._db_cur.fetchall()
+        for row in result_set:
+            result.add(row['value'])
+        return result

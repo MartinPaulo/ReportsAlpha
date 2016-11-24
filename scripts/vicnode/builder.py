@@ -1,6 +1,9 @@
 import logging
 from datetime import date
 
+from django.conf import settings
+from django.core.mail import mail_admins
+
 from scripts.cloud.utility import date_range
 from scripts.db.vicnode_db import VAULT, COMPUTATIONAL, MARKET
 
@@ -335,3 +338,19 @@ def build_headroom_unallocated(load_db, start_day, end_day=date.today(),
             product_totals[MARKET] += int(result["market_headroom"])
             product_totals[VAULT] += int(result["vault_headroom"])
         load_db.save_storage_headroom_unallocated(day_date, product_totals)
+
+
+def test_db(extract_db, **kwargs):
+    """
+    Have new storage types been create? If so we need to notify the
+    administrators...
+    """
+    logging.info("Testing to see if new storage types have been created")
+    storage_types = extract_db.get_storage_types()
+    if settings.STORAGE_PRODUCT_TYPES != storage_types:
+        warning_message = "VicNode storage types have been changed"
+        mail_admins(warning_message,
+                    "Differences are: %s" %
+                    (settings.STORAGE_PRODUCT_TYPES ^ storage_types))
+        logging.warning(warning_message)
+    return None

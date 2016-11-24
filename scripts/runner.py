@@ -92,6 +92,12 @@ def main():
     start_day = get_start_day(args)
 
     load_db = local_db.DB()
+    # # Following is one way to get/call all the methods in the module
+    # # allows us to build a menu system?
+    # all_functions = inspect.getmembers(vicnode, inspect.isfunction)
+    # for name, function in all_functions:
+    #     if name.startswith('build'):
+    #         function(**args)
     # A short hand that stops us from having to type out repeated arguments
     # Indicates a smell, methinks.
     _args = {'extract_db': reporting_db.DB(),
@@ -110,16 +116,11 @@ def main():
     nectar.build_capacity(unknown_source, load_db, start_day)
 
     vicnode_source_db = vicnode_db.DB()
+    # replace the extract database with vicnodes, but otherwise keep the
+    # arguments the same.
+    _args['extract_db'] = vicnode_source_db
     try:
-        # _args = {'extract_db': vicnode_source_db,
-        #                  'load_db': load_db, 'start_day': start_day}
-        _args['extract_db'] = vicnode_source_db
-        # # Following is one way to get/call all the methods in the module
-        # # allows us to build a menu system?
-        # all_functions = inspect.getmembers(vicnode, inspect.isfunction)
-        # for name, function in all_functions:
-        #     if name.startswith('build'):
-        #         function(**args)
+        vicnode.test_db(**_args)
         vicnode.build_allocated(**_args)
         vicnode.build_allocated_by_faculty(**_args)
         vicnode.build_used(**_args)

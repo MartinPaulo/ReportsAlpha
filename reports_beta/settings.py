@@ -206,6 +206,20 @@ CELL_NAMES = {'nectar!melbourne!qh2', 'nectar!sa-cw', 'nectar!qld-upstart',
               'nectar!tas!tas-s', 'nectar!monash!monash-test',
               'nectar!monash-03', 'nectar!melbourne', 'nectar!tas'}
 
+STORAGE_PRODUCT_TYPES = {
+    'Vault.Monash', 'Vault.Melbourne.Object', 'Market.Monash.Object',
+    'Market.Monash.File', 'Market.Monash', 'Market.Melbourne.Mediaflux',
+    'Market.Melbourne.Gluster', 'Market.Melbourne',
+    'Generic Product - Not real',
+    'DO-NOT-USE.X-Physics.Melbourne',
+    'DO-NOT-USE.Vault.Melbourne.Disk',
+    'DO-NOT-USE.NSP.Market.Melbourne',
+    'DO-NOT-USE.NSP.Computational.Melbourne',
+    'DO-NOT-USE.Market.Melbourne.Disk',
+    'DO-NOT-USE.Computational.Monash.Commodity',
+    'Computational.Monash.Performance', 'Computational.Melbourne',
+}
+
 # From:
 # http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
 try:
