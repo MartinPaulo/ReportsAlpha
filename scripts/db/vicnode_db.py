@@ -3,6 +3,7 @@ from functools import wraps
 
 import psycopg2
 import psycopg2.extras
+from django.conf import settings
 from sshtunnel import SSHTunnelForwarder
 
 from scripts.config import Configuration
@@ -75,13 +76,13 @@ class DB(object):
 
     @staticmethod
     def get_product_code(product):
-        products = (1, 4, 10)
+        products = settings.STORAGE_PRODUCT_CODES
         if product == COMPUTATIONAL:
-            products = (1,)
+            products = settings.COMPUTE_PRODUCT_CODES
         elif product == MARKET:
-            products = (4,)
+            products = settings.MARKET_PRODUCT_CODES
         elif product == VAULT:
-            products = (10,)
+            products = settings.VAULT_MARKET_CODES
         return products
 
     @connection_required
@@ -101,18 +102,23 @@ class DB(object):
             SELECT
               sum(size),
               CASE
-              WHEN storage_product_id = 1
+              WHEN storage_product_id IN %(compute)s
                 THEN 'computational'
-              WHEN storage_product_id = 4
+              WHEN storage_product_id IN %(market)s
                 THEN 'market'
               ELSE 'vault' END AS product
             FROM applications_allocation
-            WHERE storage_product_id IN (1, 4, 10)
+            WHERE storage_product_id IN %(all_types)s
                   AND applications_allocation.last_modified <
                       (%(day_date)s :: DATE + '1 day' :: INTERVAL)
             GROUP BY storage_product_id;
         """
-        self._db_cur.execute(q_allocated, {'day_date': day_date})
+        self._db_cur.execute(q_allocated, {
+            'compute': settings.COMPUTE_PRODUCT_CODES,
+            'market': settings.MARKET_PRODUCT_CODES,
+            'all_types': settings.STORAGE_PRODUCT_CODES,
+            'day_date': day_date
+        })
         return self._db_cur.fetchall()
 
     @connection_required
@@ -167,8 +173,10 @@ class DB(object):
         """
         # print(self._db_cur.mogrify(q_allocated,
         #                      {'products': products, 'day_date': day_date}))
-        self._db_cur.execute(q_allocated,
-                             {'products': products, 'day_date': day_date})
+        self._db_cur.execute(q_allocated, {
+            'products': products,
+            'day_date': day_date
+        })
         return self._db_cur.fetchall()
 
     @connection_required
@@ -177,13 +185,13 @@ class DB(object):
             SELECT
               sum(used_capacity),
               CASE
-              WHEN storage_product_id = 1
+              WHEN storage_product_id IN %(compute)s
                 THEN 'computational'
-              WHEN storage_product_id = 4
+              WHEN storage_product_id IN %(market)s
                 THEN 'market'
               ELSE 'vault' END AS product
             FROM applications_ingest t1
-            WHERE storage_product_id IN (1, 4, 10)
+            WHERE storage_product_id IN %(all_types)s
                   -- and this is the last record
                   AND extraction_date =
                       (SELECT MAX(extraction_date)
@@ -195,7 +203,12 @@ class DB(object):
                       )
             GROUP BY product;
         """
-        self._db_cur.execute(q_used, {'day_date': day_date})
+        self._db_cur.execute(q_used, {
+            'compute': settings.COMPUTE_PRODUCT_CODES,
+            'market': settings.MARKET_PRODUCT_CODES,
+            'all_types': settings.STORAGE_PRODUCT_CODES,
+            'day_date': day_date
+        })
         return self._db_cur.fetchall()
 
     @connection_required
@@ -255,8 +268,10 @@ class DB(object):
                   )
             GROUP BY faculty;
         """
-        self._db_cur.execute(q_used,
-                             {'products': products, 'day_date': day_date})
+        self._db_cur.execute(q_used, {
+            'products': products,
+            'day_date': day_date
+        })
         return self._db_cur.fetchall()
 
     @connection_required
@@ -265,13 +280,13 @@ class DB(object):
             SELECT
               sum(allocated_capacity - used_capacity) AS headroom,
               CASE
-              WHEN storage_product_id = 1
+              WHEN storage_product_id IN %(compute)s
                 THEN 'computational'
-              WHEN storage_product_id = 4
+              WHEN storage_product_id IN %(market)s
                 THEN 'market'
               ELSE 'vault' END AS product
             FROM applications_ingest AS t1
-            WHERE storage_product_id IN (1, 4, 10)
+            WHERE storage_product_id IN %(all_types)s
                   -- and this is the last record
                   AND extraction_date =
                       (SELECT MAX(extraction_date)
@@ -283,7 +298,12 @@ class DB(object):
                       )
             GROUP BY storage_product_id;
         """
-        self._db_cur.execute(q_used, {'day_date': day_date})
+        self._db_cur.execute(q_used, {
+            'compute': settings.COMPUTE_PRODUCT_CODES,
+            'market': settings.MARKET_PRODUCT_CODES,
+            'all_types': settings.STORAGE_PRODUCT_CODES,
+            'day_date': day_date
+        })
         return self._db_cur.fetchall()
 
     @connection_required
@@ -341,8 +361,10 @@ class DB(object):
                       )
             GROUP BY faculty;
             """
-        self._db_cur.execute(q_used,
-                             {'products': products, 'day_date': day_date})
+        self._db_cur.execute(q_used, {
+            'products': products,
+            'day_date': day_date
+        })
         return self._db_cur.fetchall()
 
     @connection_required
@@ -351,15 +373,19 @@ class DB(object):
             SELECT
               capacity * 1000   AS capacity,
               CASE
-              WHEN id = 1
+              WHEN id IN %(compute)s
                 THEN 'computational'
-              WHEN id = 4
+              WHEN id IN %(market)s
                 THEN 'market'
               ELSE 'vault' END AS product
             FROM applications_storageproduct
-            WHERE id IN (1, 4, 10);
+            WHERE id IN %(all_types)s;
         """
-        self._db_cur.execute(query)
+        self._db_cur.execute(query, {
+            'compute': settings.COMPUTE_PRODUCT_CODES,
+            'market': settings.MARKET_PRODUCT_CODES,
+            'all_types': settings.STORAGE_PRODUCT_CODES
+        })
         return self._db_cur.fetchall()
 
     @connection_required

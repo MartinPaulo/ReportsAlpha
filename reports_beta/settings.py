@@ -220,6 +220,23 @@ STORAGE_PRODUCT_TYPES = {
     'Computational.Monash.Performance', 'Computational.Melbourne',
 }
 
+COMPUTE_PRODUCT_CODES = (
+    1,  # Computational.Melbourne
+)
+
+MARKET_PRODUCT_CODES = (
+    4,  # Market.Melbourne
+    23,  # Market.Melbourne.Mediaflux
+    24  # Market.Melbourne.Gluster
+)
+
+VAULT_MARKET_CODES = (
+    10,  # Vault.Melbourne.Object
+)
+
+STORAGE_PRODUCT_CODES = \
+    COMPUTE_PRODUCT_CODES + MARKET_PRODUCT_CODES + VAULT_MARKET_CODES
+
 # From:
 # http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
 try:
