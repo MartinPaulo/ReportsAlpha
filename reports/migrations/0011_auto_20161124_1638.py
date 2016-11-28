@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('reports', '0010_broadcastemail'),
     ]
@@ -14,7 +13,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='broadcastemail',
-            options={'verbose_name': 'Broadcast Email', 'verbose_name_plural': 'Broadcast Emails'},
+            options={'verbose_name': 'Broadcast Email',
+                     'verbose_name_plural': 'Broadcast Emails'},
         ),
         migrations.AddField(
             model_name='report',
