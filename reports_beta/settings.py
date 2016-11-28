@@ -193,7 +193,8 @@ LOGGING = {
             'handlers': ['console', 'development_logfile'],
         },
         'reports': {
-            'handlers': ['console', 'development_logfile'],
+            'handlers': ['console', 'development_logfile',
+                         'production_logfile'],
         },
     }
 }
