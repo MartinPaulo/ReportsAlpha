@@ -12,7 +12,7 @@ instances inside of UoM data centers is shown.
 The graph is derived by calculating the following figures for each day 
 (`day_date`):
 
-* [Others @ UoM](#others_at_uom): The count of users who belong to non-UoM 
+* [Others @ UoM](#others--uom): The count of users who belong to non-UoM 
   projects running instances in UoM data centers on the `day_date`.
 * `UoM @ UoM and elsewhere`: The count of users belonging to UoM projects who 
   are running instances in both UoM and non UoM data centers on the `day_date`. 
