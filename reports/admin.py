@@ -44,7 +44,7 @@ class BroadcastEmailAdmin(admin.ModelAdmin):
                 EmailMessage(
                     email.subject,
                     email.message,
-                    admins_emails,
+                    from_email=settings.SERVER_EMAIL,
                     to=admins_emails,
                     bcc=users_emails
                 ).send()
