@@ -37,9 +37,9 @@ class BroadcastEmailAdmin(admin.ModelAdmin):
 
     def submit_email(self, request, queryset):
         try:
-            admins_emails = [a[1] for a in settings.ADMINS]
+            admins_emails = [a[1] for a in settings.ADMINS if a[1]]
             users_emails = [user.email for user in User.objects.all() if
-                            user.email not in admins_emails]
+                            user.email and user.email not in admins_emails]
             for email in queryset:
                 EmailMessage(
                     email.subject,
