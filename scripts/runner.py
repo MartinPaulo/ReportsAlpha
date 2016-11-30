@@ -134,6 +134,7 @@ def main():
         finally:
             vicnode_source_db.close_connection()
 
+    logging.warning("Completed ETL run, arguments %s ", options)
 
 if __name__ == '__main__':
     main()
