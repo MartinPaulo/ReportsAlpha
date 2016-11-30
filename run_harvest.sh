@@ -5,7 +5,7 @@ set -e
 # server.
 
 # activate the environment with the required python libraries
-ENV=reporting
+ENV=${1:-reporting}
 # if there is no workon home ie: being run by cron, then hardwire the path :(
 WORKON_HOME="${WORKON_HOME:-/home/rapporteur/Virtualenvs}"
 # shellcheck source=/dev/null
@@ -21,4 +21,4 @@ export PYTHONPATH
 
 # but we are going work in the home directory of the scripts themselves
 cd "${PYTHONPATH}/scripts"
-python runner.py
+./runner.py all

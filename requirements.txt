@@ -11,3 +11,5 @@ sshtunnel
 psycopg2    # http://initd.org/psycopg/docs/install.html ?
 django-inspectional-registration
 markdown
+docopt
+

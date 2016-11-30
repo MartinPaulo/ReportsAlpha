@@ -1,9 +1,27 @@
-"""
-This file manages the loading of the data from the production databases
-and into the reporting databases.
-"""
+#!/usr/bin/env python
 
-import argparse
+"""
+This application manages the loading of the data from the production databases
+into the reporting database.
+
+Usage:
+    ./runner.py [options] (cloud | storage | all)
+
+Commands:
+    cloud       Load the data from the cloud database
+    storage     Load the data from the storage database
+    all         Load the data from all the production databases
+
+Options:
+    -h, --help          Show this screen
+    -v, --version       Show the version
+    -d <n>, --days=<n>  Rebuild the last n days of data [default: 1]
+
+"""
+from docopt import docopt
+
+from scripts import __version__ as VERSION
+
 import logging
 import os
 import random
@@ -60,28 +78,13 @@ class FakeCloudCapacityData:
         }
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('-d', '--days', action='store',
-                        required=False, default=0,
-                        help='Rebuild the last n days of data for all reports')
-    return parser.parse_args()
-
-
-def get_start_day(args):
-    result = None
-    days_past = int(args.days)
-    if days_past:
-        result = date.today() - timedelta(days=days_past)
+def get_start_day(days):
+    result = date.today() - timedelta(days=int(days))
     logging.info("Start date chosen is %s", result)
     return result
 
 
 def main():
-    # TODO:
-    # Offer up a menu of scripts to run?
-    # Add support for an all flag that won't show the menu?
-    args = parse_args()
     # see:
     # http://stackoverflow.com/questions/15048963/alternative-to-the-deprecated-setup-environ-for-one-off-django-scripts
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "reports_beta.settings")
@@ -89,50 +92,47 @@ def main():
 
     logging.info("Python version: %s", sys.version)
 
-    start_day = get_start_day(args)
+    options = docopt(__doc__, version=VERSION)
+    start_day = get_start_day(options['--days'])
 
     load_db = local_db.DB()
-    # # Following is one way to get/call all the methods in the module
-    # # allows us to build a menu system?
-    # all_functions = inspect.getmembers(vicnode, inspect.isfunction)
-    # for name, function in all_functions:
-    #     if name.startswith('build'):
-    #         function(**args)
     # A short hand that stops us from having to type out repeated arguments
     # Indicates a smell, methinks.
-    _args = {'extract_db': reporting_db.DB(),
-             'load_db': load_db, 'start_day': start_day}
-    nectar.test_db(**_args)
-    build_project_faculty(**_args)
-    nectar.build_active(**_args)
-    nectar.build_faculty_allocated(**_args)
-    nectar.build_top_twenty(**_args)
-    nectar.build_used(**_args)
+    _args = {'load_db': load_db, 'start_day': start_day}
+    if options['all'] or options['cloud']:
+        _args['extract_db'] = reporting_db.DB()
+        nectar.test_db(**_args)
+        build_project_faculty(**_args)
+        nectar.build_active(**_args)
+        nectar.build_faculty_allocated(**_args)
+        nectar.build_top_twenty(**_args)
+        nectar.build_used(**_args)
 
-    if False:
-        read_national(load_db)
+        if False:
+            read_national(load_db)
 
-    unknown_source = FakeCloudCapacityData()
-    nectar.build_capacity(unknown_source, load_db, start_day)
+        unknown_source = FakeCloudCapacityData()
+        nectar.build_capacity(unknown_source, load_db, start_day)
 
-    vicnode_source_db = vicnode_db.DB()
-    # replace the extract database with vicnodes, but otherwise keep the
-    # arguments the same.
-    _args['extract_db'] = vicnode_source_db
-    try:
-        vicnode.test_db(**_args)
-        vicnode.build_allocated(**_args)
-        vicnode.build_allocated_by_faculty(**_args)
-        vicnode.build_used(**_args)
-        vicnode.build_used_by_faculty(**_args)
-        vicnode.build_headroom_unused(**_args)
-        vicnode.build_headroom_unused_by_faculty(**_args)
-        vicnode.build_capacity(**_args)
-        vicnode.build_headroom_unallocated(**_args)
-        # unknown_source = FakeStorageCapacityData()
-        # vicnode.build_capacity(unknown_source, load_db)
-    finally:
-        vicnode_source_db.close_connection()
+    if options['all'] or options['storage']:
+        vicnode_source_db = vicnode_db.DB()
+        # replace the extract database with vicnodes, but otherwise keep the
+        # arguments the same.
+        _args['extract_db'] = vicnode_source_db
+        try:
+            vicnode.test_db(**_args)
+            vicnode.build_allocated(**_args)
+            vicnode.build_allocated_by_faculty(**_args)
+            vicnode.build_used(**_args)
+            vicnode.build_used_by_faculty(**_args)
+            vicnode.build_headroom_unused(**_args)
+            vicnode.build_headroom_unused_by_faculty(**_args)
+            vicnode.build_capacity(**_args)
+            vicnode.build_headroom_unallocated(**_args)
+            # unknown_source = FakeStorageCapacityData()
+            # vicnode.build_capacity(unknown_source, load_db)
+        finally:
+            vicnode_source_db.close_connection()
 
 
 if __name__ == '__main__':

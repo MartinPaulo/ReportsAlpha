@@ -5,3 +5,4 @@ production data into the reporting database.
 runner.py manages the overall process and serves as the entry point.
 config.py reads the configuration from the django settings.
 """
+__version__ = '0.0.1'
