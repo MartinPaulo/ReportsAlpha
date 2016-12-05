@@ -141,7 +141,7 @@ var utils = function () {
         length: 9, // The length of each line
         width: 5, // The line thickness
         radius: 14, // The radius of the inner circle
-        color: 'blue', // #rgb or #rrggbb or array of colors
+        color: ['blue', 'grey'], // #rgb or #rrggbb or array of colors
         speed: 1.9, // Rounds per second
         trail: 40, // Afterglow percentage
         className: 'spinner' // The CSS class to assign to the spinner
@@ -255,6 +255,7 @@ var utils = function () {
         STORAGE_PRODUCT_TYPES: STORAGE_PRODUCT_TYPES,
         STORAGE_FACULTIES: STORAGE_FACULTIES,
         CLOUD_FACULTIES: CLOUD_FACULTIES,
+        SPINNER_OPTIONS: SPINNER_OPTIONS,
         generateFacultyKey: generateFacultyKey,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,

@@ -36,6 +36,8 @@ report.d3 = function () {
         }
     }
 
+    var spinner = new Spinner(utils.SPINNER_OPTIONS);
+
     var render = function () {
         var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=CloudCapacity';
 
@@ -43,6 +45,7 @@ report.d3 = function () {
         d3.csv(data_path, function (error, csv) {
             if (error) {
                 console.log('Error on loading data: ' + error);
+                spinner.stop();
                 utils.showError(error);
                 return;
             }
@@ -54,6 +57,7 @@ report.d3 = function () {
             var nvd3Data = [];
             var sources = [
                 'nectar_contribution', 'uom_contribution', 'co_contribution'];
+
             for (var i = 0; i < sources.length; i++) {
                 var o = {};
                 o.key = getKey(sources[i]);
@@ -95,6 +99,8 @@ report.d3 = function () {
                 .datum(nvd3Data)
                 .transition().duration(500)
                 .call(chart);
+
+            spinner.stop();
 
             // Update chart when the window resizes
             nv.utils.windowResize(chart.update);

@@ -56,13 +56,19 @@ report.d3 = function () {
     // always be more than the used amount...
     var allocationDomain;
 
+    var spinner = new Spinner(utils.SPINNER_OPTIONS);
+
     var render = function () {
         var source = d3.select('input[name="allocated-used"]:checked').node().value.toLowerCase();
         var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=Cloud' + capitalizeFirstLetter(source);
         d3.select('#a_data').attr('href', data_path);
+
+        spinner.spin(document.getElementById('chart'));
+
         d3.csv(data_path, function (error, csv) {
             if (error) {
                 console.log('Error on loading data: ' + error);
+                spinner.stop();
                 utils.showError(error);
                 return;
             }
@@ -107,6 +113,7 @@ report.d3 = function () {
                 .datum(nvd3Data)
                 .transition().duration(500)
                 .call(chart);
+            spinner.stop();
 
             // Update chart when the window resizes
             nv.utils.windowResize(chart.update);

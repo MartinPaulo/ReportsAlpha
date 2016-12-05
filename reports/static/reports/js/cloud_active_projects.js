@@ -40,13 +40,20 @@ report.d3 = function () {
         }
     }
 
+    var spinner = new Spinner(utils.SPINNER_OPTIONS);
+
     var render = function () {
         var data_path = '/reports/actual/?model=CloudActiveUsers&from=' + utils.findFrom();
 
         d3.select('#a_data').attr('href', data_path);
+
+        spinner.spin(document.getElementById('chart'));
+
         d3.csv(data_path, function (error, csv) {
             if (error) {
                 console.log("Error on loading data: " + error);
+                spinner.stop();
+                utils.showError(error);
                 return;
             }
 
@@ -108,6 +115,8 @@ report.d3 = function () {
                 d3.select('#chart svg')
                     .datum(nvd3_data)
                     .call(chart);
+
+                spinner.stop();
 
                 //figure out a good way to do this automatically
                 nv.utils.windowResize(chart.update);

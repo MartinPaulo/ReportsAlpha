@@ -48,18 +48,7 @@ report.d3 = function () {
         return d3.select('select').property('value');
     }
 
-    var opts = {
-        lines: 9, // The number of lines to draw
-        length: 9, // The length of each line
-        width: 5, // The line thickness
-        radius: 14, // The radius of the inner circle
-        color: 'blue', // #rgb or #rrggbb or array of colors
-        speed: 1.9, // Rounds per second
-        trail: 40, // Afterglow percentage
-        className: 'spinner' // The CSS class to assign to the spinner
-    };
-
-    var spinner = new Spinner(opts);
+    var spinner = new Spinner(utils.SPINNER_OPTIONS);
 
     var render = function () {
         var data_path = '/reports/graphite/cloud_available_capacity/?from='
