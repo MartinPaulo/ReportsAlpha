@@ -138,6 +138,7 @@ report.d3 = function () {
             if (error) {
                 // should perhaps also clear any older graph?
                 console.log("Error on loading data: " + error);
+                utils.showError(error);
                 return;
             }
             d3.select('#extra_title h3').remove();

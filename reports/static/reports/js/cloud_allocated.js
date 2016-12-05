@@ -63,6 +63,7 @@ report.d3 = function () {
         d3.csv(data_path, function (error, csv) {
             if (error) {
                 console.log('Error on loading data: ' + error);
+                utils.showError(error);
                 return;
             }
 
