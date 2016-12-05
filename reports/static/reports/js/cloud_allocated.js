@@ -65,22 +65,8 @@ report.d3 = function () {
                 console.log('Error on loading data: ' + error);
                 return;
             }
-            csv.sort(function (a, b) {
-                return new Date(a['date']) - new Date(b['date']);
-            });
 
-            // convert the csv passed in as an argument into the format that nvd3 prefers.
-            var nvd3Data = [];
-            var faculties = [
-                'FoA', 'VAS', 'FBE', 'MSE', 'MGSE', 'MDHS', 'FoS', 'ABP', 'MLS', 'VCAMCM', 'Other', 'Unknown'];
-            for (var i = 0; i < faculties.length; i++) {
-                var o = {};
-                o.key = faculties[i];
-                o.values = csv.map(function (d) {
-                    return [new Date(d['date']).getTime(), parseInt(d[faculties[i].toLowerCase()])];
-                });
-                nvd3Data.push(o)
-            }
+            var nvd3Data = utils.convertCsvToNvd3Format(csv, utils.CLOUD_FACULTIES);
 
             // for examples of these options see: http://cmaurer.github.io/angularjs-nvd3-directives/line.chart.html
             var chart = nv.models.stackedAreaChart()

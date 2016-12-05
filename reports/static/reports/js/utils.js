@@ -41,9 +41,10 @@ var utils = function () {
         });
     }
 
-
-    const STORAGE_FACULTIES = ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE',
-        'MGSE', 'FBE', 'FoA', 'ABP', 'services', 'external', 'unknown'];
+    const FACULTIES = ['VCAMCM', 'VAS', 'FoS', 'MDHS', 'MLS', 'MSE',
+        'MGSE', 'FBE', 'FoA', 'ABP'];
+    const CLOUD_FACULTIES = FACULTIES.concat('services', 'unknown');
+    const STORAGE_FACULTIES = CLOUD_FACULTIES.concat('external');
 
     /* mixin method to return colour value from colour classes */
     var getColour = function (key) {
@@ -61,7 +62,6 @@ var utils = function () {
         'FBE': '#7f7f7f',
         'FoA': '#bcbd22',
         'ABP': '#17becf',
-        'Other': 'red',
         'Unknown': 'blue',
         'Services': 'red',
         'External': 'green',
@@ -152,7 +152,7 @@ var utils = function () {
     }
 
     /**
-     * Converts csv into a format that nvd3 can use.
+     * Converts csv into a format that nvd3 prefers.
      * @param csv The source data in csv format
      * @param columnNames
      * @returns {Array} The translated data
@@ -254,6 +254,7 @@ var utils = function () {
     return { // exports
         STORAGE_PRODUCT_TYPES: STORAGE_PRODUCT_TYPES,
         STORAGE_FACULTIES: STORAGE_FACULTIES,
+        CLOUD_FACULTIES: CLOUD_FACULTIES,
         generateFacultyKey: generateFacultyKey,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
@@ -262,6 +263,7 @@ var utils = function () {
         cellColours: cellColours,
         facultyColors: facultyColours,
         renderStorageChart: renderStorageChart,
+        convertCsvToNvd3Format: convertCsvToNvd3Format,
         showError: showError
     }
 }();

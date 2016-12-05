@@ -61,11 +61,10 @@ class CloudTotalsByFaculty(models.Model):
     abp = models.IntegerField(db_column='ABP', blank=False, null=False)
     mls = models.IntegerField(db_column='MLS', blank=False, null=False)
     vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)
-    other = models.IntegerField(db_column='Other', blank=False, null=False)
+    services = models.IntegerField(db_column='Other', blank=False, null=False)
     unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)
 
     class Meta:
-        managed = False
         abstract = True
 
 
@@ -75,7 +74,6 @@ class CloudAllocated(CloudTotalsByFaculty):
     """
 
     class Meta:
-        managed = False
         db_table = 'cloud_allocated'
 
 
@@ -85,7 +83,6 @@ class CloudUsed(CloudTotalsByFaculty):
     """
 
     class Meta:
-        managed = False
         db_table = 'cloud_used'
 
 
