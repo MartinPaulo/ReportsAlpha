@@ -15,7 +15,9 @@ Commands:
 Options:
     -h, --help          Show this screen
     -v, --version       Show the version
-    -d <n>, --days=<n>  Rebuild the last n days of data [default: 1]
+    -d <n>, --days=<n>  Rebuild the last n days of data. If no value is
+                        specified, the runner will start at the highest day
+                        loaded so far for each table [default: None]
 
 """
 from docopt import docopt
@@ -79,7 +81,9 @@ class FakeCloudCapacityData:
 
 
 def get_start_day(days):
-    result = date.today() - timedelta(days=int(days))
+    result = None
+    if days != 'None':
+        result = date.today() - timedelta(days=int(days))
     logging.info("Start date chosen is %s", result)
     return result
 
@@ -135,6 +139,7 @@ def main():
             vicnode_source_db.close_connection()
 
     logging.warning("Completed ETL run, arguments %s ", options)
+
 
 if __name__ == '__main__':
     main()
