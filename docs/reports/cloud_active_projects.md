@@ -12,22 +12,24 @@ instances inside of UoM data centers is shown.
 The graph is derived by calculating the following figures for each day 
 (`day_date`):
 
-* [Others @ UoM](#others--uom): The count of users who belong to non-UoM 
+* [Others @ UoM](#others--uom): The number of users who belong to non-UoM 
   projects running instances in UoM data centers on the `day_date`.
 * [UoM @ elsewhere only](#uom--elsewhere-only): The number of users belonging
-  to UoM projects who are running instances only in data centers that do not
-  belong to UoM on the `day_date`.
-  are running instances in both UoM and non UoM data centers on the `day_date`. 
-* [UoM @ UoM only](#Auom--uom-only): The number of users belonging to UoM projects who are 
-  running instances only in the UoM data centers on the `day_date`.
-* [UoM @ UoM and elsewhere](#uom--uom-and-elsewhere): The count of users 
-  belonging to UoM projects who 
+  to UoM projects who are are running instances only in non UoM data centers 
+  on the `day_date`. 
+* [UoM @ UoM only](#Auom--uom-only): The number of users belonging to UoM 
+  projects who are running instances only in the UoM data centers on 
+  the `day_date`.
+* [UoM @ UoM and elsewhere](#uom--uom-and-elsewhere): The number of users 
+  belonging to UoM projects who have running instances in both UoM and 
+  non Uom data centers on the `day_date`.
   
 ## The NeCTAR reporting database
 
 The NeCTAR reporting database is the one against which we were requested
 to run our reports. It is a set of tables populated by a python script that 
-queries the production data and dumps it into the reporting database.
+queries the production data and dumps it into the reporting database at 10
+minut intervals.
 
 The source OpenStack tables have data that is dirty. This is due to changes
 in the tables over time, errors in production etc. Hence the data in the
@@ -35,8 +37,8 @@ reporting database is not perfect.
 
 ### The instance table
   
-The instance table contains a list of all the instances that have ever ben run 
-on the NeCTAR cloud. It is pretty much a subset of the Nova instances table.
+The `instance` table contains a list of all the instances that have ever ben run 
+on the NeCTAR cloud. It is essentially a subset of the Nova `instances` table.
 
 The following columns are of interest:
 
@@ -48,10 +50,16 @@ The following columns are of interest:
 * `cell_name`: the name of the cell in which the instance ran/is running
 * `project_id`: the id of the project to which the instance belongs
 
+We use the `cell_name` column to identify the UoM data centers, as there is
+currently a one to one mapping between the UoM cells and the UoM data centers.
+
+This *may* change, so the tool that does the ETL checks for changes to cell 
+names and alerts the administrators if any is found.
+
 ## Others @ UoM
 
 The count of users belonging to non UoM projects who start, stop, and
-have running instances in UoM data centers day by day.
+have running instances in UoM data centers on the given day.
 
 We find the instances in the UoM data centers that on the day that have been 
 started, stopped or been running through the entire day that do not belong to
@@ -82,7 +90,7 @@ WHERE
 ## UoM @ elsewhere only
 
 The number of users in UoM projects who are running instances
-only in data centers that do not belong to UoM on day_date.
+only in data centers that do not belong to UoM on the given day.
 
 We find the users belonging to UoM projects that have, on the given day, 
 started, stopped or had instances running through the entire day in non UoM
@@ -123,7 +131,7 @@ WHERE
 ## UoM @ UoM only
 
 The number of users in UoM projects who have run instances only in the 
-UoM data centers on a given day.
+UoM data centers on the given day.
 
 We find the users belonging to UoM projects that have, on the given day, 
 started, stopped or had instances running through the entire day in UoM
@@ -170,7 +178,7 @@ WHERE
 ## UoM @ UoM and elsewhere
 
 The count of users belonging to UoM projects who start, stop, and have running
-instances in both UoM and non Uom data centers day by day.
+instances in both UoM and non Uom data centers on the given day.
 
 We have created a left join between users running inside and outside UoM
 data centers, but this is a very slow query. 
