@@ -9,23 +9,36 @@ from scripts.cloud.utility import date_range, get_new_faculty_totals
 
 
 def build_active(extract_db, load_db, start_day=None, end_day=date.today()):
+    """
+    Builds a count of users who run in UoM data centers (and the users
+    belonging to UoM projects who run outside of UoM data centers.
+    :param extract_db: The db from which to extract the data
+    :param load_db: The db to move the transformed data to
+    :param start_day: The day on which to start the data transformation on.
+                    If None, then the date will be from the last day this
+                    method was run on
+    :param end_day: The date on which to stop the data transformation. Defaults
+                    to today.
+    """
     if not start_day:
         start_day = load_db.get_active_last_run_date()
     logging.info("Building active user data from %s till %s",
                  start_day, end_day)
-    # on the 2016-03-11 we have 452 UoM users in total, with
-    # 309 running elsewhere,
-    # 233 running at UoM and 92 users are running in both UoM
-    # and elsewhere. so we have:
-    # set A = 309, set B = 233, A ∪ B = 452 and A ∩ B = 92
     for day_date in date_range(start_day, end_day):
         logging.info("Building active user data for %s", day_date)
+        others_at_uom = extract_db.get_count_of_others_at_uom(day_date)
+        uom_only = extract_db.get_uom_only(day_date)
+        elsewhere_only = extract_db.get_elsewhere_only(day_date)
+        # in_both = extract_db.get_in_both(day_date)
+        # but above line is slow, slow rather:
+        all_outside = extract_db.get_all_outside(day_date)
+        in_both = all_outside - elsewhere_only
         user_counts = {
             'date': day_date.strftime("%Y-%m-%d"),
-            'others_at_uom': extract_db.get_count_of_others_at_uom(day_date),
-            'in_both': extract_db.get_in_both(day_date),
-            'elsewhere_only': extract_db.get_elsewhere_only(day_date),
-            'at_uom_only': extract_db.get_uom_only(day_date)
+            'others_at_uom': others_at_uom,
+            'in_both': in_both,
+            'elsewhere_only': elsewhere_only,
+            'at_uom_only': uom_only
         }
         load_db.save_active(user_counts)
 

@@ -68,14 +68,6 @@ class DB(BaseDB):
         self._db_connection.close()
 
     def get_in_both(self, day_date):
-        """
-        :param day_date: The day for which the query is to be run
-        :return: The count of users running instances in both UoM and non
-        UoM data centers on day_date.
-
-        Notes:
-            Instances started and stopped on the day are *included*.
-        """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT r.created_by) AS in_both
             FROM instance l
@@ -98,81 +90,80 @@ class DB(BaseDB):
                 """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["in_both"]
 
-    def get_elsewhere_only(self, day_date):
-        """
-        :param day_date: The day for which the query is to be run
-        :return: The number of UoM users who are running instances only in
-        data centers that do not belong to UoM on day_date.
+    def get_all_outside(self, day_date):
+        self._db_cur.execute("""
+            SELECT COUNT(DISTINCT created_by) AS uom_users_outside_uom
+            FROM instance
+            WHERE
+              (((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR
+                (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (created < '{0}'
+                    AND
+                    (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+               AND cell_name NOT IN
+                   ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+               AND project_id IN (SELECT DISTINCT id
+                                  FROM project
+                                  WHERE organisation LIKE '%melb%'));
+            """.format(day_date.strftime("%Y-%m-%d")))
+        return self._db_cur.fetchone()["uom_users_outside_uom"]
 
-        Notes:
-            Instances started and stopped on the day are *included*.
-        """
+    def get_elsewhere_only(self, day_date):
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS elsewhere_only
             FROM instance
-            WHERE ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+            WHERE
+              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
                   OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
                   OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
-              /* and not running any instances in melbourne on the day */
-              AND created_by NOT IN (SELECT DISTINCT created_by
-                                     FROM instance
-                                     WHERE
-                                       ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                                        OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                                        OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-                                       AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
-                                       AND project_id IN (SELECT DISTINCT id
-                                                          FROM project
-                                                          WHERE organisation LIKE '%melb%'))
               AND project_id IN (SELECT DISTINCT id
                                  FROM project
-                                 WHERE organisation LIKE '%melb%');
+                                 WHERE organisation LIKE '%melb%')
+              /* and not running any instances in melbourne on the day */
+              AND created_by NOT IN (
+                 SELECT DISTINCT created_by
+                 FROM instance
+                 WHERE
+                   ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                        OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                        OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+                   AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                   AND project_id IN (SELECT DISTINCT id
+                                      FROM project
+                                      WHERE organisation LIKE '%melb%'));
                 """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["elsewhere_only"]
 
     def get_uom_only(self, day_date):
-        """
-        :param day_date: The day for which the query is to be run
-        :return: The number of UoM users who are running instances only in
-        the UoM data centers on day_date.
-
-        Notes:
-            Instances started and stopped on the day are *included*.
-        """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS UoM_only
             FROM instance
-            WHERE ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                   OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                   OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+            WHERE
+              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
               AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
-              /* and not running any instances in any other zone on the day */
-              AND created_by NOT IN (SELECT DISTINCT created_by
-                                     FROM instance
-                                     WHERE
-                                       ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                                        OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                                        OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-                                       AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
-                                       AND project_id IN (SELECT DISTINCT id
-                                                          FROM project
-                                                          WHERE organisation LIKE '%melb%'))
               AND project_id IN (SELECT DISTINCT id
                                  FROM project
-                                 WHERE organisation LIKE '%melb%');
-                """.format(day_date.strftime("%Y-%m-%d")))
+                                 WHERE organisation LIKE '%melb%')
+              /* and not running any instances in any other zone on the day */
+              AND created_by NOT IN (
+                SELECT DISTINCT created_by
+                FROM instance
+                WHERE
+                    ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                    OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                    OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
+                    AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                    AND project_id IN (SELECT DISTINCT id
+                                      FROM project
+                                      WHERE organisation LIKE '%melb%'));
+            """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["UoM_only"]
 
     def get_count_of_others_at_uom(self, day_date):
-        """
-        :param day_date: The day for which the query is to be run
-        :return: The count of users who belong to non UoM projects running
-        instances in UoM data centers on the day_date.
-
-        Notes:
-            Instances started and stopped on the day are *included*.
-        """
         self._db_cur.execute("""
             SELECT COUNT(DISTINCT created_by) AS others_at_uom
             FROM instance
