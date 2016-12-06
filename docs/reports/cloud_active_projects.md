@@ -48,13 +48,27 @@ The following columns are of interest:
 * `created`: the date on which the instance was created. This should never
   be null.
 * `cell_name`: the name of the cell in which the instance ran/is running
-* `project_id`: the id of the project to which the instance belongs
+* `project_id`: the id of the project to which the instance belongs. Maps to
+                `id` in the `project` table.
 
 We use the `cell_name` column to identify the UoM data centers, as there is
 currently a one to one mapping between the UoM cells and the UoM data centers.
 
 This *may* change, so the tool that does the ETL checks for changes to cell 
 names and alerts the administrators if any is found.
+
+### The project table
+
+The `project` table contains a list of all the projects that have been approved
+on the NeCTAR cloud.
+
+The following columns are of interest
+
+* `id`: the project id.
+* `display_name`: the name shown for the project in the dashboard project
+        drop down.
+* `organisation`: the institute associated with with the project. This could
+        do with some clean up (e.g.: *gmail.com* appears...)
 
 ## Others @ UoM
 

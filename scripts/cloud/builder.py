@@ -11,7 +11,7 @@ from scripts.cloud.utility import date_range, get_new_faculty_totals
 def build_active(extract_db, load_db, start_day=None, end_day=date.today()):
     """
     Builds a count of users who run in UoM data centers (and the users
-    belonging to UoM projects who run outside of UoM data centers.
+    belonging to UoM projects who run outside of UoM data centers).
     :param extract_db: The db from which to extract the data
     :param load_db: The db to move the transformed data to
     :param start_day: The day on which to start the data transformation on.
@@ -63,6 +63,16 @@ def build_used(extract_db, load_db, start_day=None, end_day=date.today()):
 
 def build_top_twenty(extract_db, load_db, start_day=None,
                      end_day=date.today()):
+    """
+    Build the top twenty projects by vcpu utilization.
+    :param extract_db: The db from which to extract the data
+    :param load_db: The db to move the transformed data to
+    :param start_day: The day on which to start the data transformation on.
+                    If None, then the date will be from the last day this
+                    method was run on
+    :param end_day: The date on which to stop the data transformation. Defaults
+                    to today.
+    """
     if not start_day:
         start_day = load_db.get_top_twenty_last_run_date()
     logging.info("Building top twenty data from %s till %s", start_day,

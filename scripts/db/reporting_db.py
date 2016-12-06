@@ -281,16 +281,6 @@ class DB(BaseDB):
         return self._db_cur.fetchall()
 
     def get_top_twenty_projects(self, day_date):
-        """
-        :param day_date: The day for which the query is to be run
-        :return: The sum of the the vcpu's being used by the top
-        twenty UoM projects on the given day.
-
-        Notes:
-            Personal projects are not excluded. However, it would be
-            very surprising if they were to make it onto this list.
-            Instances started and stopped on the day are excluded.
-        """
         self._db_cur.execute("""
             SELECT
               '{0}' AS 'date',

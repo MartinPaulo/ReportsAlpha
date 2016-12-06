@@ -17,7 +17,10 @@ class BaseDB(metaclass=ABCMeta):
 
     @abstractmethod
     def get_top_twenty_projects(self, day_date):
-        """"""
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The top twenty UoM projects by vcpu count on day_date.
+        """
 
     @abstractmethod
     def get_uom_project_contact_email(self):
