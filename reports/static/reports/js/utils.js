@@ -232,8 +232,10 @@ var utils = function () {
     }
 
     var showError = function (error) {
-        var errorText = error;
-        if ('statusText' in error) {
+        // We'll go for a default error message
+        var errorText = "The server is not responding";
+        // and overwrite it if there is a more specific message
+        if ('statusText' in error && error.statusText) {
             errorText = error.statusText;
         }
         d3.select('#md_message')
