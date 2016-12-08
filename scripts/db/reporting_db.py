@@ -87,7 +87,7 @@ class DB(BaseDB):
                 AND r.project_id IN (SELECT DISTINCT id
                                      FROM project
                                      WHERE organisation LIKE '%melb%'));
-                """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["in_both"]
 
     def get_all_outside(self, day_date):
@@ -106,7 +106,7 @@ class DB(BaseDB):
                AND project_id IN (SELECT DISTINCT id
                                   FROM project
                                   WHERE organisation LIKE '%melb%'));
-            """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["uom_users_outside_uom"]
 
     def get_elsewhere_only(self, day_date):
@@ -133,7 +133,7 @@ class DB(BaseDB):
                    AND project_id IN (SELECT DISTINCT id
                                       FROM project
                                       WHERE organisation LIKE '%melb%'));
-                """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["elsewhere_only"]
 
     def get_uom_only(self, day_date):
@@ -160,7 +160,7 @@ class DB(BaseDB):
                     AND project_id IN (SELECT DISTINCT id
                                       FROM project
                                       WHERE organisation LIKE '%melb%'));
-            """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["UoM_only"]
 
     def get_count_of_others_at_uom(self, day_date):
@@ -178,7 +178,7 @@ class DB(BaseDB):
               AND project_id NOT IN (SELECT id
                                      FROM project
                                      WHERE organisation LIKE '%melb%');
-                    """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchone()["others_at_uom"]
 
     def get_allocated_totals(self, day_date):
@@ -237,7 +237,8 @@ class DB(BaseDB):
                 AND p.organisation LIKE '%melb%'
                 AND (modified_time <= DATE_ADD('{0}', INTERVAL 1 DAY)
                   OR modified_time IS NULL)
-            ORDER BY id;""".format(day_date.strftime("%Y-%m-%d")))
+            ORDER BY id;
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
     def get_used_data(self, day_date):
@@ -277,7 +278,7 @@ class DB(BaseDB):
               AND a.personal = 0
             GROUP BY i.project_id
             ORDER BY vcpus DESC;
-                    """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
     def get_top_twenty_projects(self, day_date):
@@ -308,7 +309,7 @@ class DB(BaseDB):
             GROUP BY i.project_id
             ORDER BY vcpus DESC
             LIMIT 20;
-            """.format(day_date.strftime("%Y-%m-%d")))
+        """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
     def get_uom_project_contact_email(self):
@@ -358,7 +359,7 @@ class DB(BaseDB):
           WHERE p.organisation LIKE '%melb%'
             AND p.personal = 0
             AND a.contact_email IS NOT NULL;
-            """)
+        """)
         return self._db_cur.fetchall()
 
     def count_instances_since(self, start_day):
@@ -387,3 +388,29 @@ class DB(BaseDB):
         for row in result_set:
             result.add(row['cell_name'] if row['cell_name'] else 'NULL')
         return result
+
+    def get_private_cell_data(self, day_date):
+        self._db_cur.execute("""
+            SELECT
+              count(*)   AS instances,
+              SUM(vcpus) AS vcpus,
+              project_id,
+              organisation,
+              display_name
+            FROM instance i
+              LEFT JOIN
+              (SELECT
+                 id,
+                 organisation,
+                 display_name
+               FROM reporting.project t1) a
+                ON i.project_id = a.id
+            WHERE
+              cell_name = 'nectar!qh2-uom'
+              # and running trough the day
+              AND (created < '{0}' AND
+                  (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY)))
+            GROUP BY project_id
+            ORDER BY instances DESC;
+        """.format(day_date.strftime("%Y-%m-%d")))
+        return self._db_cur.fetchall()

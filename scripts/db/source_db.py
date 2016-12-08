@@ -89,3 +89,11 @@ class BaseDB(metaclass=ABCMeta):
         :return: The count of users who belong to non-UoM projects running
         instances in UoM data centers on day_date
         """
+
+    @abstractmethod
+    def get_private_cell_data(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The projects using Melbourne's private cell on the given
+        day
+        """

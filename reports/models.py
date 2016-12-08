@@ -1,4 +1,5 @@
 import datetime
+
 from django.db import models
 from django.utils import timezone
 from markdown import markdown
@@ -130,6 +131,28 @@ class CloudTopTwenty(models.Model):
     class Meta:
         managed = False
         db_table = 'cloud_top_twenty'
+        unique_together = (('date', 'project_id'),)
+
+
+class CloudPrivateCell(models.Model):
+    """
+    The projects that have an instances running for at least a day in
+    our private cell
+    """
+    date = models.TextField(help_text="The date on which the values "
+                                      "were calculated")
+    project_id = models.CharField(max_length=32, help_text="The project ID")
+    vcpus = models.IntegerField(help_text="The project VCPU count on the date")
+    instances = models.IntegerField(
+        help_text="The project instance count on the date")
+    display_name = models.CharField(max_length=64,
+                                    help_text="The project's formal name")
+    organization = models.CharField(max_length=255,
+                                    help_text="The organization the project "
+                                              "belongs to")
+
+    class Meta:
+        db_table = 'cloud_private_cell'
         unique_together = (('date', 'project_id'),)
 
 

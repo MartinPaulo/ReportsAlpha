@@ -20,10 +20,6 @@ Options:
                         loaded so far for each table [default: None]
 
 """
-from docopt import docopt
-
-from scripts import __version__ as VERSION
-
 import logging
 import os
 import random
@@ -32,8 +28,9 @@ from datetime import date, timedelta
 from operator import add, sub
 
 import django
+from docopt import docopt
 
-from scripts.cloud import builder as nectar
+from scripts import __version__ as VERSION
 from scripts.cloud.build_project_faculty import build_project_faculty
 from scripts.cloud.uptime import read_national
 from scripts.db import local_db
@@ -105,12 +102,14 @@ def main():
     _args = {'load_db': load_db, 'start_day': start_day}
     if options['all'] or options['cloud']:
         _args['extract_db'] = reporting_db.DB()
+        from scripts.cloud import builder as nectar
         nectar.test_db(**_args)
         build_project_faculty(**_args)
         nectar.build_active(**_args)
         nectar.build_faculty_allocated(**_args)
         nectar.build_top_twenty(**_args)
         nectar.build_used(**_args)
+        nectar.build_private_cell_data(**_args)
 
         if False:
             read_national(load_db)

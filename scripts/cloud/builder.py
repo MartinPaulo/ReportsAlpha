@@ -1,11 +1,20 @@
 # coding=UTF-8
 import logging
-from datetime import date
+from datetime import date, timedelta
 
 from django.conf import settings
 from django.core.mail import mail_admins
+from django.utils.dateparse import parse_date
 
+from reports.models import CloudPrivateCell
 from scripts.cloud.utility import date_range, get_new_faculty_totals
+
+
+def _get_non_null(value, default):
+    """
+    :return: value if it is not None, else default
+    """
+    return value if value is not None else default
 
 
 def build_active(extract_db, load_db, start_day=None, end_day=date.today()):
@@ -148,3 +157,31 @@ def build_capacity(unknown_source, load_db, start_day=None,
         logging.info("Building cloud capacity data for %s", day_date)
         capacity_totals = unknown_source.get_cloud_capacity(day_date)
         load_db.save_cloud_capacity(day_date, capacity_totals)
+
+
+def build_private_cell_data(extract_db, load_db, start_day=None,
+                            end_day=date.today()):
+    if not start_day:
+        try:
+            latest = CloudPrivateCell.objects.latest('id')
+            start_day = parse_date(latest.date)
+        except CloudPrivateCell.DoesNotExist:
+            logging.warning("Could not find starting date for private cell")
+            start_day = date.today() - timedelta(1)
+    logging.info("Building private cell data from %s till %s",
+                 start_day, end_day)
+    for day_date in date_range(start_day, end_day):
+        logging.info("Building private cell data for %s", day_date)
+        result_set = extract_db.get_private_cell_data(day_date)
+        for row in result_set:
+            pcd = CloudPrivateCell.objects.update_or_create(
+                date=day_date.strftime("%Y-%m-%d"),
+                project_id=row['project_id'],
+                defaults={
+                    'vcpus': row['vcpus'],
+                    'instances': row['instances'],
+                    'organization': _get_non_null(row['organisation'],
+                                                  'Unknown'),
+                    'display_name': row['display_name']
+                }
+            )
