@@ -188,8 +188,6 @@ class DB(BaseDB):
         last modified date is less than or equal to the day_date.
 
         Notes:
-            project id b97d4ecd7f554796b5f59fadfb10a087 has null cores?
-
             The allocations table is used simply to filter the results by
             date.
 
@@ -219,25 +217,17 @@ class DB(BaseDB):
         """
         self._db_cur.execute("""
             SELECT
-              p.id as tenant_uuid /* used for the join */,
-              a.contact_email /* used to get the faculty at UoM */,
-              IFNULL(p.quota_vcpus, 0) as cores /* cores from allocation? */,
-              IFNULL(a.modified_time, '2013-12-04') /* on a given day */,
-              p.display_name as tenant_name/* just because */,
-              p.organisation /* so we can refine by organisation */
+              p.id                   AS tenant_uuid /* used for the join */,
+              contact_email          /* used to get the faculty at UoM */,
+              IFNULL(quota_vcpus, 0) AS cores
             FROM project p
-              LEFT JOIN (
-                          SELECT
-                            project_id,
-                            contact_email,
-                            modified_time
-                          FROM allocation) a
+              LEFT JOIN allocation a
                 ON p.id = a.project_id
-            WHERE p.personal = 0
-                AND p.organisation LIKE '%melb%'
-                AND (modified_time <= DATE_ADD('{0}', INTERVAL 1 DAY)
-                  OR modified_time IS NULL)
-            ORDER BY id;
+            WHERE personal = 0
+                  AND organisation LIKE '%melb%'
+                  AND (modified_time <= DATE_ADD('{0}', INTERVAL 1 DAY)
+                       OR modified_time IS NULL)
+            ORDER BY tenant_uuid;
         """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
