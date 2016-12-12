@@ -253,31 +253,29 @@ class DB(BaseDB):
         """
         self._db_cur.execute("""
             SELECT
-              i.project_id,
-              SUM(i.vcpus) AS vcpus,
-              a.display_name
+              project_id,
+              SUM(vcpus) AS vcpus,
+              display_name
             FROM instance i
-              LEFT JOIN
-              (SELECT
-                 id,
-                 organisation,
-                 display_name,
-                 personal
-               FROM project t1) a
+              LEFT JOIN project a
                 ON i.project_id = a.id
             WHERE
-              /* (started on the day OR ended on the day OR running through the day)
-                  AND not started and stopped on the day AND a unimelb project
-               */
-              ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (i.created BETWEEN '2016-07-10' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-              AND NOT ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                       AND (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
-              AND a.organisation LIKE '%melb%'
-              AND a.personal = 0
-            GROUP BY i.project_id
-            ORDER BY vcpus DESC;
+              (( /* started on or before the day*/
+                 created < DATE_ADD('{0}', INTERVAL 1 DAY)
+                 /* and running after the day */
+                 AND (deleted > DATE_ADD('{0}', INTERVAL 1 DAY) OR deleted IS NULL))
+               OR (
+                 /* started before the day */
+                 created < '{0}'
+                 /* and deleted on the day */
+                 AND '{0}' < deleted
+                 AND deleted < DATE_ADD('{0}', INTERVAL 1 DAY)))
+              /* and a UoM project */
+              AND organisation LIKE '%melb%'
+              /* that is not personal */
+              AND personal = 0
+            GROUP BY project_id
+            ORDER BY project_id, vcpus DESC;
         """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
