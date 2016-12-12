@@ -309,15 +309,15 @@ class DB(BaseDB):
         Notes:
             A join between the project and the user tables:
 
-                SELECT id, email
+                SELECT count(*)
                 FROM project p
-                  LEFT JOIN (SELECT default_project, email
-                             FROM user) u
+                  LEFT JOIN user u
                     ON p.id = u.default_project
                 WHERE organisation LIKE '%melb%'
-                ORDER BY id;
+                    AND email IS NULL;
 
-            returns 427 null email addresses out of 2503 results, so 1/5th
+            returns 427 null email addresses. If we remove the
+            'email IS NULL' condition we get 2503, so 1/5th
             are missing.
 
             If we change the join to only include personal tenancies:
@@ -336,17 +336,16 @@ class DB(BaseDB):
             euphemism for a personal tenancy.
         """
         self._db_cur.execute("""
-          SELECT p.id AS tenant_uuid,
-                 a.contact_email,
-                 p.description AS tenant_name
-          FROM reporting.project p
-          LEFT JOIN (
-            SELECT project_id, contact_email
-            FROM allocation) a
-          ON p.id = a.project_id
-          WHERE p.organisation LIKE '%melb%'
-            AND p.personal = 0
-            AND a.contact_email IS NOT NULL;
+            SELECT
+              p.id        AS tenant_uuid,
+              contact_email,
+              description AS tenant_name
+            FROM reporting.project p
+              LEFT JOIN allocation a
+                ON p.id = a.project_id
+            WHERE organisation LIKE '%melb%'
+                  AND personal = 0
+                  AND contact_email IS NOT NULL;
         """)
         return self._db_cur.fetchall()
 
