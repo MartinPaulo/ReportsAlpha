@@ -8,6 +8,37 @@ li a {
     color: green;
 }
 
+#nav li a {
+    transition: color 200ms linear;
+    font-family: 'alternate gothic', 'HelveticaNeueBoldCondensed', 'HelveticaNeue-Bold-Condensed', 'Helvetica Neue Bold Condensed', 'Haettenschweiler', 'impact', sans-serif;
+    text-transform: uppercase;
+    font-size: 23px;
+    height: 26px;
+    border: 0;
+    line-height: 26px;
+    color: #A8C5E0;
+    text-decoration: none;
+    margin: 0;
+    border-right: 1px solid #002040;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+    padding: 0 8px 0;
+    font-weight: normal;
+    white-space: nowrap;
+}
+
+#nav li a:hover {
+    color: white;
+}
+
+#nav li {
+    display: inline;
+    list-style-type: none;
+}
+
+#nav {
+    background-color: #002952ff;
+}
+
 body {
     background: url("images/bg-napkin.jpg");
 }
@@ -16,7 +47,7 @@ body,
 h1, h2, h3,
 input[type="text"], input[type="password"], textarea, select,
 input.submit {
-     font-family: Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 /* for regular tables, show a border */
@@ -42,7 +73,7 @@ table.form input {
 
 /* hide svg elements that contain nothing */
 svg:empty {
-   display: none;
+    display: none;
 }
 
 /**
@@ -120,5 +151,7 @@ input[type="button"].active {
     box-shadow: 1px 1px 3px #000;
 }
 
-.modalClose:hover { background: #2952FF; }
+.modalClose:hover {
+    background: #2952FF;
+}
 
