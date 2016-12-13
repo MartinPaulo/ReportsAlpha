@@ -109,9 +109,9 @@ def build_faculty_allocated(extract_db, load_db, start_day=None,
         totals = Faculties.get_new_totals()
         result_set = extract_db.get_allocated_totals(day_date)
         for row in result_set:
-            project_id = row["tenant_uuid"]
+            project_id = row["project_id"]
             faculty = load_db.get_faculty_abbreviations(project_id)
-            totals[faculty] += row["cores"]
+            totals[faculty] += row["quota_vcpus"]
         load_db.save_faculty_allocated(day_date, totals)
 
 

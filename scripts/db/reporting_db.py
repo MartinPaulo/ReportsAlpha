@@ -7,50 +7,6 @@ from scripts.db.source_db import BaseDB
 class DB(BaseDB):
     """
     Contains queries specific to the reporting database.
-
-
-    A large number of the queries are trying to find instances active
-    on a given day
-
-    The following diagram shows the possibilities.
-
-    Key:
-        A  = day start
-        B  = day end
-        tc = time created
-        td = time deleted
-
-              A                                       B
-              +                                       +
-        tc    |                                       |     td
-         +--------------------------------------------------+
-              |                                       |
-         +------------------------------------------------------------> NULL
-              |                                       |
-              |  +------------------------------------------+
-              |                                       |
-              |  +----------------------------------------------------> NULL
-              |                                       |
-         +-------------------------------------+      |
-              |                                       |
-              |  +-----------------------------+      |   Not sometimes wanted
-              |                                       |
-              +                                       +
-
-    Here NULL indicates that the instance is still running.
-
-    Short running instances that are started and stopped between A and B are
-    excluded in some reports. This is done because if a project continually
-    starts and stops even the tiniest instance throughout the period between
-    A and B they will build up a huge weighting that doesn't reflect their
-    true usage.
-
-    This can be minimised by shrinking the time between A and B down to
-    seconds: but then the time taken to query the database, and the stored
-    derived will both baloon.
-
-    So the difference between that reported and that allocated on a given day
-    shows the average headroom available to people to 'burst'.
     """
 
     _db_connection = None
@@ -183,10 +139,6 @@ class DB(BaseDB):
 
     def get_allocated_totals(self, day_date):
         """
-        :param day_date: The day up till which data is to be returned.
-        :return: The amount allocated in keystone for those projects whose
-        last modified date is less than or equal to the day_date.
-
         Notes:
             The allocations table is used simply to filter the results by
             date.
@@ -210,37 +162,26 @@ class DB(BaseDB):
 
             Also, now newly discovered is that the reporting project table
             has projects allocated to UoM that don't actually have allocations
-            in its allocation table: so we have made some mistake in the
-            way in which they are brought across...
+            in the allocation table: further investigation is required...
 
-            Further, there are three projects that have no quota...
+            Also, there are three projects that have no quota...
         """
         self._db_cur.execute("""
             SELECT
-              p.id                   AS tenant_uuid /* used for the join */,
-              contact_email          /* used to get the faculty at UoM */,
-              IFNULL(quota_vcpus, 0) AS cores
+              p.id                     AS project_id,
+              IFNULL(p.quota_vcpus, 0) AS quota_vcpus
             FROM project p
               LEFT JOIN allocation a
                 ON p.id = a.project_id
-            WHERE personal = 0
-                  AND organisation LIKE '%melb%'
-                  AND (modified_time <= DATE_ADD('{0}', INTERVAL 1 DAY)
-                       OR modified_time IS NULL)
-            ORDER BY tenant_uuid;
-        """.format(day_date.strftime("%Y-%m-%d")))
+            WHERE p.personal = 0
+                  AND p.organisation LIKE '%%melb%%'
+                  AND (a.modified_time <= DATE_ADD(%(day_date)s, INTERVAL 1 DAY)
+                       OR a.modified_time IS NULL) /* never modified */
+            ;
+        """, {'day_date': day_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchall()
 
     def get_used_data(self, day_date):
-        """
-        :param day_date: The day for which the query is to be run
-        :return: The sum of the the vcpu's being used by UoM projects
-        on the given day.
-
-        Notes:
-            Personal projects are excluded.
-            Instances started and stopped on the day are also excluded.
-        """
         self._db_cur.execute("""
             SELECT
               project_id,
@@ -251,22 +192,23 @@ class DB(BaseDB):
                 ON i.project_id = a.id
             WHERE
               (( /* started on or before the day*/
-                 created < DATE_ADD('{0}', INTERVAL 1 DAY)
+                 created < DATE_ADD(%(day_date)s, INTERVAL 1 DAY)
                  /* and running after the day */
-                 AND (deleted > DATE_ADD('{0}', INTERVAL 1 DAY) OR deleted IS NULL))
+                 AND (deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY)
+                      OR deleted IS NULL))
                OR (
                  /* started before the day */
-                 created < '{0}'
+                 created < %(day_date)s
                  /* and deleted on the day */
-                 AND '{0}' < deleted
-                 AND deleted < DATE_ADD('{0}', INTERVAL 1 DAY)))
+                 AND %(day_date)s < deleted
+                 AND deleted < DATE_ADD(%(day_date)s, INTERVAL 1 DAY)))
               /* and a UoM project */
-              AND organisation LIKE '%melb%'
+              AND organisation LIKE '%%melb%%'
               /* that is not personal */
               AND personal = 0
             GROUP BY project_id
             ORDER BY project_id, vcpus DESC;
-        """.format(day_date.strftime("%Y-%m-%d")))
+        """, {'day_date': day_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchall()
 
     def get_top_twenty_projects(self, day_date):

@@ -9,11 +9,27 @@ from abc import abstractmethod
 class BaseDB(metaclass=ABCMeta):
     @abstractmethod
     def get_allocated_totals(self, day_date):
-        """Do something"""
+        """
+        :param day_date: The day up till which data is to be returned.
+        :return: The amount allocated in keystone for those projects whose
+        last modified date is less than or equal to the day_date.
+
+        Notes:
+            Because these are allocations, personal projects are automatically
+            excluded (they don't go through the allocation process)
+        """
 
     @abstractmethod
     def get_used_data(self, day_date):
-        """Do something"""
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The sum of the the vcpu's being used by UoM projects
+        on the given day.
+
+        Notes:
+            Personal projects are excluded.
+            Instances started and stopped on the day are also excluded.
+        """
 
     @abstractmethod
     def get_top_twenty_projects(self, day_date):
