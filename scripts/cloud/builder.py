@@ -7,7 +7,7 @@ from django.core.mail import mail_admins
 from django.utils.dateparse import parse_date
 
 from reports.models import CloudPrivateCell
-from scripts.cloud.utility import date_range, get_new_faculty_totals
+from scripts.cloud.utility import date_range, Faculties
 
 
 def _get_non_null(value, default):
@@ -59,15 +59,14 @@ def build_used(extract_db, load_db, start_day=None, end_day=date.today()):
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building used data for %s", day_date)
-        faculty_totals = get_new_faculty_totals()
+        totals = Faculties.get_new_totals()
         result_set = extract_db.get_used_data(day_date)
         for row in result_set:
             project_id = row["project_id"]
-            faculties = load_db.get_faculty_abbreviations(project_id)
-            for faculty in faculties:
-                faculty_totals[faculty] += int(row["vcpus"])
-        faculty_totals['date'] = day_date.strftime("%Y-%m-%d")
-        load_db.save_used_data(faculty_totals)
+            faculty = load_db.get_faculty_abbreviations(project_id)
+            totals[faculty] += int(row["vcpus"])
+        totals['date'] = day_date.strftime("%Y-%m-%d")
+        load_db.save_used_data(totals)
 
 
 def build_top_twenty(extract_db, load_db, start_day=None,
@@ -107,16 +106,13 @@ def build_faculty_allocated(extract_db, load_db, start_day=None,
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
         logging.info("Building cloud allocated data for %s", day_date)
-        faculty_totals = get_new_faculty_totals()
+        totals = Faculties.get_new_totals()
         result_set = extract_db.get_allocated_totals(day_date)
         for row in result_set:
             project_id = row["tenant_uuid"]
-            faculties = load_db.get_faculty_abbreviations(project_id)
-            for faculty in faculties:
-                # faculty_totals[faculty] += 1 / len(faculties)
-                # currently each faculty will be assigned the projects cores...
-                faculty_totals[faculty] += row["cores"]
-        load_db.save_faculty_allocated(day_date, faculty_totals)
+            faculty = load_db.get_faculty_abbreviations(project_id)
+            totals[faculty] += row["cores"]
+        load_db.save_faculty_allocated(day_date, totals)
 
 
 def test_db(extract_db, load_db, start_day=None, end_day=date.today()):
@@ -174,7 +170,7 @@ def build_private_cell_data(extract_db, load_db, start_day=None,
         logging.info("Building private cell data for %s", day_date)
         result_set = extract_db.get_private_cell_data(day_date)
         for row in result_set:
-            pcd = CloudPrivateCell.objects.update_or_create(
+            CloudPrivateCell.objects.update_or_create(
                 date=day_date.strftime("%Y-%m-%d"),
                 project_id=row['project_id'],
                 defaults={

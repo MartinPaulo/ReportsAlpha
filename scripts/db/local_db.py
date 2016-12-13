@@ -4,6 +4,7 @@ import sqlite3
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 
+from scripts.cloud.utility import Faculties
 from scripts.config import Configuration
 
 
@@ -21,12 +22,11 @@ def float2decimal(val):
 sqlite3.register_converter("decimal", float2decimal)
 
 ALLOWED_COLUMN_NAMES = {'date', 'computational', 'vault', 'market',
-                        'FoA', 'VAS', 'FBE', 'MSE',
-                        'MGSE', 'MDHS', 'FoS', 'ABP',
-                        'MLS', 'VCAMCM',
-                        'unknown', 'external', 'services',
-                        # following are cloud faculty extensions
-                        'Other', 'Unknown',
+                        Faculties.FOA, Faculties.VAS, Faculties.FBE,
+                        Faculties.MSE, Faculties.MGSE, Faculties.MDHS,
+                        Faculties.FOS, Faculties.ABP, Faculties.MLS,
+                        Faculties.VCAMCM, Faculties.OTHER,
+                        Faculties.UNKNOWN, 'external', 'services',
                         # following are cloud_capacity
                         'nectar_contribution', 'uom_contribution',
                         'co_contribution'}
@@ -159,30 +159,41 @@ class DB(object):
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
 
-    def save_faculty_data(self, faculties, contact_email,
+    def save_faculty_data(self, faculty, contact_email,
                           project_id, project_name):
-        for faculty in faculties:
-            # This should not overwrite existing assigned projects
-            query = "SELECT faculty_abbreviation FROM cloud_project_faculty " \
-                    "WHERE project_id=:project_id;"
-            self._db_cur.execute(query, {'project_id': project_id})
-            row = self._db_cur.fetchone()
-            if row is not None:
-                if row[0] != 'Unknown':
-                    logging.info("Found faculty %s for project %s", row[0],
-                                 project_id)
-                    continue
-            # TODO: This does not support multiple faculties for a project
-            # It will just overwrite the last entry :(
-            update = "INSERT OR REPLACE INTO cloud_project_faculty " \
-                     "       (project_id, contact_email, " \
-                     "        name, faculty_abbreviation) " \
-                     "VALUES (:project_id, :contact_email, " \
-                     "        :project_name, :faculty);"
-            self._db_cur.execute(update, {'project_id': project_id,
-                                          'contact_email': contact_email,
-                                          'project_name': project_name,
-                                          'faculty': faculty})
+        """
+        First fetches the existing faculty, then one is found:
+           * if there is no change in faculty, returns
+           * if the new faculty is 'Unknown', returns
+        Finally either updates or inserts the new faculty data
+        """
+        query = """
+            SELECT faculty_abbreviation
+            FROM cloud_project_faculty
+            WHERE project_id=:project_id;
+        """
+        self._db_cur.execute(query, {'project_id': project_id})
+        row = self._db_cur.fetchone()
+        if row is not None:
+            if row[0] == faculty:
+                # unchanged, no need to update
+                return
+            # we don't want to overwrite a known faculty with an unknown one
+            if faculty == Faculties.UNKNOWN:
+                return
+            logging.info("Faculty %s for project %s has changed!",
+                         row[0], project_id)
+        # TODO: This does not support multiple faculties for a project
+        # It will just overwrite the last entry :(
+        update = """
+            INSERT OR REPLACE INTO cloud_project_faculty
+                    (project_id, contact_email, name, faculty_abbreviation)
+            VALUES (:project_id, :contact_email, :project_name, :faculty);
+        """
+        self._db_cur.execute(update, {'project_id': project_id,
+                                      'contact_email': contact_email,
+                                      'project_name': project_name,
+                                      'faculty': faculty})
         self._db_connection.commit()
 
     def get_faculty_abbreviations(self, project_id):
@@ -190,11 +201,8 @@ class DB(object):
                         "FROM cloud_project_faculty " \
                         "WHERE project_id = ?"
         self._db_cur.execute(sqlite3_query, (project_id,))
-        # unpack the tuples into a list
-        faculties = [item[0] for item in self._db_cur.fetchall()]
-        if not faculties:
-            faculties = ['Unknown']
-        return faculties
+        row = self._db_cur.fetchone()
+        return row[0] if row else Faculties.UNKNOWN
 
     def get_storage_allocated_last_run_date(self):
         return self.get_max_date('storage_allocated')
