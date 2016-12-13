@@ -102,12 +102,14 @@ def main():
     _args = {'load_db': load_db, 'start_day': start_day}
     if options['all'] or options['cloud']:
         _args['extract_db'] = reporting_db.DB()
+        # the import is done here as the django setup has to be performed
+        # first as the builder references a django based model
         from scripts.cloud import builder as nectar
         nectar.test_db(**_args)
         build_project_faculty(**_args)
         nectar.build_active(**_args)
-        nectar.build_faculty_allocated(**_args)
         nectar.build_top_twenty(**_args)
+        nectar.build_faculty_allocated(**_args)
         nectar.build_used(**_args)
         nectar.build_private_cell_data(**_args)
 
