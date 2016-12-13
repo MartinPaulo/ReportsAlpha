@@ -16,8 +16,7 @@ def _get_faculty_totals():
 
 
 def _get_product_totals():
-    product_totals = {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
-    return product_totals
+    return {COMPUTATIONAL: 0, MARKET: 0, VAULT: 0}
 
 
 def build_allocated(extract_db, load_db, start_day=None, end_day=date.today()):
@@ -300,23 +299,11 @@ def build_headroom_unused_by_faculty(**kwargs):
 
 
 def build_capacity(extract_db, load_db, **kwargs):
-    # start_day = date.today()
-    # start_day = start_day.replace(year=start_day.year-2)
-    # end_day = date.today()
-    # for day_date in date_range(start_day, end_day):
-    #     logging.info("Building storage capacity for %s", day_date)
-    #     product_totals = _get_product_totals()
-    #     # There is no date so we will overwrite with the latest value every
-    #     # day that this is run.
-    #     result_set = extract_db.get_storage_capacity()
-    #     for result in result_set:
-    #         product_totals[result['product']] += result["capacity"]
-    #     load_db.save_storage_capacity(day_date, product_totals)
     day_date = date.today()
     logging.info("Building storage capacity for %s", day_date)
     product_totals = _get_product_totals()
-    # There is no date so we will overwrite with the latest value every
-    # day that this is run.
+    # There is no date so we will overwrite with the latest value
+    # if this is run multiple times on a given day.
     result_set = extract_db.get_storage_capacity()
     for result in result_set:
         product_totals[result['product']] += result["capacity"]
