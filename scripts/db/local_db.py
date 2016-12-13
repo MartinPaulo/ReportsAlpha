@@ -25,8 +25,10 @@ ALLOWED_COLUMN_NAMES = {'date', 'computational', 'vault', 'market',
                         Faculties.FOA, Faculties.VAS, Faculties.FBE,
                         Faculties.MSE, Faculties.MGSE, Faculties.MDHS,
                         Faculties.FOS, Faculties.ABP, Faculties.MLS,
-                        Faculties.VCAMCM, Faculties.OTHER,
-                        Faculties.UNKNOWN, 'external', 'services',
+                        Faculties.VCAMCM,
+                        Faculties.OTHER, Faculties.OTHER.lower(),
+                        Faculties.UNKNOWN, Faculties.UNKNOWN.lower(),
+                        'external', 'services',
                         # following are cloud_capacity
                         'nectar_contribution', 'uom_contribution',
                         'co_contribution'}
