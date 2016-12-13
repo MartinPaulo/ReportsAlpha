@@ -299,6 +299,11 @@ def build_headroom_unused_by_faculty(**kwargs):
 
 
 def build_capacity(extract_db, load_db, **kwargs):
+    """
+    Will only find the value for the day on which this is run.
+    This is because the VicNode reporting database doesn't keep a historical
+    record of the changes.
+    """
     day_date = date.today()
     logging.info("Building storage capacity for %s", day_date)
     product_totals = _get_product_totals()
