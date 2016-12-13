@@ -39,22 +39,6 @@ from scripts.db import vicnode_db
 from scripts.vicnode import builder as vicnode
 
 
-class FakeStorageCapacityData:
-    """Fake data provider for storage capacity"""
-
-    def get_storage_capacity(self):
-        return [{
-            'product': 'computational',
-            'capacity': 288000.00,
-        }, {
-            'product': 'market',
-            'capacity': 1482000.00,
-        }, {
-            'product': 'vault',
-            'capacity': 1263150.00
-        }]
-
-
 class FakeCloudCapacityData:
     """Fake data provider for cloud capacity"""
     _ops = (add, sub)
@@ -134,8 +118,6 @@ def main():
             vicnode.build_headroom_unused_by_faculty(**_args)
             vicnode.build_capacity(**_args)
             vicnode.build_headroom_unallocated(**_args)
-            # unknown_source = FakeStorageCapacityData()
-            # vicnode.build_capacity(unknown_source, load_db)
         finally:
             vicnode_source_db.close_connection()
 
