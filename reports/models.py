@@ -150,6 +150,9 @@ class CloudPrivateCell(models.Model):
     organization = models.CharField(max_length=255,
                                     help_text="The organization the project "
                                               "belongs to")
+    faculty = models.CharField(max_length=10,
+                               default="Unknown",
+                               help_text="The faculty the project belongs to")
 
     class Meta:
         db_table = 'cloud_private_cell'

@@ -170,14 +170,17 @@ def build_private_cell_data(extract_db, load_db, start_day=None,
         logging.info("Building private cell data for %s", day_date)
         result_set = extract_db.get_private_cell_data(day_date)
         for row in result_set:
+            project_id = row['project_id']
+            faculty = load_db.get_faculty_abbreviations(project_id)
             CloudPrivateCell.objects.update_or_create(
                 date=day_date.strftime("%Y-%m-%d"),
-                project_id=row['project_id'],
+                project_id=project_id,
                 defaults={
                     'vcpus': row['vcpus'],
                     'instances': row['instances'],
                     'organization': _get_non_null(row['organisation'],
                                                   'Unknown'),
-                    'display_name': row['display_name']
+                    'display_name': row['display_name'],
+                    'faculty': faculty
                 }
             )

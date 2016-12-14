@@ -322,24 +322,20 @@ class DB(BaseDB):
         self._db_cur.execute("""
             SELECT
               count(*)   AS instances,
-              SUM(vcpus) AS vcpus,
-              project_id,
-              organisation,
-              display_name
+              SUM(i.vcpus) AS vcpus,
+              i.project_id,
+              a.organisation,
+              a.display_name
             FROM instance i
-              LEFT JOIN
-              (SELECT
-                 id,
-                 organisation,
-                 display_name
-               FROM reporting.project t1) a
+              LEFT JOIN reporting.project a
                 ON i.project_id = a.id
             WHERE
-              cell_name = 'nectar!qh2-uom'
+              i.cell_name = 'nectar!qh2-uom'
               # and running trough the day
-              AND (created < '{0}' AND
-                  (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY)))
-            GROUP BY project_id
+              AND (i.created < %(day_date)s
+                   AND (i.deleted IS NULL
+                        OR i.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY)))
+            GROUP BY i.project_id
             ORDER BY instances DESC;
-        """.format(day_date.strftime("%Y-%m-%d")))
+        """, {'day_date': day_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchall()
