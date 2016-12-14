@@ -134,13 +134,12 @@ def test_db(extract_db, load_db, start_day=None, end_day=date.today()):
         logging.info("There have been %s instances launched since %s", count,
                      start_day)
     found_cell_names = extract_db.get_cell_names()
-    if settings.CELL_NAMES != found_cell_names:
-        warning_message = "NeCTAR cell names have been changed"
-        mail_admins(warning_message,
-                    "Differences are: %s" %
-                    (settings.CELL_NAMES ^ found_cell_names))
-        logging.warning(warning_message)
-    return None
+    differences = settings.CELL_NAMES.symmetric_difference(found_cell_names)
+    if len(differences):
+        warning_message = "NeCTAR cell names have been changed! "
+        information = "Cell Names have changed. The differences are: %s"
+        logging.warning(information, differences)
+        mail_admins(warning_message, information % differences)
 
 
 def build_capacity(unknown_source, load_db, start_day=None,
