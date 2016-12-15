@@ -199,13 +199,23 @@ LOGGING = {
     }
 }
 
-CELL_NAMES = {'nectar!melbourne!qh2', 'nectar!sa-cw', 'nectar!qld-upstart',
-              'nectar!intersect-01', 'nectar!monash!monash-01', 'nectar!NCI',
-              'nectar!monash!monash-02', 'nectar!pawsey-01', 'NULL',
-              'nectar!melbourne!np', 'nectar!tas!tas-m', 'nectar!qh2-uom',
-              'nectar!qld', 'nectar!intersect-02', 'nectar!monash',
-              'nectar!tas!tas-s', 'nectar!monash!monash-test',
-              'nectar!monash-03', 'nectar!melbourne', 'nectar!tas'}
+UOM_PRIVATE_CELL = {'nectar!qh2-uom'}
+
+UOM_CELL_NAMES = {'nectar!qh2', 'nectar!np', 'nectar!melbourne',
+                  'nectar!melbourne!np',
+                  'nectar!melbourne!qh2'} | UOM_PRIVATE_CELL
+
+CELL_NAMES = {'nectar!sa-cw',
+              'nectar!intersect-01', 'nectar!intersect-02',
+              'nectar!NCI',
+              'nectar!pawsey-01',
+              'nectar!qld', 'nectar!qld-upstart',
+              'nectar!monash', 'nectar!monash!monash-test',
+              'nectar!monash!monash-01', 'nectar!monash!monash-02',
+              'nectar!monash-01', 'nectar!monash-02', 'nectar!monash-03',
+              'nectar!tas', 'nectar!tas-s', 'nectar!tas!tas-m',
+              'nectar!tas!tas-s',
+              'NULL'} | UOM_CELL_NAMES
 
 STORAGE_PRODUCT_TYPES = {
     'Vault.Monash', 'Vault.Melbourne.Object', 'Market.Monash.Object',

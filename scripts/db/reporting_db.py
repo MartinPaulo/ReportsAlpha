@@ -1,5 +1,6 @@
 import MySQLdb
 
+from reports_beta.settings import UOM_PRIVATE_CELL, UOM_CELL_NAMES
 from scripts.config import Configuration
 from scripts.db.source_db import BaseDB
 
@@ -24,117 +25,132 @@ class DB(BaseDB):
         self._db_connection.close()
 
     def get_in_both(self, day_date):
-        self._db_cur.execute("""
+        query = """
             SELECT COUNT(DISTINCT r.created_by) AS in_both
             FROM instance l
               LEFT JOIN instance r
                 ON l.created_by = r.created_by
-            WHERE (((l.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                  OR (l.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                  OR (l.created < '{0}' AND (l.deleted IS NULL OR l.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-              AND l.cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+            WHERE (((l.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                  OR (l.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                  OR (l.created < %(day_date)s AND (l.deleted IS NULL OR l.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+              AND l.cell_name IN %(cell_names)s
               AND l.project_id IN (SELECT DISTINCT id
                                     FROM project
-                                    WHERE organisation LIKE '%melb%'))
-              AND (((r.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                  OR (r.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                  OR (r.created < '{0}' AND (r.deleted IS NULL OR r.deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-                AND r.cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                                    WHERE organisation LIKE '%%melb%%'))
+              AND (((r.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                  OR (r.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                  OR (r.created < %(day_date)s AND (r.deleted IS NULL OR r.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                AND r.cell_name NOT IN %(cell_names)s
                 AND r.project_id IN (SELECT DISTINCT id
                                      FROM project
-                                     WHERE organisation LIKE '%melb%'));
-        """.format(day_date.strftime("%Y-%m-%d")))
+                                     WHERE organisation LIKE '%%melb%%'));
+        """
+        self._db_cur.execute(query,
+                             {'day_date': day_date.strftime("%Y-%m-%d"),
+                              'cell_names': tuple(UOM_CELL_NAMES)})
         return self._db_cur.fetchone()["in_both"]
 
     def get_all_outside(self, day_date):
-        self._db_cur.execute("""
+        query = """
             SELECT COUNT(DISTINCT created_by) AS uom_users_outside_uom
             FROM instance
             WHERE
-              (((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+              (((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                 OR
-                (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (created < '{0}'
+                (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                OR (created < %(day_date)s
                     AND
-                    (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-               AND cell_name NOT IN
-                   ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                    (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+               AND cell_name NOT IN %(cell_names)s
                AND project_id IN (SELECT DISTINCT id
                                   FROM project
-                                  WHERE organisation LIKE '%melb%'));
-        """.format(day_date.strftime("%Y-%m-%d")))
+                                  WHERE organisation LIKE '%%melb%%'));
+        """
+        self._db_cur.execute(query,
+                             {'day_date': day_date.strftime("%Y-%m-%d"),
+                              'cell_names': tuple(UOM_CELL_NAMES)})
         return self._db_cur.fetchone()["uom_users_outside_uom"]
 
     def get_elsewhere_only(self, day_date):
-        self._db_cur.execute("""
+        query = """
             SELECT COUNT(DISTINCT created_by) AS elsewhere_only
             FROM instance
             WHERE
-              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                  OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                  OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-              AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+              ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                  OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                  OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+              AND cell_name NOT IN %(cell_names)s
               AND project_id IN (SELECT DISTINCT id
                                  FROM project
-                                 WHERE organisation LIKE '%melb%')
+                                 WHERE organisation LIKE '%%melb%%')
               /* and not running any instances in melbourne on the day */
               AND created_by NOT IN (
                  SELECT DISTINCT created_by
                  FROM instance
                  WHERE
-                   ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                        OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                        OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-                   AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                   ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                        OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                        OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                   AND cell_name IN %(cell_names)s
                    AND project_id IN (SELECT DISTINCT id
                                       FROM project
-                                      WHERE organisation LIKE '%melb%'));
-        """.format(day_date.strftime("%Y-%m-%d")))
+                                      WHERE organisation LIKE '%%melb%%'));
+        """
+        self._db_cur.execute(query,
+                             {'day_date': day_date.strftime("%Y-%m-%d"),
+                              'cell_names': tuple(UOM_CELL_NAMES)})
         return self._db_cur.fetchone()["elsewhere_only"]
 
     def get_uom_only(self, day_date):
-        self._db_cur.execute("""
+        query = """
             SELECT COUNT(DISTINCT created_by) AS UoM_only
             FROM instance
             WHERE
-              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-              AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+              ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+              AND cell_name IN %(cell_names)s
               AND project_id IN (SELECT DISTINCT id
                                  FROM project
-                                 WHERE organisation LIKE '%melb%')
+                                 WHERE organisation LIKE '%%melb%%')
               /* and not running any instances in any other zone on the day */
               AND created_by NOT IN (
                 SELECT DISTINCT created_by
                 FROM instance
                 WHERE
-                    ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                    OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                    OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-                    AND cell_name NOT IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                    ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                    OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                    OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                    AND cell_name NOT IN %(cell_names)s
                     AND project_id IN (SELECT DISTINCT id
                                       FROM project
-                                      WHERE organisation LIKE '%melb%'));
-        """.format(day_date.strftime("%Y-%m-%d")))
+                                      WHERE organisation LIKE '%%melb%%'));
+        """
+        self._db_cur.execute(query,
+                             {'day_date': day_date.strftime("%Y-%m-%d"),
+                              'cell_names': tuple(UOM_CELL_NAMES)})
         return self._db_cur.fetchone()["UoM_only"]
 
     def get_count_of_others_at_uom(self, day_date):
-        self._db_cur.execute("""
+        query = """
             SELECT COUNT(DISTINCT created_by) AS others_at_uom
             FROM instance
             WHERE
               /* stopped on the day */
-              ((deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+              ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                   /* started on the day */
-                  OR (created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
+                  OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                   /* running through the day */
-                  OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-              AND cell_name IN ('nectar!qh2-uom', 'nectar!melbourne!np', 'nectar!melbourne!qh2')
+                  OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+              AND cell_name IN %(cell_names)s
               AND project_id NOT IN (SELECT id
                                      FROM project
-                                     WHERE organisation LIKE '%melb%');
-        """.format(day_date.strftime("%Y-%m-%d")))
+                                     WHERE organisation LIKE '%%melb%%');
+        """
+        self._db_cur.execute(query,
+                             {'day_date': day_date.strftime("%Y-%m-%d"),
+                              'cell_names': tuple(UOM_CELL_NAMES)})
+        # print(self._db_cur._last_executed)
         return self._db_cur.fetchone()["others_at_uom"]
 
     def get_allocated_totals(self, day_date):
@@ -214,7 +230,7 @@ class DB(BaseDB):
     def get_top_twenty_projects(self, day_date):
         self._db_cur.execute("""
             SELECT
-              '{0}' AS 'date',
+              %(day_date)s AS 'date',
               i.project_id,
               SUM(i.vcpus) AS vcpus,
               a.display_name AS tenant_name
@@ -230,16 +246,16 @@ class DB(BaseDB):
               /* (started on the day OR ended on the day OR running through the day)
                   AND not started and stopped on the day AND a unimelb project
                */
-              ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-               OR (created < '{0}' AND (deleted IS NULL OR deleted > DATE_ADD('{0}', INTERVAL 1 DAY))))
-              AND NOT ((i.deleted BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY))
-                       AND (i.created BETWEEN '{0}' AND DATE_ADD('{0}', INTERVAL 1 DAY)))
-              AND a.organisation LIKE '%melb%'
+              ((i.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+               OR (i.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+               OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+              AND NOT ((i.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
+                       AND (i.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY)))
+              AND a.organisation LIKE '%%melb%%'
             GROUP BY i.project_id
             ORDER BY vcpus DESC
             LIMIT 20;
-        """.format(day_date.strftime("%Y-%m-%d")))
+        """, {'day_date': day_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchall()
 
     def get_uom_project_contact_email(self):
@@ -319,7 +335,7 @@ class DB(BaseDB):
         return result
 
     def get_private_cell_data(self, day_date):
-        self._db_cur.execute("""
+        query = """
             SELECT
               count(*)   AS instances,
               SUM(i.vcpus) AS vcpus,
@@ -330,12 +346,15 @@ class DB(BaseDB):
               LEFT JOIN reporting.project a
                 ON i.project_id = a.id
             WHERE
-              i.cell_name = 'nectar!qh2-uom'
+              i.cell_name = %(private_cell)s
               # and running trough the day
               AND (i.created < %(day_date)s
                    AND (i.deleted IS NULL
                         OR i.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY)))
             GROUP BY i.project_id
             ORDER BY instances DESC;
-        """, {'day_date': day_date.strftime("%Y-%m-%d")})
+        """
+        self._db_cur.execute(query, {'day_date': day_date.strftime("%Y-%m-%d"),
+                                     'private_cell': UOM_PRIVATE_CELL})
+        # print(self._db_cur._last_executed)
         return self._db_cur.fetchall()
