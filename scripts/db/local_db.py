@@ -183,8 +183,8 @@ class DB(object):
             # we don't want to overwrite a known faculty with an unknown one
             if faculty == Faculties.UNKNOWN:
                 return
-            logging.info("Faculty %s for project %s has changed!",
-                         row[0], project_id)
+            logging.warning("Project %s has changed faculties! Was %s, now %s",
+                            project_id, row[0], faculty)
         # TODO: This does not support multiple faculties for a project
         # It will just overwrite the last entry :(
         update = """
