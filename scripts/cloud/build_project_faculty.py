@@ -17,7 +17,7 @@ def bind_to_server():
         sys.exit(1)
 
 
-def build_project_faculty(extract_db, load_db, start_day):
+def build_project_faculty(extract_db, load_db, **kwargs):
     # TODO:
     # Log the projects that have changed faculty
     # Add the hooks that will be used to send required emails...
