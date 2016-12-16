@@ -1,7 +1,7 @@
 import codecs
 import logging
 import sqlite3
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from decimal import Decimal
 
 from scripts.cloud.utility import Faculties
@@ -93,8 +93,8 @@ class DB(object):
         return self._db_cur.execute(query, params)
 
     def get_max_date(self, table_name):
-        # default is a year ago...
-        last_date = date.today() - timedelta(days=365)
+        # default is today
+        last_date = date.today()
         query = "SELECT MAX(date) AS max_date FROM %s;" % \
                 self.quote_identifier(table_name)
         self._db_cur.execute(query)
