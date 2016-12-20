@@ -199,22 +199,22 @@ LOGGING = {
     }
 }
 
+# On the 20th December the old leaf cells vanished from the reporting database
+# They are commented out below...
 UOM_PRIVATE_CELL = {'nectar!qh2-uom'}
-
 UOM_CELL_NAMES = {'nectar!qh2', 'nectar!np', 'nectar!melbourne',
-                  'nectar!melbourne!np',
-                  'nectar!melbourne!qh2'} | UOM_PRIVATE_CELL
-
+                  # 'nectar!melbourne!np', 'nectar!melbourne!qh2'
+                  } | UOM_PRIVATE_CELL
 CELL_NAMES = {'nectar!sa-cw',
               'nectar!intersect-01', 'nectar!intersect-02',
               'nectar!NCI',
               'nectar!pawsey-01',
               'nectar!qld', 'nectar!qld-upstart',
               'nectar!monash', 'nectar!monash!monash-test',
-              'nectar!monash!monash-01', 'nectar!monash!monash-02',
+              # 'nectar!monash!monash-01', 'nectar!monash!monash-02',
               'nectar!monash-01', 'nectar!monash-02', 'nectar!monash-03',
               'nectar!tas', 'nectar!tas-s', 'nectar!tas-m',
-              'nectar!tas!tas-m', 'nectar!tas!tas-s',
+              # 'nectar!tas!tas-m', 'nectar!tas!tas-s',
               'NULL'} | UOM_CELL_NAMES
 
 STORAGE_PRODUCT_TYPES = {
