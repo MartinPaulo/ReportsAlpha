@@ -11,3 +11,4 @@ Then read about the reports you are interested in.
 
 * [Cloud Active Projects](cloud_active_projects.md)
 * [Cloud Allocated/Used](cloud_allocated_used.md)
+* [Cloud Available Capacity](cloud_available_capacity.md)
