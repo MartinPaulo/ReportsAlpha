@@ -94,7 +94,7 @@ var utils = function () {
     function createButton(title, options) {
         options = options || {};
         var target_id = options.target_id || title.toLowerCase();
-        var parent_id = options.parent_id || 'date-buttons';
+        var parent_id = options.parent_id || 'iDateButtons';
         d3.select('#' + parent_id)
             .append('input')
             .attr('type', 'button')
@@ -110,7 +110,7 @@ var utils = function () {
     }
 
     function findFrom() {
-        return d3.select('#date-buttons .active').attr('id');
+        return d3.select('#iDateButtons .active').attr('id');
     }
 
     function findType() {

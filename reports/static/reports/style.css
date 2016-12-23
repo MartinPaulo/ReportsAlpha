@@ -54,12 +54,12 @@ li a {
 
 #iNav {
     clear: right;
-    height: 40px;
+    height: 30px;
 }
 
 #iLogo img {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     background-color: #002952ff;
     float: left;
 }
@@ -67,7 +67,7 @@ li a {
 #iTop {
     background-color: #002952ff;
     color: white;
-    height: 120px;
+    height: 100px;
 }
 
 #iHeading {
@@ -75,7 +75,7 @@ li a {
     font-weight: bold;
     display: table-cell;
     vertical-align: middle;
-    height: 80px;
+    height: 70px;
 }
 
 #iReport {
@@ -147,18 +147,36 @@ input[type="text"], textarea, input[type="email"], select {
 /* Button row */
 /* we have two types of button: date range selection, and data center selection */
 /* should the data center selection match the nvd3 selection style? */
+
+.row {
+    background-color: #26527f;
+    height: 30px;
+}
+
 input[type="button"] {
-    background: url(images/diag-stripes-right-to-left.png);
-    border: dotted #888;
+    color: white;
+    border: none;
+    background-color: #26527f;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    display: table-cell;
+    vertical-align: middle;
+    height: 30px;
+}
+
+input[type="button"]:hover {
+    font-weight: bold;
 }
 
 input[type="button"].active {
-    background: url(images/diag-stripes-left-to-right.png);
-    border: solid #888;
+    border: none;
+    font-weight: bold;
+    text-decoration: underline;
 }
 
 .pull-right {
     float: right;
+    padding: 0 8px 0;
 }
 
 /* Modal dialog */
