@@ -5,6 +5,8 @@
     <title>{% block title %}{% endblock %}</title>
     {% load staticfiles %}
     <link rel="stylesheet" type="text/css"
+          href="{% static 'reports/reset.css' %}"/>
+    <link rel="stylesheet" type="text/css"
           href="{% static 'reports/style.css' %}"/>
     <link rel="icon" type="image/png" sizes="32x32"
           href="{% static 'reports/favicon-32x32.png' %}">
@@ -15,21 +17,31 @@
     {% block header_lines %}{% endblock %}
 </head>
 <body>
-{% include 'nav.html' %}
-<h1>{% block h1 %}{% endblock %}</h1>
+<header id="iTop">
+    <div id="iLogo">
+        <img src="//d2h9b02ioca40d.cloudfront.net/shared/assets/logo.svg"
+             alt="The University of Melbourne Logo">
+    </div>
+    {% include 'nav.html' %}
+    <div id="iHeading">
+        <h1>{% block h1 %}{% endblock %}</h1>
+    </div>
+</header>
 
-<div id="md_error" class="modalDialog">
+<section id="md_error" class="modalDialog">
     <div>
         <a id="md_close" href="#" title="Close" class="modalClose">X</a>
         <h2 id="md_title">There was a problem</h2>
         <p id="md_message"></p>
     </div>
-</div>
-
+</section>
 
 {% block content %}{% endblock %}
-{% block footer %}
-    <p>Version: {{ SOURCE_REVISION }}</p>
-{% endblock %}
+
+<footer>
+    {% block footer %}
+        <p>Version: {{ SOURCE_REVISION }}</p>
+    {% endblock %}
+</footer>
 </body>
 </html>

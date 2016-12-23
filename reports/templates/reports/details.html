@@ -21,39 +21,50 @@
 {% block h1 %}{{ report.report_title }}{% endblock %}
 {% block content %}
 
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>
+
+    {% if error_message %}
+        <section>
+            <p><strong>{{ error_message }}</strong></p>
+        </section>
     {% endif %}
 
-    <div class="row">
-        <div id="graph-buttons" class="btn-group pull-right">
+    <section id="iReport">
+        <div class="row">
+            <div id="graph-buttons" class="btn-group pull-right">
 
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div id="date-buttons" class="btn-group pull-right">
+        <div class="row">
+            <div id="date-buttons" class="btn-group pull-right">
 
+            </div>
         </div>
-    </div>
 
-    <div id="chart">
-        <svg></svg>
-    </div>
+        <div id="chart">
+            <svg></svg>
+        </div>
 
-    <p>{{ report.description_html|safe }}</p>
-    <p>The <a id="a_data" href="">data file</a> behind this graph</p>
+        <p>{{ report.description_html|safe }}</p>
+        <p>The <a id="a_data" href="">data file</a> behind this graph</p>
+    </section>
 
     {% if report.related %}
-        <div id="extra" style="width: 95%">
+        <section>
 
-            <div id="extra_title"></div>
-            {#  <p>{{ report.related.report_title }}</p> #}
-            <svg></svg>
-            <div id="extra_link"></div>
-        </div>
+            <div id="extra" style="width: 95%">
+
+                <div id="extra_title"></div>
+                {#  <p>{{ report.related.report_title }}</p> #}
+                <svg></svg>
+                <div id="extra_link"></div>
+            </div>
+        </section>
     {% endif %}
 
-    <a href="/reports/?set={{ set }}">Back {% if not set %}to all
-                                      reports {% endif %}...</a>
+    <section>
+        <a href="/reports/?set={{ set }}">Back {% if not set %}to all
+                                          reports {% endif %}...</a>
+    </section>
 
     <script src="//d3js.org/d3.v3.js"></script>
     {#  From: https://cdnjs.com/libraries/nvd3 #}
