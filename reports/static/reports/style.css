@@ -14,7 +14,9 @@ li a {
 
 #iNav li a {
     transition: color 200ms linear;
-    font-family: 'alternate gothic', 'HelveticaNeueBoldCondensed', 'HelveticaNeue-Bold-Condensed', 'Helvetica Neue Bold Condensed', 'Haettenschweiler', 'impact', sans-serif;
+    font-family: 'alternate gothic', 'HelveticaNeueBoldCondensed',
+    'HelveticaNeue-Bold-Condensed', 'Helvetica Neue Bold Condensed',
+    'Haettenschweiler', 'impact', sans-serif;
     text-transform: uppercase;
     font-size: 1em;
     border: 0;
@@ -150,25 +152,30 @@ input[type="text"], textarea, input[type="email"], select {
 
 .row {
     background-color: #26527f;
-    height: 30px;
+    height: 2em;
 }
 
 input[type="button"] {
-    color: white;
-    border: none;
+    font-family: 'alternate gothic', 'HelveticaNeueBoldCondensed',
+    'HelveticaNeue-Bold-Condensed', 'Helvetica Neue Bold Condensed',
+    'Haettenschweiler', 'impact', sans-serif;
+    font-size: 1em;
+    color: #A8C5E0;
+    border: none;   /* for the button borders */
     background-color: #26527f;
     transition-duration: 0.4s;
     cursor: pointer;
-    display: table-cell;
     vertical-align: middle;
-    height: 30px;
+    height: 2em;    /* match the .row that they are in... */
 }
 
 input[type="button"]:hover {
+    color: white;
     font-weight: bold;
 }
 
 input[type="button"].active {
+    color: white;
     border: none;
     font-weight: bold;
     text-decoration: underline;

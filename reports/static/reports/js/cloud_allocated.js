@@ -18,27 +18,6 @@ report.d3 = function () {
     utils.createDateButtons();
 
     /**
-     * Adds a radio button with the given caption and checked value.
-     * When clicked the button will force the graph to redraw
-     * @param caption {string}
-     * @param checked {boolean}
-     */
-    function addRadioButton(caption, checked) {
-        d3.select('#graph-buttons')
-            .append('label')
-            .text(caption)
-            .insert('input')
-            .attr('type', 'radio')
-            .attr('name', 'allocated-used')
-            .attr('value', caption.toLowerCase())
-            .property('checked', checked)
-            .on('click', function () {
-                d3.select('#chart svg')[0][0].dispatchEvent(new Event('redraw'));
-            })
-        ;
-    }
-
-    /**
      * Takes a string as input and returns it with the first letter capitalized
      * @param string {string}
      * @returns {string}
@@ -47,8 +26,9 @@ report.d3 = function () {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
-    addRadioButton(ALLOCATED_BUTTON_CAPTION, true);
-    addRadioButton(USED_BUTTON_CAPTION, false);
+    utils.createButton(ALLOCATED_BUTTON_CAPTION, {parent_id: 'graph-buttons'});
+    utils.createButton(USED_BUTTON_CAPTION, {parent_id: 'graph-buttons'});
+    d3.select('#allocated').on('click')();
 
     // We have to ensure that the used chart uses the same domain as the allocation chart.
     // This stores the domain between redraws. It works because the first graph rendered is the allocated one,
@@ -59,7 +39,7 @@ report.d3 = function () {
     var spinner = new Spinner(utils.SPINNER_OPTIONS);
 
     var render = function () {
-        var source = d3.select('input[name="allocated-used"]:checked').node().value.toLowerCase();
+        var source = d3.select('#graph-buttons .active').attr('id');
         var data_path = '/reports/actual/?from=' + utils.findFrom() + '&model=Cloud' + capitalizeFirstLetter(source);
         d3.select('#a_data').attr('href', data_path);
 

@@ -259,6 +259,7 @@ var utils = function () {
         CLOUD_FACULTIES: CLOUD_FACULTIES,
         SPINNER_OPTIONS: SPINNER_OPTIONS,
         generateFacultyKey: generateFacultyKey,
+        createButton: createButton,
         createDateButtons: createDateButtons,
         createFacultyButtons: createFacultyButtons,
         findFrom: findFrom,
