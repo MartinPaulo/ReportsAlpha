@@ -8,41 +8,40 @@ report.d3 = function () {
     utils.createDateButtons('#oneMonth');
 
     var flavors = [
-        ['m2.tiny', 'capacity_768'],
-        ['m2.xsmall', 'capacity_2048'],
-        ['m2.small', 'capacity_4096'],
-        ['m2.medium', 'capacity_6144'],
-        ['m2.large', 'capacity_12288'],
-        ['m2.xlarge', 'capacity_49152'],
-        ['m1.small', 'capacity_4096'],
-        ['m1.medium', 'capacity_8192'],
-        ['m1.large', 'capacity_16384'],
-        ['m1.xlarge', 'capacity_32768'],
-        ['m1.xxlarge', 'capacity_65536']
+        ['M2 tiny', 'capacity_768'],
+        ['M2 xsmall', 'capacity_2048'],
+        ['M2 small', 'capacity_4096'],
+        ['M2 medium', 'capacity_6144'],
+        ['M2 large', 'capacity_12288'],
+        ['M2 xlarge', 'capacity_49152'],
+        ['M1 small', 'capacity_4096'],
+        ['M1 medium', 'capacity_8192'],
+        ['M1 large', 'capacity_16384'],
+        ['M1 xlarge', 'capacity_32768'],
+        ['M1 xxlarge', 'capacity_65536']
     ];
 
     function changeSize(e) {
         render();
     }
 
-    var select = d3.select('#' + 'graph-buttons')
-            .append('label').text('Flavor: ')
-            .attr('for', 'size_select')
-            .append('select')
-            .attr('class', 'select')
-            .attr('id', 'size_select')
-            .on('change', changeSize)
-            .selectAll('option')
-            .data(flavors)
-            .enter()
-            .append('option')
-            .text(function (d) {
-                return d[0];
-            })
-            .attr('value', function (d) {
-                return d[1];
-            })
-        ;
+    var parentDiv = d3.select('#graph-buttons')
+        .append('div')
+        .attr('class', 'size-select');
+
+    parentDiv.append('select')
+        .on('change', changeSize)
+        .selectAll('option')
+        .data(flavors)
+        .enter()
+        .append('option')
+        .text(function (d) {
+            return d[0];
+        })
+        .attr('value', function (d) {
+            return d[1];
+        })
+    ;
 
     function findSize() {
         return d3.select('select').property('value');

@@ -51,7 +51,7 @@ li a {
 */
 
 #iNav, #iLogo {
-    background-color: #002952ff;
+    background-color: #002952;
 }
 
 #iNav {
@@ -62,12 +62,12 @@ li a {
 #iLogo img {
     width: 100px;
     height: 100px;
-    background-color: #002952ff;
+    background-color: #002952;
     float: left;
 }
 
 #iTop {
-    background-color: #002952ff;
+    background-color: #002952;
     color: white;
     height: 100px;
 }
@@ -147,12 +147,29 @@ input[type="text"], textarea, input[type="email"], select {
 }
 
 /* Button row */
-/* we have two types of button: date range selection, and data center selection */
-/* should the data center selection match the nvd3 selection style? */
 
 .row {
     background-color: #26527f;
     height: 2em;
+}
+
+.size-select {
+    background: url(images/down_arrow.png) no-repeat 95% 0;
+    height: 2em;
+}
+
+.size-select select {
+    background: transparent;
+    border: none;
+    font-size: 1em;
+    height: 2em;
+    width: 120px;
+    font-family: 'alternate gothic', 'HelveticaNeueBoldCondensed',
+    'HelveticaNeue-Bold-Condensed', 'Helvetica Neue Bold Condensed',
+    'Haettenschweiler', 'impact', sans-serif;
+    color: white;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 }
 
 input[type="button"] {
@@ -161,12 +178,12 @@ input[type="button"] {
     'Haettenschweiler', 'impact', sans-serif;
     font-size: 1em;
     color: #A8C5E0;
-    border: none;   /* for the button borders */
+    border: none;
     background-color: #26527f;
     transition-duration: 0.4s;
     cursor: pointer;
     vertical-align: middle;
-    height: 2em;    /* match the .row that they are in... */
+    height: 2em; /* match the .row that they are in... */
 }
 
 input[type="button"]:hover {
