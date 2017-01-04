@@ -4,18 +4,6 @@
     {% load static %}
     <link rel="stylesheet" type="text/css"
           href="//cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css"/>
-    <style>
-
-        {# We want to fill the page with as much of the graph as is possible#}
-        html, body {
-            height: 99%;
-        }
-
-        #chart {
-            height: 60%;
-            width: 95%;
-        }
-    </style>
 {% endblock %}
 
 {% block h1 %}{{ report.report_title }}{% endblock %}
@@ -38,7 +26,7 @@
             </div>
         </div>
 
-        <div id="chart">
+        <div id='chart' class='chart-wrapper'>
             <svg></svg>
         </div>
 
@@ -48,12 +36,13 @@
 
     {% if report.related %}
         <section>
-
-            <div id="extra" style="width: 95%">
-
+            <div id="extra">
                 <div id="extra_title"></div>
                 {#  <p>{{ report.related.report_title }}</p> #}
-                <svg></svg>
+                {# The line below should have no spaces in it #}
+                {# At the moment a hacky work around to hide it if no graph #}
+                {# is drawn on the uptime report #}
+                <div class="chart-wrapper"><svg></svg></div>
                 <div id="extra_link"></div>
             </div>
         </section>

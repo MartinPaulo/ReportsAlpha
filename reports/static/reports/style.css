@@ -129,8 +129,15 @@ table.form input {
 }
 
 /* hide svg elements that contain nothing */
-svg:empty {
+.chart-wrapper:empty {
     display: none;
+}
+
+.chart-wrapper {
+    width: 94%;
+    padding-left: 3%;
+    padding-right:3%;
+    height: 30em;
 }
 
 /**

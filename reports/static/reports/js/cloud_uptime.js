@@ -192,24 +192,25 @@ report.d3 = function () {
         chart.domainMinimum(lowestUptime);
 
         d3.select('#extra')
-            .selectAll('svg')
+            .selectAll('svg')   // we have removed the one svg element
             .data(uptimeData)
-            .call(chart)
             .enter()
             .append('svg')
             .call(chart)
         ;
-
         nv.utils.windowResize(chart.update);
     }
 
     var render = function () {
+        // remove the svg element so our graphs can appear in the same
+        // section (the append was appending to the #extra, not the <svg>
+        d3.selectAll('#extra svg').remove();
         // The history chart sets its height: allow its container to contract to the best fit.
         d3.select('#chart')
             .style('height', 'auto');
-
         drawHistory();
         drawAvailability();
+
     };
 
     return {
