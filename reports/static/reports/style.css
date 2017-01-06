@@ -135,8 +135,7 @@ table.form input {
 
 .chart-wrapper {
     width: 94%;
-    padding-left: 3%;
-    padding-right:3%;
+    padding: 1em 3%;
     height: 30em;
 }
 
