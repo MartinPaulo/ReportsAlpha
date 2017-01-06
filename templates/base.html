@@ -31,6 +31,7 @@
 </header>
 
 <section id="md_error" class="modalDialog">
+    {# the error dialogue will cover the whole screen if an error is raised #}
     <div>
         <a id="md_close" href="#" title="Close" class="modalClose">X</a>
         <h2 id="md_title">There was a problem</h2>
@@ -38,9 +39,15 @@
     </div>
 </section>
 
-{% block content %}{% endblock %}
+<main>
+    {# non repeated content is intended to go here #}
+    {% block content %}{% endblock %}
+    {# the push div is intended to reserve space for the fixed footer #}
+    <div class="push"></div>
+</main>
 
 <footer>
+    {# the footer has a fixed height #}
     {% block footer %}
         <p>Version: {{ SOURCE_REVISION }}</p>
     {% endblock %}

@@ -4,8 +4,12 @@
 /* https://blog.mariano.io/common-css-mistakes-and-how-to-fix-them-8ee0f5e88d64#.6hmkec9hz */
 /* https://medium.freecodecamp.com/css-floats-explained-by-riding-an-escalator-57fa55232333 */
 
-li a {
-    color: green;
+a:hover {
+    color: #C33;
+}
+
+a {
+    color: #31465C;
 }
 
 #iNav li:first-of-type a {
@@ -85,8 +89,39 @@ li a {
 }
 
 body {
-    background: url("images/bg-napkin.jpg");
+    color: #586E8C;
+    background-color: #F5F8FC;
 }
+
+footer {
+    background-color: #002952;
+    color: white;
+}
+
+footer p {
+    position: absolute; /* for this to work footer must either be relative, absolute or fixed */
+    top: 50%; /* halfway down container element */
+    transform: translate(0, -50%) /* then up again by half its own height */
+}
+
+/* following gives a fixed footer across the bottom of the page */
+footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+main {
+    margin-bottom: -2em;
+}
+
+footer,
+.push {
+    height: 2em;
+}
+
+/* end of fixed footer*/
 
 body,
 h1, h2, h3,
@@ -128,7 +163,7 @@ table.form input {
     background-color: #f3f3f3;
 }
 
-/* hide svg elements that contain nothing */
+/* hide graph elements that contain nothing */
 .chart-wrapper:empty {
     display: none;
 }
@@ -137,6 +172,7 @@ table.form input {
     width: 94%;
     padding: 1em 3%;
     height: 30em;
+    background: url("images/bg-napkin.jpg");
 }
 
 /**
