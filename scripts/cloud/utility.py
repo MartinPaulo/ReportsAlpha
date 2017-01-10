@@ -31,8 +31,8 @@ def quarter_dates(to_date=None):
         yielded in pairs
 
     Examples:
-        >>> for q1, q2 in quarter_dates(date(2013, 2, 1)):
-        >>>     print('%s %s' % (q1, q2))
+        >>> for q_start, q_end in quarter_dates(date(2013, 2, 1)):
+        >>>     print('%s %s' % (q_start, q_end))
         2012-01-01 2012-03-31
         2012-04-01 2012-06-30
         2012-07-01 2012-09-30
