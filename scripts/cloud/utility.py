@@ -18,11 +18,9 @@ def date_range(start_date, end_date):
         yield start_date + timedelta(n)
 
 
-def quarter_dates(from_year=None, to_date=None):
+def quarter_dates(to_date=None):
     """
     Args:
-        from_year (int): The year to generate from. If `None` then
-                        will default to 2012
         to_date (date): The upper date to generate to. If `None` then will
                         default to date.today()
 
@@ -33,14 +31,14 @@ def quarter_dates(from_year=None, to_date=None):
         yielded in pairs
 
     Examples:
-        >>> for q_start, q_end in quarter_dates(to_date=date(2013, 2, 1)):
+        >>> for q_start, q_end in quarter_dates(date(2013, 2, 1)):
         >>>     print('%s %s' % (q_start, q_end))
         2012-01-01 2012-03-31
         2012-04-01 2012-06-30
         2012-07-01 2012-09-30
         2012-10-01 2012-12-31
     """
-    year = 2012 if from_year is None else from_year
+    year = 2012
     end_date = date.today() if to_date is None else to_date
     while year <= end_date.year:
         quarter_starts = [date(year, month, 1) for month in (1, 4, 7, 10)]
