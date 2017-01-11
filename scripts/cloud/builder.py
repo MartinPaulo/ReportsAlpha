@@ -1,4 +1,5 @@
 # coding=UTF-8
+import calendar
 import logging
 from datetime import date, timedelta
 
@@ -7,7 +8,8 @@ from django.core.mail import mail_admins
 from django.utils.dateparse import parse_date
 
 from reports.models import CloudPrivateCell
-from scripts.cloud.utility import date_range, Faculties
+from scripts.cloud.build_project_faculty import get_faculties_for
+from scripts.cloud.utility import date_range, Faculties, quarter_dates
 
 
 def _get_non_null(value, default):
@@ -183,3 +185,27 @@ def build_private_cell_data(extract_db, load_db, start_day=None,
                     'faculty': faculty
                 }
             )
+
+
+def build_buyers_committee(extract_db, load_db, **kwargs):
+    for start_date, end_date in quarter_dates():
+        projects_active = extract_db.get_projects_active(start_date, end_date)
+        uom_projects_active = extract_db.get_uom_projects_active(start_date,
+                                                                 end_date)
+        uom_participation = extract_db.get_projects_active_with_uom_participation(
+            start_date,
+            end_date)
+        uom_users_active = extract_db.get_uom_users_active(start_date,
+                                                           end_date)
+        print('%s-%s: %s %s %s %s' % (
+            start_date, end_date, projects_active, uom_projects_active,
+            uom_participation, uom_users_active))
+        totals = Faculties.get_new_totals()
+        result_set = extract_db.get_email_of_active_uom_users(start_date,
+                                                              end_date)
+        for row in result_set:
+            contact_email = row['email']
+            faculties = get_faculties_for(contact_email)
+            for faculty in faculties:
+                    totals[faculty] += 1
+        print('%s' % totals)

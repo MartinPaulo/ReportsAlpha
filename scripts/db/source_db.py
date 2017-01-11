@@ -113,3 +113,62 @@ class BaseDB(metaclass=ABCMeta):
         :return: The projects using Melbourne's private cell on the given
         day
         """
+
+    @abstractmethod
+    def get_projects_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of projects active between the start and end dates
+        """
+
+    @abstractmethod
+    def get_uom_projects_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of UoM owned projects active between the start and
+            end dates
+        """
+
+    @abstractmethod
+    def get_projects_active_with_uom_participation(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of projects active between the start and
+            end dates that have UoM participants
+        """
+
+    @abstractmethod
+    def get_uom_users_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of UoM user active between the start and
+            end dates
+        """
+    
+    @abstractmethod
+    def get_email_of_active_uom_users(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            DictCursor: A list of the email addresses of UoM users who were
+            active between the start and end dates
+        """
