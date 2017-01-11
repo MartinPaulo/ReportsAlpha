@@ -344,3 +344,38 @@ class BroadcastEmail(models.Model):
     class Meta:
         verbose_name = "Broadcast Email"
         verbose_name_plural = "Broadcast Emails"
+
+
+class CloudQuarterly(CloudTotalsByFaculty):
+    """
+    Contains the quarterly number of active users by faculty
+    Note that the date column here is the date of the quarter start
+    """
+
+    class Meta:
+        db_table = 'cloud_quarterly'
+
+
+class CloudQuarterlyUsage(models.Model):
+    """
+    Contains the quarterly usage figures for the research cloud
+    """
+    quarter_start_date = models.TextField(unique=True, blank=False, null=False,
+                                          primary_key=True,
+                                          help_text="The quarter start date")
+    quarter_end_date = models.TextField(unique=True, blank=False, null=False,
+                                        help_text="The quarter end date")
+    projects_active = models.IntegerField(blank=False, null=False,
+                                          help_text="The total number of "
+                                                    "active projects")
+    uom_projects_active = models.IntegerField(blank=False, null=False,
+                                              help_text="The number of UoM "
+                                                        "projects active")
+    uom_participation = models.IntegerField(blank=False, null=False,
+                                            help_text="The number of projects "
+                                                      "active with UoM users")
+    uom_users_active = models.IntegerField(blank=False, null=False,
+                                           help_text="The total number of UoM "
+                                                     "users active")
+    class Meta:
+        db_table = 'cloud_quarterly_usage'

@@ -7,7 +7,8 @@ from django.conf import settings
 from django.core.mail import mail_admins
 from django.utils.dateparse import parse_date
 
-from reports.models import CloudPrivateCell
+from reports.models import CloudPrivateCell, CloudQuarterly, \
+    CloudQuarterlyUsage
 from scripts.cloud.build_project_faculty import get_faculties_for
 from scripts.cloud.utility import date_range, Faculties, quarter_dates
 
@@ -188,24 +189,60 @@ def build_private_cell_data(extract_db, load_db, start_day=None,
 
 
 def build_buyers_committee(extract_db, load_db, **kwargs):
+    try:
+        latest = CloudQuarterlyUsage.objects.latest('quarter_start_date')
+        usage_start_date = parse_date(latest.quarter_start_date)
+    except CloudQuarterlyUsage.DoesNotExist:
+        usage_start_date = date(2011, 12, 31)
+    try:
+        latest = CloudQuarterly.objects.latest('date')
+        quarterly_start_date = parse_date(latest.date)
+    except CloudQuarterly.DoesNotExist:
+        quarterly_start_date = date(2011, 12, 31)
+    logging.info("Building quarterly usage data")
     for start_date, end_date in quarter_dates():
-        projects_active = extract_db.get_projects_active(start_date, end_date)
-        uom_projects_active = extract_db.get_uom_projects_active(start_date,
-                                                                 end_date)
-        uom_participation = extract_db.get_projects_active_with_uom_participation(
-            start_date,
-            end_date)
-        uom_users_active = extract_db.get_uom_users_active(start_date,
-                                                           end_date)
-        print('%s-%s: %s %s %s %s' % (
-            start_date, end_date, projects_active, uom_projects_active,
-            uom_participation, uom_users_active))
-        totals = Faculties.get_new_totals()
-        result_set = extract_db.get_email_of_active_uom_users(start_date,
-                                                              end_date)
-        for row in result_set:
-            contact_email = row['email']
-            faculties = get_faculties_for(contact_email)
-            for faculty in faculties:
+        if usage_start_date < start_date:
+            projects_active = extract_db.get_projects_active(start_date,
+                                                             end_date)
+            uom_projects_active = extract_db.get_uom_projects_active(
+                start_date,
+                end_date)
+            uom_participation = extract_db.get_projects_active_with_uom_participation(
+                start_date,
+                end_date)
+            uom_users_active = extract_db.get_uom_users_active(start_date,
+                                                               end_date)
+            CloudQuarterlyUsage.objects.update_or_create(
+                quarter_start_date=start_date.strftime("%Y-%m-%d"),
+                quarter_end_date=end_date.strftime("%Y-%m-%d"),
+                projects_active=projects_active,
+                uom_projects_active=uom_projects_active,
+                uom_participation=uom_participation,
+                uom_users_active=uom_users_active
+            )
+        if quarterly_start_date < start_date:
+            totals = Faculties.get_new_totals()
+            result_set = extract_db.get_email_of_active_uom_users(start_date,
+                                                                  end_date)
+            for row in result_set:
+                contact_email = row['email']
+                faculties = get_faculties_for(contact_email)
+                for faculty in faculties:
                     totals[faculty] += 1
-        print('%s' % totals)
+            CloudQuarterly.objects.update_or_create(
+                date=start_date.strftime("%Y-%m-%d"),
+                defaults={
+                    'foa': totals['FoA'],
+                    'vas': totals['VAS'],
+                    'fbe': totals['FBE'],
+                    'mse': totals['MSE'],
+                    'mgse': totals['MGSE'],
+                    'mdhs': totals['MDHS'],
+                    'fos': totals['FoS'],
+                    'abp': totals['ABP'],
+                    'mls': totals['MLS'],
+                    'vcamcm': totals['VCAMCM'],
+                    'services': totals['Other'],
+                    'unknown': totals['Unknown']
+                }
+            )
