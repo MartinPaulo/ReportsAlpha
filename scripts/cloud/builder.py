@@ -4,6 +4,7 @@ import logging
 from datetime import date, timedelta
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import mail_admins
 from django.utils.dateparse import parse_date
 
@@ -20,9 +21,31 @@ def _get_non_null(value, default):
     return value if value is not None else default
 
 
-def build_active(extract_db, load_db, start_day=None, end_day=date.today()):
+def _last_record_date(model, field_name, attr_name, default_date):
+    """ A utility method to get the latest date in a models backing table
+
+    Args:
+        model (model): The model that we want to find the last record for
+        field_name (str): The field name to use in getting the latest record
+        attr_name (str): The model attribute to read the date from
+        default_date (date): The default to return if no record is found
+
+    Returns:
+        date: The latest date in the models backing table, else `default_date`
+
     """
-    Builds a count of users who run in UoM data centers (and the users
+    try:
+        latest = model.objects.latest(field_name)
+        result = parse_date(getattr(latest, attr_name))
+    except ObjectDoesNotExist:
+        logging.warning(
+            "Could not find starting date for %s" % model)
+        result = default_date
+    return result
+
+
+def build_active(extract_db, load_db, start_day=None, end_day=date.today()):
+    """ Builds a count of users who run in UoM data centers (and the users
     belonging to UoM projects who run outside of UoM data centers).
     :param extract_db: The db from which to extract the data
     :param load_db: The db to move the transformed data to
@@ -160,12 +183,8 @@ def build_capacity(unknown_source, load_db, start_day=None,
 def build_private_cell_data(extract_db, load_db, start_day=None,
                             end_day=date.today()):
     if not start_day:
-        try:
-            latest = CloudPrivateCell.objects.latest('id')
-            start_day = parse_date(latest.date)
-        except CloudPrivateCell.DoesNotExist:
-            logging.warning("Could not find starting date for private cell")
-            start_day = date.today() - timedelta(1)
+        start_day = _last_record_date(CloudPrivateCell, 'id', 'date',
+                                      date.today() - timedelta(1))
     logging.info("Building private cell data from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
@@ -189,17 +208,13 @@ def build_private_cell_data(extract_db, load_db, start_day=None,
 
 
 def build_buyers_committee(extract_db, load_db, **kwargs):
-    try:
-        latest = CloudQuarterlyUsage.objects.latest('quarter_start_date')
-        usage_start_date = parse_date(latest.quarter_start_date)
-    except CloudQuarterlyUsage.DoesNotExist:
-        usage_start_date = date(2011, 12, 31)
-    try:
-        latest = CloudQuarterly.objects.latest('date')
-        quarterly_start_date = parse_date(latest.date)
-    except CloudQuarterly.DoesNotExist:
-        quarterly_start_date = date(2011, 12, 31)
     logging.info("Building quarterly usage data")
+    usage_start_date = _last_record_date(CloudQuarterlyUsage,
+                                         'quarter_start_date',
+                                         'quarter_start_date',
+                                         date(2011, 12, 31))
+    quarterly_start_date = _last_record_date(CloudQuarterly, 'date', 'date',
+                                             date(2011, 12, 31))
     for start_date, end_date in quarter_dates():
         if usage_start_date < start_date:
             projects_active = extract_db.get_projects_active(start_date,
