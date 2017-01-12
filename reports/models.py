@@ -349,7 +349,7 @@ class BroadcastEmail(models.Model):
 class CloudQuarterly(CloudTotalsByFaculty):
     """
     Contains the quarterly number of active users by faculty
-    Note that the date column here is the date of the quarter start
+    Note that the date column here is the date of the quarter end
     """
 
     class Meta:
@@ -359,12 +359,12 @@ class CloudQuarterly(CloudTotalsByFaculty):
 class CloudQuarterlyUsage(models.Model):
     """
     Contains the quarterly usage figures for the research cloud
+    Note that the date column here is the date of the quarter end
     """
-    quarter_start_date = models.TextField(unique=True, blank=False, null=False,
-                                          primary_key=True,
-                                          help_text="The quarter start date")
-    quarter_end_date = models.TextField(unique=True, blank=False, null=False,
-                                        help_text="The quarter end date")
+    date = models.TextField(unique=True, blank=False, null=False,
+                            primary_key=True,
+                            default=timezone.now(),
+                            help_text="The quarter end date")
     projects_active = models.IntegerField(blank=False, null=False,
                                           help_text="The total number of "
                                                     "active projects")
@@ -377,5 +377,6 @@ class CloudQuarterlyUsage(models.Model):
     uom_users_active = models.IntegerField(blank=False, null=False,
                                            help_text="The total number of UoM "
                                                      "users active")
+
     class Meta:
         db_table = 'cloud_quarterly_usage'

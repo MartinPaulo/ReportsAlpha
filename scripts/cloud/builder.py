@@ -210,8 +210,8 @@ def build_private_cell_data(extract_db, load_db, start_day=None,
 def build_buyers_committee(extract_db, load_db, **kwargs):
     logging.info("Building quarterly usage data")
     usage_start_date = _last_record_date(CloudQuarterlyUsage,
-                                         'quarter_start_date',
-                                         'quarter_start_date',
+                                         'date',
+                                         'date',
                                          date(2011, 12, 31))
     quarterly_start_date = _last_record_date(CloudQuarterly, 'date', 'date',
                                              date(2011, 12, 31))
@@ -228,8 +228,7 @@ def build_buyers_committee(extract_db, load_db, **kwargs):
             uom_users_active = extract_db.get_uom_users_active(start_date,
                                                                end_date)
             CloudQuarterlyUsage.objects.update_or_create(
-                quarter_start_date=start_date.strftime("%Y-%m-%d"),
-                quarter_end_date=end_date.strftime("%Y-%m-%d"),
+                date=end_date.strftime("%Y-%m-%d"),
                 projects_active=projects_active,
                 uom_projects_active=uom_projects_active,
                 uom_participation=uom_participation,
@@ -245,7 +244,7 @@ def build_buyers_committee(extract_db, load_db, **kwargs):
                 for faculty in faculties:
                     totals[faculty] += 1
             CloudQuarterly.objects.update_or_create(
-                date=start_date.strftime("%Y-%m-%d"),
+                date=end_date.strftime("%Y-%m-%d"),
                 defaults={
                     'foa': totals['FoA'],
                     'vas': totals['VAS'],
