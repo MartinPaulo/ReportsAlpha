@@ -113,6 +113,8 @@ def _get_start_date(duration):
         return date.today() - relativedelta(months=3)
     elif duration == 'sixMonths':
         return date.today() - relativedelta(months=6)
+    elif duration == 'all':
+        return date(2012, 1, 1)
     else:
         # duration == YEAR:
         return date.today() - relativedelta(months=12)
