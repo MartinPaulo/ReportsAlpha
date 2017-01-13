@@ -68,7 +68,97 @@ report.d3 = function () {
         render();
     }, false);
 
-    utils.generateFacultyKey();
+    // utils.generateFacultyKey();
+
+    (function generate_quarterly_usage() {
+        var data_path = '/reports/actual/?from=all&model=CloudQuarterlyUsage';
+        var columns = [
+            {
+                head: 'Quarter End Date', cl: 'center', html: function (row) {
+                return row.date;
+            }
+            },
+            {
+                head: 'Total Projects',
+                cl: 'right',
+                html: function (row) {
+                    return row.projects_active;
+                }
+            },
+            {
+                head: 'UoM Projects',
+                cl: 'right',
+                html: function (row) {
+                    return row.uom_projects_active;
+                }
+            },
+            {
+                head: 'Projects with UoM Admins',
+                cl: 'right',
+                html: function (row) {
+                    return row.uom_participation;
+                }
+            },
+            {
+                head: 'UoM Admins', cl: 'right', html: function (row) {
+                return row.uom_users_active;
+            }
+            }
+        ];
+        d3.select('#extra svg').remove();
+        d3.select('#extra_title')
+            .insert('h3')
+            .text('Activity by Quarter')
+        ;
+
+        const selection = d3.select('#extra .chart-wrapper');
+        var table = selection.append('table')
+            .attr('class', 'center');
+
+        table.append('thead').append('tr')
+            .selectAll('th')
+            .data(columns).enter()
+            .append('th')
+            .attr('class', 'center')
+            .text(function (row) {
+                return row.head;
+            });
+        d3.csv(data_path, function (error, csv) {
+            if (error) {
+                // should perhaps also clear any older graph?
+                console.log("Error on loading data: " + error);
+                utils.showError(error);
+                return;
+            }
+            selection.style("height", csv.length*1.7 +"em");
+            if (csv.length > 0) {
+                // we need to give a download link...
+                d3.select('#extra_link').append("p").html(
+                    '<p>The <a id="a_data" href="'
+                    + data_path
+                    + '">data file</a> behind this graph</p>');
+            }
+
+            table.append('tbody')
+                .selectAll('tr')
+                .data(csv).enter()
+                .append('tr')
+                .selectAll('td')
+                .data(function (row) {
+                    return columns.map(function (column) {
+                        return {column: column, value: column.html(row)};
+                    });
+                }).enter()
+                .append('td')
+                .html(function (r) {
+                    return r.value
+                })
+                .attr('class', function (r) {
+                    return r.column.cl
+                });
+
+        });
+    })();
 
     return {
         render: render

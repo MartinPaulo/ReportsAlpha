@@ -90,7 +90,8 @@ a {
 
 body {
     color: #586E8C;
-    background-color: #F5F8FC;
+    /*background-color: #F5F8FC;*/
+    background-color: white;
 }
 
 footer {
@@ -130,6 +131,12 @@ input.submit {
     font-family: sans-serif;
 }
 
+h3 {
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 1em 1em 0.5em;
+}
+
 ul {
     list-style: disc inside;
 }
@@ -161,6 +168,19 @@ table th {
 
 table.form input {
     background-color: #f3f3f3;
+}
+
+td.right {
+    text-align: right;
+}
+
+th.center, td.center {
+    text-align: center;
+}
+
+table.center {
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* hide graph elements that contain nothing */
