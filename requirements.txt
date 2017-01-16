@@ -1,3 +1,4 @@
+# the requirements to run the system in production
 Django
 django-source-revision
 numpy
