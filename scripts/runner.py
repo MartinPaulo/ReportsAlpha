@@ -96,6 +96,7 @@ def main():
         nectar.build_faculty_allocated(**_args)
         nectar.build_used(**_args)
         nectar.build_private_cell_data(**_args)
+        nectar.build_buyers_committee(**_args)
 
         if False:
             read_national(load_db)
