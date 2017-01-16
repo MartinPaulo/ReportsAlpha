@@ -366,16 +366,28 @@ class CloudQuarterlyUsage(models.Model):
                             default=timezone.now(),
                             help_text="The quarter end date")
     projects_active = models.IntegerField(blank=False, null=False,
-                                          help_text="The total number of "
+                                          help_text="The total count of "
                                                     "active projects")
     uom_projects_active = models.IntegerField(blank=False, null=False,
-                                              help_text="The number of UoM "
-                                                        "projects active")
+                                              default=0,
+                                              help_text="The count of approved"
+                                                        " UoM projects active")
+    all_uom_projects_active = models.IntegerField(blank=False, null=False,
+                                                  default=0,
+                                                  help_text="The count of all "
+                                                            "UoM projects "
+                                                            "active")
     uom_participation = models.IntegerField(blank=False, null=False,
-                                            help_text="The number of projects "
+                                            default=0,
+                                            help_text="The count of projects "
                                                       "active with UoM users")
+    all_users_active = models.IntegerField(blank=False, null=False,
+                                            default=0,
+                                            help_text="The count of all users "
+                                                      "active")
     uom_users_active = models.IntegerField(blank=False, null=False,
-                                           help_text="The total number of UoM "
+                                           default=0,
+                                           help_text="The total count of UoM "
                                                      "users active")
 
     class Meta:

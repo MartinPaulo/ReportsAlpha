@@ -219,19 +219,28 @@ def build_buyers_committee(extract_db, load_db, **kwargs):
         if usage_start_date < start_date:
             projects_active = extract_db.get_projects_active(start_date,
                                                              end_date)
-            uom_projects_active = extract_db.get_uom_projects_active(
+            uom_approved_projects_active = extract_db.get_uom_projects_active(
                 start_date,
                 end_date)
+            uom_all_projects_active = extract_db.get_all_uom_projects_active(
+                start_date,
+                end_date
+            )
             uom_participation = extract_db.get_projects_active_with_uom_participation(
                 start_date,
                 end_date)
+            all_users_active = extract_db.get_admins_active(start_date,
+                                                            end_date)
             uom_users_active = extract_db.get_uom_users_active(start_date,
                                                                end_date)
+
             CloudQuarterlyUsage.objects.update_or_create(
                 date=end_date.strftime("%Y-%m-%d"),
                 projects_active=projects_active,
-                uom_projects_active=uom_projects_active,
+                uom_projects_active=uom_approved_projects_active,
+                all_uom_projects_active=uom_all_projects_active,
                 uom_participation=uom_participation,
+                all_users_active=all_users_active,
                 uom_users_active=uom_users_active
             )
         if quarterly_start_date < start_date:
@@ -241,8 +250,9 @@ def build_buyers_committee(extract_db, load_db, **kwargs):
             for row in result_set:
                 contact_email = row['email']
                 faculties = get_faculties_for(contact_email)
-                for faculty in faculties:
-                    totals[faculty] += 1
+                # for faculty in faculties:
+                #     totals[faculty] += 1
+                totals[faculties[0]] += 1
             CloudQuarterly.objects.update_or_create(
                 date=end_date.strftime("%Y-%m-%d"),
                 defaults={

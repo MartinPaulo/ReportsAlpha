@@ -374,6 +374,20 @@ class DB(BaseDB):
                                      'end': to_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchone()['active']
 
+    def get_admins_active(self, from_date, to_date):
+        query = """
+          SELECT COUNT(DISTINCT (u.email)) AS active
+          FROM instance i
+            LEFT JOIN user u ON i.created_by = u.id
+          WHERE ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
+           OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
+           OR ((created < %(start)s) AND
+               (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+        """
+        self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
+                                     'end': to_date.strftime("%Y-%m-%d")})
+        return self._db_cur.fetchone()['active']
+
     def get_uom_projects_active(self, from_date, to_date):
         query = """
           SELECT count(DISTINCT project_id) AS active
@@ -392,35 +406,64 @@ class DB(BaseDB):
                                      'end': to_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchone()['active']
 
+    def get_all_uom_projects_active(self, from_date, to_date):
+        query = """
+          SELECT count(DISTINCT project_id) AS active
+          FROM instance i
+            LEFT JOIN project p ON i.project_id = p.id
+          WHERE p.organisation LIKE '%%melb%%'
+            AND
+             ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
+               OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
+               OR ((created < %(start)s) AND
+                   (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+        """
+        self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
+                                     'end': to_date.strftime("%Y-%m-%d")})
+        return self._db_cur.fetchone()['active']
+
     def get_projects_active_with_uom_participation(self, from_date, to_date):
         query = """
           SELECT count(DISTINCT project_id) AS active
-          FROM instance
-          WHERE
-          ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
-            OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
-            OR (created < %(start)s) AND
-               (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted))
-          AND created_by IN (SELECT DISTINCT id
-                             FROM user
-                             WHERE email LIKE '%%melb%%');
+          FROM instance i
+            LEFT JOIN user u ON i.created_by = u.id
+          WHERE u.email LIKE '%%melb%%'
+            AND
+            ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
+              OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
+              OR ((created < %(start)s) AND
+                  (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchone()['active']
 
     def get_uom_users_active(self, from_date, to_date):
+        """
+        We could combine the above and this into one: something along the lines
+        of:
+        SELECT
+            count(DISTINCT project_id) AS projects,
+            count(DISTINCT created_by) AS creators
+        FROM instance i
+            LEFT JOIN user u ON i.created_by = u.id
+        WHERE u.email LIKE '%melb%'
+            AND
+         ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
+       OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
+       OR ((created < %(start)s) AND
+           (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+        """
         query = """
           SELECT count(DISTINCT created_by) AS active
-          FROM instance
-          WHERE
+          FROM instance i
+            LEFT JOIN user u ON i.created_by = u.id
+          WHERE u.email LIKE '%%melb%%'
+            AND
               ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
                 OR (%(start)s <=created AND created < %(end)s + INTERVAL 1 DAY)
-                OR (created < %(start)s) AND 
-                  (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted))
-              AND created_by IN (SELECT DISTINCT id
-                             FROM user
-                             WHERE email LIKE '%%melb%%');
+                OR ((created < %(start)s) AND
+                  (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
@@ -428,22 +471,15 @@ class DB(BaseDB):
 
     def get_email_of_active_uom_users(self, from_date, to_date):
         query = """
-          SELECT DISTINCT u.email
-          FROM instance i
-            LEFT JOIN
-            (SELECT id, email
-             FROM user
-             WHERE email LIKE '%%melb%%') u
-              ON i.created_by = u.id
-          WHERE
-            ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
-              OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
-              OR (created < %(start)s) AND
-                 (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted))
+            SELECT DISTINCT (u.email)
+            FROM instance i
+              LEFT JOIN user u ON i.created_by = u.id
+            WHERE u.email LIKE '%%melb%%'
               AND
-                created_by IN (SELECT DISTINCT id
-                               FROM user
-                               WHERE email LIKE '%%melb%%');
+              ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
+               OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
+               OR ((created < %(start)s) AND
+                   (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})

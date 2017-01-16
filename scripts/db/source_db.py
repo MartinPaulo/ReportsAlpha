@@ -133,8 +133,20 @@ class BaseDB(metaclass=ABCMeta):
             to_date (date): The end date
 
         Returns:
-            int: The count of UoM owned projects active between the start and
-            end dates
+            int: The count of UoM owned approved projects active between the
+            start and end dates
+        """
+
+    @abstractmethod
+    def get_all_uom_projects_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of all UoM owned projects (includes personal ones)
+            active between the start and end dates
         """
 
     @abstractmethod
@@ -147,6 +159,18 @@ class BaseDB(metaclass=ABCMeta):
         Returns:
             int: The count of projects active between the start and
             end dates that have UoM participants
+        """
+
+    @abstractmethod
+    def get_admins_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of all users active between the start and
+            end dates
         """
 
     @abstractmethod
@@ -172,3 +196,4 @@ class BaseDB(metaclass=ABCMeta):
             DictCursor: A list of the email addresses of UoM users who were
             active between the start and end dates
         """
+

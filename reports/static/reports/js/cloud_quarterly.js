@@ -50,7 +50,7 @@ report.d3 = function () {
 
             chart.yAxis
                 .tickFormat(d3.format('4d'))
-                .axisLabel("Projects");
+                .axisLabel("UoM Administrators");
             d3.select('#chart svg')
                 .datum(nvd3Data)
                 .transition().duration(500)
@@ -79,25 +79,31 @@ report.d3 = function () {
             }
             },
             {
-                head: 'Total Projects',
-                cl: 'right',
-                html: function (row) {
-                    return row.projects_active;
-                }
+                head: 'All Projects', cl: 'right', html: function (row) {
+                return row.projects_active;
+            }
             },
             {
-                head: 'UoM Projects',
-                cl: 'right',
+                head: 'Allocated UoM Projects', cl: 'right',
                 html: function (row) {
                     return row.uom_projects_active;
                 }
             },
             {
-                head: 'Projects with UoM Admins',
-                cl: 'right',
+                head: 'All UoM Projects', cl: 'right', html: function (row) {
+                return row.all_uom_projects_active;
+            }
+            },
+            {
+                head: 'All Projects with active UoM Admins', cl: 'right',
                 html: function (row) {
                     return row.uom_participation;
                 }
+            },
+            {
+                head: 'All Admins', cl: 'right', html: function (row) {
+                return row.all_users_active;
+            }
             },
             {
                 head: 'UoM Admins', cl: 'right', html: function (row) {
@@ -130,7 +136,9 @@ report.d3 = function () {
                 utils.showError(error);
                 return;
             }
-            selection.style("height", csv.length*1.7 +"em");
+            // Below is a temporary hack: each line, plus the 3 for the
+            // table headers
+            selection.style("height", (csv.length + 3) * 1.6 + "em");
             if (csv.length > 0) {
                 // we need to give a download link...
                 d3.select('#extra_link').append("p").html(

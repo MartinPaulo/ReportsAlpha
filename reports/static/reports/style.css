@@ -176,6 +176,7 @@ td.right {
 
 th.center, td.center {
     text-align: center;
+    width: 100px;
 }
 
 table.center {
