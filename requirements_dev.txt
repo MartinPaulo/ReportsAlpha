@@ -1,3 +1,4 @@
+# requirements for use in development work
 Django
 django-source-revision
 numpy
@@ -14,4 +15,4 @@ psycopg2    # http://initd.org/psycopg/docs/install.html ?
 django-inspectional-registration
 markdown
 docopt
-
+gnocchiclient
