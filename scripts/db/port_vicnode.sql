@@ -50,6 +50,10 @@ FROM applications_storageproduct
 -- DO-NOT-USE.Market.Melbourne.Disk	80	201.00	5
 -- DO-NOT-USE.Market.Melbourne.Disk	80	201.00	9
 --
+-- and the following have been added
+-- Market.Melbourne.Mediaflux   610   0   23
+-- Market.Melbourne.Gluster     612   0   24
+--
 SELECT COUNT(*)
 FROM applications_allocation
 WHERE storage_product_id
@@ -60,9 +64,25 @@ WHERE storage_product_id
 SELECT COUNT(*)
 FROM applications_allocation
 WHERE storage_product_id
-      IN (1, 4, 10);
+      IN (1, 4, 10, 23, 24);
 
--- returns 128: 22 are in 1, 62 are in 4, and 44 in 10.
+-- returns 179
+
+SELECT
+  COUNT(*),
+  storage_product_id
+FROM applications_allocation
+WHERE storage_product_id
+      IN (1, 4, 10, 23, 24)
+GROUP BY storage_product_id;
+
+-- gives the break down
+-- count storage_product_id
+--    20        23
+--    26         1
+--    51        10
+--    74         4
+--     8        24
 
 -- we'd think that we'd want to know the size: but some sizes are negative?
 
@@ -82,6 +102,7 @@ WHERE storage_product_id
 -- So the history can be seen by something like:
 
 SELECT
+  allocation.id AS aid,
   collection_id,
   storage_product_id,
   size,
@@ -91,8 +112,8 @@ SELECT
 FROM applications_allocation AS allocation
   LEFT JOIN applications_project
     ON collection_id = applications_project.id
-WHERE storage_product_id IN (1, 4, 10)
-ORDER BY collection_id, storage_product_id, creation_date NULLS FIRST,
+WHERE storage_product_id IN (1, 4, 10, 23, 24)
+ORDER BY collection_id, storage_product_id, aid, creation_date NULLS FIRST,
   last_modified NULLS FIRST;
 
 -- So a simple sum on each day will show the overall size allocated.
@@ -117,7 +138,7 @@ WHERE _date >= '2013-05-03'
 -- to do substitutions for null dates:
 SELECT COALESCE(creation_date, to_date('05 Dec 2000', 'DD Mon YYYY')) AS date
 FROM applications_allocation
-WHERE storage_product_id IN (1, 4, 10)
+WHERE storage_product_id IN (1, 4, 10, 23, 24)
       AND creation_date IS NULL;
 
 -- so to select the amount allocate for a product on a given day:
@@ -164,9 +185,13 @@ SELECT
     THEN 'computational'
   WHEN storage_product_id = 4
     THEN 'market'
+  WHEN storage_product_id = 23
+    THEN 'mediaflux'
+  WHEN storage_product_id = 24
+    THEN 'gluster'
   ELSE 'vault' END AS product
 FROM applications_allocation
-WHERE storage_product_id IN (1, 4, 10)
+WHERE storage_product_id IN (1, 4, 10, 23, 24)
       AND applications_allocation.last_modified <
           ('2015-05-15' :: DATE +
            '1 day' :: INTERVAL) -- TODO: remove the intervals!

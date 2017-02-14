@@ -1,3 +1,8 @@
+"""
+We use sqlite to store our aggregated data in. We do this for the deployment
+convenience. For the time being this should be ok: we have a very low volume
+website, with a relatively small amount of sql queries being fired.
+"""
 import codecs
 import logging
 import sqlite3

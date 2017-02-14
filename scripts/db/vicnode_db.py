@@ -18,8 +18,6 @@ def connection_required(f):
     It is possible that you might close the connection: and then try to use
     the instance later on. This simply throws an exception if you try to do
     this. Better than hunting down odd exceptions?
-    :param f:
-    :return:
     """
 
     @wraps(f)
@@ -27,7 +25,6 @@ def connection_required(f):
         if not self._server:
             raise Exception("Connection has been closed")
         return f(self, *args, **kwargs)
-
     return wrapper
 
 
@@ -109,7 +106,7 @@ class DB(object):
               ELSE 'vault' END AS product
             FROM applications_allocation
             WHERE storage_product_id IN %(all_types)s
-                  AND applications_allocation.last_modified <
+                AND COALESCE(applications_allocation.creation_date, '2014-11-14' :: DATE) <
                       (%(day_date)s :: DATE + '1 day' :: INTERVAL)
             GROUP BY storage_product_id;
         """
@@ -167,7 +164,7 @@ class DB(object):
                 ON applications_request.institution_faculty_id =
                    applications_suborganization.id
             WHERE storage_product_id IN %(products)s
-                  AND applications_allocation.last_modified <
+                  AND COALESCE(applications_allocation.creation_date, '2014-11-14' :: DATE) <
                       (%(day_date)s :: DATE + '1 day' :: INTERVAL)
             GROUP BY faculty;
         """
