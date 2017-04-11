@@ -32,14 +32,14 @@ class DB(BaseDB):
                 ON l.created_by = r.created_by
             WHERE (((l.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                   OR (l.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-                  OR (l.created < %(day_date)s AND (l.deleted IS NULL OR l.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                  OR (l.created < %(day_date)s AND (l.active OR l.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
               AND l.cell_name IN %(cell_names)s
               AND l.project_id IN (SELECT DISTINCT id
                                     FROM project
                                     WHERE organisation LIKE '%%melb%%'))
               AND (((r.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                   OR (r.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-                  OR (r.created < %(day_date)s AND (r.deleted IS NULL OR r.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                  OR (r.created < %(day_date)s AND (r.active OR r.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
                 AND r.cell_name NOT IN %(cell_names)s
                 AND r.project_id IN (SELECT DISTINCT id
                                      FROM project
@@ -60,7 +60,7 @@ class DB(BaseDB):
                 (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                 OR (created < %(day_date)s
                     AND
-                    (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                    (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
                AND cell_name NOT IN %(cell_names)s
                AND project_id IN (SELECT DISTINCT id
                                   FROM project
@@ -78,7 +78,7 @@ class DB(BaseDB):
             WHERE
               ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                   OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-                  OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                  OR (created < %(day_date)s AND (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
               AND cell_name NOT IN %(cell_names)s
               AND project_id IN (SELECT DISTINCT id
                                  FROM project
@@ -90,7 +90,7 @@ class DB(BaseDB):
                  WHERE
                    ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                         OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-                        OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                        OR (created < %(day_date)s AND (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
                    AND cell_name IN %(cell_names)s
                    AND project_id IN (SELECT DISTINCT id
                                       FROM project
@@ -108,7 +108,7 @@ class DB(BaseDB):
             WHERE
               ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                 OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-                OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                OR (created < %(day_date)s AND (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
               AND cell_name IN %(cell_names)s
               AND project_id IN (SELECT DISTINCT id
                                  FROM project
@@ -120,7 +120,7 @@ class DB(BaseDB):
                 WHERE
                     ((deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                     OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-                    OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                    OR (created < %(day_date)s AND (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
                     AND cell_name NOT IN %(cell_names)s
                     AND project_id IN (SELECT DISTINCT id
                                       FROM project
@@ -141,7 +141,7 @@ class DB(BaseDB):
                   /* started on the day */
                   OR (created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                   /* running through the day */
-                  OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+                  OR (created < %(day_date)s AND (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
               AND cell_name IN %(cell_names)s
               AND project_id NOT IN (SELECT id
                                      FROM project
@@ -211,7 +211,7 @@ class DB(BaseDB):
                  created < DATE_ADD(%(day_date)s, INTERVAL 1 DAY)
                  /* and running after the day */
                  AND (deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY)
-                      OR deleted IS NULL))
+                      OR active))
                OR (
                  /* started before the day */
                  created < %(day_date)s
@@ -248,7 +248,7 @@ class DB(BaseDB):
                */
               ((i.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                OR (i.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
-               OR (created < %(day_date)s AND (deleted IS NULL OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
+               OR (created < %(day_date)s AND (active OR deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY))))
               AND NOT ((i.deleted BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY))
                        AND (i.created BETWEEN %(day_date)s AND DATE_ADD(%(day_date)s, INTERVAL 1 DAY)))
               AND a.organisation LIKE '%%melb%%'
@@ -349,7 +349,7 @@ class DB(BaseDB):
               i.cell_name = %(private_cell)s
               # and running trough the day
               AND (i.created < %(day_date)s
-                   AND (i.deleted IS NULL
+                   AND (i.active
                         OR i.deleted > DATE_ADD(%(day_date)s, INTERVAL 1 DAY)))
             GROUP BY i.project_id
             ORDER BY instances DESC;
@@ -367,7 +367,7 @@ class DB(BaseDB):
               (%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
               OR
               (%(start)s <= created AND created <= %(end)s + INTERVAL 1 DAY)
-              OR (instance.deleted IS NULL
+              OR (instance.active
                   AND created <= %(end)s + INTERVAL 1 DAY);
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
@@ -382,7 +382,7 @@ class DB(BaseDB):
           WHERE ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
            OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
            OR ((created < %(start)s) AND
-               (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+               (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
@@ -395,8 +395,8 @@ class DB(BaseDB):
           WHERE
           ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
             OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
-            OR (created < %(start)s) AND
-               (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted))
+            OR (created < %(start)s) AND 
+              (active OR %(end)s + INTERVAL 1 DAY <= deleted))
           AND project_id IN (
               SELECT id
               FROM project
@@ -416,7 +416,7 @@ class DB(BaseDB):
              ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
                OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
                OR ((created < %(start)s) AND
-                   (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+                   (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
@@ -432,7 +432,7 @@ class DB(BaseDB):
             ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
               OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
               OR ((created < %(start)s) AND
-                  (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+                  (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
@@ -452,7 +452,7 @@ class DB(BaseDB):
          ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
        OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
        OR ((created < %(start)s) AND
-           (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+           (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         query = """
           SELECT count(DISTINCT created_by) AS active
@@ -463,7 +463,7 @@ class DB(BaseDB):
               ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
                 OR (%(start)s <=created AND created < %(end)s + INTERVAL 1 DAY)
                 OR ((created < %(start)s) AND
-                  (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+                  (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
@@ -471,7 +471,7 @@ class DB(BaseDB):
 
     def get_email_of_active_uom_users(self, from_date, to_date):
         query = """
-            SELECT DISTINCT (u.email)
+            SELECT DISTINCT u.email
             FROM instance i
               LEFT JOIN user u ON i.created_by = u.id
             WHERE u.email LIKE '%%melb%%'
@@ -479,7 +479,7 @@ class DB(BaseDB):
               ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
                OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
                OR ((created < %(start)s) AND
-                   (deleted IS NULL OR %(end)s + INTERVAL 1 DAY <= deleted)));
+                   (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})
