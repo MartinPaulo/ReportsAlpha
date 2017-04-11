@@ -104,3 +104,51 @@ The following columns are of interest:
     allocation. This is the original project owner.
 * `modified_time`: the date on which the last change was made to the allocation
     record.
+
+
+## Something to be aware of:
+
+    select created_at, updated_at, deleted_at, vm_state 
+    from nova.instances 
+    where uuid = '0b155ac7-55e6-489c-b81f-7038872c283b';
+    +---------------------+---------------------+------------+----------+
+    | created_at          | updated_at          | deleted_at | vm_state |
+    +---------------------+---------------------+------------+----------+
+    | 2014-04-02 07:22:14 | 2014-11-12 03:48:25 | NULL       | deleted  |
+    +---------------------+---------------------+------------+----------
+    
+Shows that there are instances in the nova database that are deleted, but
+that don't have their `deleted_at` date recorded. This is faithfully
+copied across to the reporting database.
+
+    select created, deleted, active 
+    from instance 
+    where id = '0b155ac7-55e6-489c-b81f-7038872c283b';
+    +---------------------+---------+--------+
+    | created             | deleted | active |
+    +---------------------+---------+--------+
+    | 2014-04-02 07:22:14 | NULL    |      0 |
+    +---------------------+---------+--------+
+
+    select count(*)
+    from instance 
+    where deleted is null and active is false;
+    +----------+
+    | count(*) |
+    +----------+
+    |      103 |
+    +----------+
+    
+So to be accurate, we should look at the active flag rather than at the deleted
+date to test if an instance is still running.
+
+And to quote: 
+
+ > The key thing to understand is that in the reporting schema 'created' 
+ > and 'deleted' map to the 'created_at' and 'deleted_at' columns in the 
+ > nova instances table. The 'active' column in the reporting schema maps to 
+ > the inverse of the 'deleted' column in the nova instances table, which is 
+ > what OpenStack uses to determine if an instance is active or not - it's an
+ > integer field and is either 0 (for active) or non-zero (for inactive). 
+ > It's a bit confusing because we have a deleted column in both tables with 
+ > different meaning . . .
