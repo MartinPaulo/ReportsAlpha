@@ -248,8 +248,7 @@ def build_buyers_committee(extract_db, load_db, **kwargs):
             result_set = extract_db.get_email_of_active_uom_users(start_date,
                                                                   end_date)
             for row in result_set:
-                contact_email = row['email']
-                faculties = get_faculties_for(contact_email)
+                faculties = get_faculties_for(row['email'])
                 # for faculty in faculties:
                 #     totals[faculty] += 1
                 totals[faculties[0]] += 1
