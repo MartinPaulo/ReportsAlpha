@@ -1,5 +1,8 @@
 'use strict';
 
+/**
+ * A grab bag of common bits
+ */
 var utils = function () {
 
     var facultyNames = [
@@ -90,7 +93,7 @@ var utils = function () {
         get: getColour
     };
 
-// https://github.com/d3/d3/wiki/Selections
+    // https://github.com/d3/d3/wiki/Selections
     function createButton(title, options) {
         options = options || {};
         var target_id = options.target_id || title.toLowerCase();
@@ -174,7 +177,7 @@ var utils = function () {
     }
 
     function renderStorageChart(data_path, series_names) {
-        var colours = (series_names == STORAGE_PRODUCT_TYPES) ? storageColours : facultyColours;
+        var colours = (series_names === STORAGE_PRODUCT_TYPES) ? storageColours : facultyColours;
         var spinner = new Spinner(SPINNER_OPTIONS);
         spinner.spin(document.getElementById('chart'));
 
@@ -231,6 +234,12 @@ var utils = function () {
         });
     }
 
+    /**
+     * A function that brings up a dialogue showing the passed in error
+     * @param error An object with a statusText field containing the message
+     * to be shown. If the field doesn't exit a default message will be shown
+     * instead.
+     */
     var showError = function (error) {
         // We'll go for a default error message
         var errorText = "The server is not responding";
