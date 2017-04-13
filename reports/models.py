@@ -41,6 +41,9 @@ class CloudCapacity(models.Model):
     uom_contribution = models.IntegerField()
     co_contribution = models.IntegerField()
 
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
+
     class Meta:
         managed = False
         db_table = 'cloud_capacity'
@@ -64,6 +67,9 @@ class CloudTotalsByFaculty(models.Model):
     vcamcm = models.IntegerField(db_column='VCAMCM', blank=False, null=False)
     services = models.IntegerField(db_column='Other', blank=False, null=False)
     unknown = models.IntegerField(db_column='Unknown', blank=False, null=False)
+
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
 
     class Meta:
         abstract = True
@@ -110,6 +116,9 @@ class CloudActiveUsers(models.Model):
                                         help_text="Users not from UoM who are "
                                                   "running VM's in UoM cells")
 
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
+
     class Meta:
         managed = False
         db_table = 'cloud_active_users'
@@ -127,6 +136,9 @@ class CloudTopTwenty(models.Model):
     vcpus = models.IntegerField(help_text="The project VCPU count on the date")
     tenant_name = models.CharField(max_length=64,
                                    help_text="The project's formal name")
+
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
 
     class Meta:
         managed = False
@@ -154,6 +166,9 @@ class CloudPrivateCell(models.Model):
                                default="Unknown",
                                help_text="The faculty the project belongs to")
 
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
+
     class Meta:
         db_table = 'cloud_private_cell'
         unique_together = (('date', 'project_id'),)
@@ -176,6 +191,9 @@ class StorageTotalsByProduct(models.Model):
                                 null=False,
                                 decimal_places=2,
                                 max_digits=15)
+
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
 
     class Meta:
         managed = False
@@ -252,6 +270,9 @@ class StorageTotalsByFaculty(models.Model):
                                    max_digits=15)
     unknown = models.DecimalField(blank=False, null=False, decimal_places=2,
                                   max_digits=15)
+
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
 
     class Meta:
         managed = False
@@ -389,6 +410,9 @@ class CloudQuarterlyUsage(models.Model):
                                            default=0,
                                            help_text="The total count of UoM "
                                                      "users active")
+
+    def __str__(self):
+        return '%s: %s' % (self.__class__.__name__, self.date)
 
     class Meta:
         db_table = 'cloud_quarterly_usage'
