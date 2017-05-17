@@ -2,10 +2,13 @@
 """
 Lists the storage collections per year, giving their allocation and usage
 """
-import psycopg2
 import sys
-from sshtunnel import SSHTunnelForwarder
+import time
+from collections import defaultdict
+
+import psycopg2
 import psycopg2.extras
+from sshtunnel import SSHTunnelForwarder
 
 from scripts.custom.credentials import Credentials
 
@@ -143,17 +146,34 @@ class StorageDB:
 
     def get_used(self, year_wanted, collection_id):
         query = """
-            SELECT used_capacity      AS used
-            FROM applications_ingest ingest
-            WHERE storage_product_id IN  (1, 4, 10, 23, 24)
-                  -- and this is the last record
-                  AND extraction_date =
-                      (SELECT MAX(extraction_date)
-                       FROM applications_ingest t2
-                       WHERE t2.collection_id = %(collection_id)s
-                             AND t2.extraction_date < %(day_date)s :: DATE
-                      )
-                  AND ingest.collection_id = %(collection_id)s;
+            SELECT
+            --   lt.max_date,
+            --   lt.storage_product_id,
+              SUM(rt.used_capacity) AS used
+            FROM
+              (
+                -- get the max date for each product type
+                SELECT
+                  MAX(extraction_date) AS max_date,
+                  storage_product_id
+                FROM applications_ingest
+                WHERE collection_id =%(collection_id)s
+                      AND extraction_date < %(day_date)s :: DATE
+                GROUP BY storage_product_id
+              ) lt
+              INNER JOIN
+              (
+                -- get the max date for each change in the used capacity of each
+                -- product type
+                SELECT
+                  MAX(extraction_date) AS max_date,
+                  used_capacity
+                FROM applications_ingest
+                WHERE collection_id = %(collection_id)s
+                      AND extraction_date < %(day_date)s :: DATE
+                GROUP BY used_capacity
+              ) rt
+                ON lt.max_date = rt.max_date;
         """
         self._db_cur.execute(query, {
             'day_date': '%s-12-31' % year_wanted,
@@ -186,23 +206,20 @@ for org in sub_orgs:
         sys.exit(2)
     faculties[org['project_id']] = org['faculty']
 
-o = '{collection_id!s}, {collection_name!s}, ' \
-    '{faculty!s}, ' \
-    '{name!s}, {email_address!s}, ' \
-    '{business_email_address!s}, ' \
+o = '{faculty!s}, {collection_id!s}, {collection_name!s}, ' \
+    '{name!s}, {email_address!s},  {business_email_address!s}, ' \
     '{allocated!s}, {used!s}'
-with open("output/storage_2.txt", "w") as output:
-    for year in [2014, 2015, 2016]:
-        output.write(
-            '==================================================================\n')
+out_file = "output/storage_%s.txt" % time.strftime("%Y%m%d-%H%M%S")
+with open(out_file, "w") as output:
+    for year in [2014, 2015, 2016, 2017]:
+        output.write('='*80 + '\n')
         output.write('Year: %s\n' % year)
-        output.write(
-            '==================================================================\n')
+        output.write('='*80 + '\n')
         output.write('\n')
         output.write(o.format(**{
+            'faculty': 'Faculty',
             'collection_id': 'Collection ID',
             'collection_name': 'Collection Name',
-            'faculty': 'Faculty',
             'name': 'Custodian Name',
             'email_address': 'Email',
             'business_email_address': 'Work Email',
@@ -211,33 +228,35 @@ with open("output/storage_2.txt", "w") as output:
         }) + '\n')
         allocated = db.get_allocated(year)
         used_index = 0
+        by_faculty = defaultdict(list)
         for allocation in allocated:
             collection_id = allocation['collection_id']
             collection_name = allocation['name'].strip()
             allocated = allocation['allocated']
 
             faculty = faculties.get(collection_id)
-            (first_name, last_name, email_address,
-             business_email_address) = owners.get(collection_id,
-                                                  ('', '', '', ''))
-            total_used = 0
-            used = db.get_used(year, collection_id)
-            if used and used['used']:
-                total_used += used['used']
-            output.write(o.format(**{
-                'collection_id': collection_id,
-                'collection_name': collection_name,
-                'faculty': faculty,
-                'name': '{0} {1}'.format(first_name, last_name).strip(),
-                'email_address': email_address,
-                'business_email_address': business_email_address,
-                'allocated': allocated,
-                'used': total_used,
-            }) + '\n')
             if not faculty:
                 print("Error: No faculty found: %s %s" % (
                     collection_id, collection_name), file=sys.stderr)
                 sys.exit(1)
+            (first_name, last_name, email_address,
+             business_email_address) = owners.get(collection_id,
+                                                  ('', '', '', ''))
+            used = db.get_used(year, collection_id)
+            total_used = used['used'] if used and used['used'] else 0
+            collection = {'collection_id': collection_id,
+                          'collection_name': collection_name,
+                          'faculty': faculty,
+                          'name': '{0} {1}'.format(first_name,
+                                                   last_name).strip(),
+                          'email_address': email_address,
+                          'business_email_address': business_email_address,
+                          'allocated': allocated,
+                          'used': total_used, }
+            by_faculty[faculty].append(collection)
+        for faculty in sorted(by_faculty):
+            for collection in by_faculty[faculty]:
+                output.write(o.format(**collection) + '\n')
         output.write('\n')
 
 db.close_connection()
