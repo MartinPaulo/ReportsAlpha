@@ -39,7 +39,7 @@ def _last_record_date(model, field_name, attr_name, default_date):
         result = parse_date(getattr(latest, attr_name))
     except ObjectDoesNotExist:
         logging.warning(
-            "Could not find starting date for %s" % model)
+            'Could not find starting date for %s' % model)
         result = default_date
     return result
 
@@ -269,3 +269,32 @@ def build_buyers_committee(extract_db, load_db, **kwargs):
                     'unknown': totals['Unknown']
                 }
             )
+
+
+def print_bc_percentages(extract_db, load_db, **kwargs):
+    """
+    Prints the contents of the cloud_quarterly table as percentages
+    """
+    logging.info('Building quarterly usage percentages')
+    quarters = CloudQuarterly.objects.all().order_by('-date')[:5]
+    for quarter in reversed(quarters):
+        fields = CloudQuarterly._meta.get_fields()
+        # sum the faculty totals for a grand total
+        total = 0
+        for field in fields:
+            if field.name is 'unknown' or field.name is 'date':
+                continue
+            total += int(getattr(quarter, field.name))
+        print('%s' % total)
+        total_percentage = 0
+        # print out the percentage for each faculty
+        for field in fields:
+            if field.name is 'unknown' or field.name is 'date':
+                continue
+            percentage = int(getattr(quarter, field.name)) / total * 100
+            print('%7s, %5s, %5s' % (
+                field.name, int(getattr(quarter, field.name)), 2),
+                round(percentage, 2))
+            total_percentage += percentage
+        # print the total percentage (should be 100, all going well)
+        print('%s' % round(total_percentage, 2))
