@@ -1,5 +1,5 @@
-from datetime import timedelta, date
 import calendar
+from datetime import timedelta, date
 
 
 def date_range(start_date, end_date):
@@ -128,3 +128,43 @@ class Faculties:
         return {cls.ABP: 0, cls.FBE: 0, cls.FOA: 0, cls.FOS: 0,
                 cls.MDHS: 0, cls.MGSE: 0, cls.MLS: 0, cls.MSE: 0,
                 cls.OTHER: 0, cls.UNKNOWN: 0, cls.VAS: 0, cls.VCAMCM: 0}
+
+    @classmethod
+    def get_from_for_code(cls, for_code):
+        """
+        :return: Faculty that best matches the FOR code argument 
+        
+        :param for_code: str giving the FOR code
+         
+        .. seealso:: 
+            * http://www.abs.gov.au/ausstats/abs@.nsf/0/6BB427AB9696C225CA2574180004463E
+            * http://w3.unisa.edu.au/res/admin/for.asp
+        """
+        if not for_code:
+            return cls.UNKNOWN
+        mdhs_codes = (
+            '11', '0304', '0604', '0606', '0903', '1004', '1701', '1702')
+        mse_codes = ('01', '02', '06', '08', '09', '10')
+        fos_codes = ('03', '04', '05')
+        vas_codes = ('07',)
+        abp_codes = ('12',)
+        mgse_codes = ('13',)
+        fbe_codes = ('14', '1501', '1502',)
+        foa_codes = ('19', '20', '22')
+        if for_code.startswith(mdhs_codes):
+            return cls.MDHS
+        elif for_code.startswith(mse_codes):
+            return cls.MSE
+        elif for_code.startswith(mgse_codes):
+            return cls.MGSE
+        elif for_code.startswith(fos_codes):
+            return cls.FOS
+        elif for_code.startswith(foa_codes):
+            return cls.FOA
+        elif for_code.startswith(vas_codes):
+            return cls.VAS
+        elif for_code.startswith(abp_codes):
+            return cls.ABP
+        elif for_code.startswith(fbe_codes):
+            return cls.FBE
+        return cls.UNKNOWN
