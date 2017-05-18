@@ -19,9 +19,4 @@ class Migration(migrations.Migration):
             name='all_users_active',
             field=models.IntegerField(default=0, help_text='The count of all users active'),
         ),
-        migrations.AlterField(
-            model_name='cloudquarterlyusage',
-            name='date',
-            field=models.TextField(default=datetime.datetime(2017, 1, 16, 3, 10, 11, 543706, tzinfo=utc), help_text='The quarter end date', primary_key=True, serialize=False, unique=True),
-        ),
     ]

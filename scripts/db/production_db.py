@@ -182,7 +182,7 @@ class DB(BaseDB):
                   """.format(day_date.strftime("%Y-%m-%d")))
         return self._db_cur.fetchall()
 
-    def get_uom_project_contact_email(self):
+    def get_uom_project_contact_details(self):
         self._db_cur.execute("""
                     SELECT
                       tenant_uuid,

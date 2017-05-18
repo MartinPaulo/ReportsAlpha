@@ -258,15 +258,16 @@ class DB(BaseDB):
         """, {'day_date': day_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchall()
 
-    def get_uom_project_contact_email(self):
+    def get_uom_project_contact_details(self):
         """
-        :return: A list of projects and the contact email taken from the
-        matching allocation record. All projects where the associated contact
-        email is known are returned.
+        :return: a list of project and contact details taken from the
+            matching allocation record. All projects where the associated
+            contact email is known are returned.
+        :rtype: list
 
-        Notes:
-            A join between the project and the user tables:
-
+        :notes:
+            A join between the project and the user tables: ::
+            
                 SELECT count(*)
                 FROM project p
                   LEFT JOIN user u
@@ -275,17 +276,17 @@ class DB(BaseDB):
                     AND email IS NULL;
 
             returns 427 null email addresses. If we remove the
-            'email IS NULL' condition we get 2503, so 1/5th
+            ``email IS NULL`` condition we get 2503, so about 1/5th
             are missing.
 
-            If we change the join to only include personal tenancies:
-
+            If we change the join to only include personal tenancies: ::
+            
                 WHERE organisation LIKE '%melb%' AND personal = 1
 
             it returns 2076 rows, of which only 1 has a null email address
 
-            If we change the join to exclude personal tenancies:
-
+            If we change the join to exclude personal tenancies: ::
+                
                 WHERE organisation LIKE '%melb%' AND personal = 0
 
             it returns 427 rows, of which 426 have a null email address.
@@ -295,15 +296,35 @@ class DB(BaseDB):
         """
         self._db_cur.execute("""
             SELECT
-              p.id        AS tenant_uuid,
-              contact_email,
-              description AS tenant_name
+                  p.id        AS tenant_uuid,
+                  chief_investigator,  # can be null
+                  contact_email, 
+                  (CASE 
+                   WHEN for_percentage_2 >= for_percentage_1 AND
+                        for_percentage_2 >= for_percentage_3
+                     THEN field_of_research_2
+                   WHEN for_percentage_3 >= for_percentage_1 AND
+                        for_percentage_3 >= for_percentage_2
+                     THEN field_of_research_3
+                   ELSE field_of_research_1
+                   END)       AS field_of_research,
+                  end_date,
+                  description AS tenant_name,
+                  quota_instances, 
+                  quota_vcpus, 
+                  quota_memory, 
+                  quota_volume_total, 
+                  quota_snapshot, 
+                  quota_volume_count
             FROM reporting.project p
-              LEFT JOIN allocation a
-                ON p.id = a.project_id
+                LEFT JOIN allocation a
+                  ON p.id = a.project_id
             WHERE organisation LIKE '%melb%'
                   AND personal = 0
-                  AND contact_email IS NOT NULL;
+                  AND contact_email IS NOT NULL
+                  AND quota_instances IS NOT NULL
+                  AND quota_instances > 0
+                  ;
         """)
         return self._db_cur.fetchall()
 

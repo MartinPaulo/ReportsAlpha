@@ -49,6 +49,29 @@ class CloudCapacity(models.Model):
         db_table = 'cloud_capacity'
 
 
+class CloudProjectFaculty(models.Model):
+    project_id = models.TextField(unique=True, max_length=32,
+                                  null=False, primary_key=True,
+                                  default="0",
+                                  help_text="The projects ID")
+    chief_investigator = models.CharField(max_length=75, blank=True, null=True,
+                                          help_text="The nominated chief "
+                                                    "investigator's email")
+    contact_email = models.CharField(max_length=75, blank=True, null=True,
+                                     help_text="The applicant's email")
+    name = models.CharField(max_length=64, blank=True, null=True,
+                            help_text="The project name")
+    for_code = models.CharField(max_length=6, blank=True, null=True,
+                                help_text="The highest weighted FOR code")
+    allocated_faculty = models.CharField(max_length=7, blank=True, null=True,
+                                         help_text="The faculty we have "
+                                                   "decided the project "
+                                                   "belongs to")
+
+    class Meta:
+        db_table = 'cloud_project_faculty'
+
+
 class CloudTotalsByFaculty(models.Model):
     # All field names lowercased.
     date = models.TextField(unique=True, blank=False, null=False,
@@ -384,7 +407,7 @@ class CloudQuarterlyUsage(models.Model):
     """
     date = models.TextField(unique=True, blank=False, null=False,
                             primary_key=True,
-                            default=timezone.now(),
+                            default=timezone.now,
                             help_text="The quarter end date")
     projects_active = models.IntegerField(blank=False, null=False,
                                           help_text="The total count of "

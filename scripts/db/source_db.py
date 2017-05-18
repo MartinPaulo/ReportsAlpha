@@ -39,10 +39,10 @@ class BaseDB(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def get_uom_project_contact_email(self):
+    def get_uom_project_contact_details(self):
         """
         :return:
-            A list giving the email address of the project contact
+            A list giving the details of the project contact
             in the allocation database for all projects that are deemed to
             belong to UoM
         """
@@ -184,7 +184,7 @@ class BaseDB(metaclass=ABCMeta):
             int: The count of UoM user active between the start and
             end dates
         """
-    
+
     @abstractmethod
     def get_email_of_active_uom_users(self, from_date, to_date):
         """

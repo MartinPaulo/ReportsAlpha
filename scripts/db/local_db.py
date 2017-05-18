@@ -3,11 +3,12 @@ We use sqlite to store our aggregated data in. We do this for the deployment
 convenience. For the time being this should be ok: we have a very low volume
 website, with a relatively small amount of sql queries being fired.
 """
-import codecs
 import logging
 import sqlite3
 from datetime import datetime, date
 from decimal import Decimal
+
+import codecs
 
 from scripts.cloud.utility import Faculties
 from scripts.config import Configuration
@@ -166,16 +167,16 @@ class DB(object):
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
 
-    def save_faculty_data(self, faculty, contact_email,
-                          project_id, project_name):
+    def save_faculty_data(self, project_id, project_name, chief_investigator,
+                          contact_email, for_code, faculty):
         """
-        First fetches the existing faculty, then one is found:
-           * if there is no change in faculty, returns
-           * if the new faculty is 'Unknown', returns
+        First fetches the existing faculty then if one is found returns if:
+           * there is no change in faculty
+           * the new faculty is Faculties.UNKNOWN
         Finally either updates or inserts the new faculty data
         """
         query = """
-            SELECT faculty_abbreviation
+            SELECT allocated_faculty
             FROM cloud_project_faculty
             WHERE project_id=:project_id;
         """
@@ -190,21 +191,24 @@ class DB(object):
                 return
             logging.warning("Project %s has changed faculties! Was %s, now %s",
                             project_id, row[0], faculty)
-        # TODO: This does not support multiple faculties for a project
-        # It will just overwrite the last entry :(
         update = """
             INSERT OR REPLACE INTO cloud_project_faculty
-                    (project_id, contact_email, name, faculty_abbreviation)
-            VALUES (:project_id, :contact_email, :project_name, :faculty);
+                (project_id, name, chief_investigator, 
+                 contact_email, for_code, allocated_faculty )
+            VALUES 
+                (:project_id, :name, :chief_investigator, 
+                 :contact_email, :for_code, :allocated_faculty);
         """
         self._db_cur.execute(update, {'project_id': project_id,
+                                      'name': project_name,
+                                      'chief_investigator': chief_investigator,
                                       'contact_email': contact_email,
-                                      'project_name': project_name,
-                                      'faculty': faculty})
+                                      'for_code': for_code,
+                                      'allocated_faculty': faculty})
         self._db_connection.commit()
 
     def get_faculty_abbreviations(self, project_id):
-        sqlite3_query = "SELECT faculty_abbreviation " \
+        sqlite3_query = "SELECT allocated_faculty " \
                         "FROM cloud_project_faculty " \
                         "WHERE project_id = ?"
         self._db_cur.execute(sqlite3_query, (project_id,))
