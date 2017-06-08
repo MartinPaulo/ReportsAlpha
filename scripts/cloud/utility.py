@@ -130,27 +130,37 @@ class Faculties:
                 cls.OTHER: 0, cls.UNKNOWN: 0, cls.VAS: 0, cls.VCAMCM: 0}
 
     @classmethod
+    def get_faculties_list(cls):
+        """
+        :return: A list of all the faculties sorted in ascending order
+        """
+        return sorted(cls.get_new_totals().keys())
+
+    @classmethod
     def get_from_for_code(cls, for_code):
         """
-        :return: Faculty that best matches the FOR code argument 
-        
+        :return: Faculty that best matches the FOR code argument
+
         :param for_code: str giving the FOR code
-         
-        .. seealso:: 
+
+        .. seealso::
             * http://www.abs.gov.au/ausstats/abs@.nsf/0/6BB427AB9696C225CA2574180004463E
             * http://w3.unisa.edu.au/res/admin/for.asp
         """
         if not for_code:
             return cls.UNKNOWN
+        # need to be careful here: as we are using 'starts with' we need to
+        # make sure that one of these sets will not 'shadow' another one.
+        # TODO: write a test to check this...
         mdhs_codes = (
             '11', '0304', '0604', '0606', '0903', '1004', '1701', '1702')
         mse_codes = ('01', '02', '06', '08', '09', '10')
+        mgse_codes = ('13',)
         fos_codes = ('03', '04', '05')
+        foa_codes = ('19', '20', '22')
         vas_codes = ('07',)
         abp_codes = ('12',)
-        mgse_codes = ('13',)
         fbe_codes = ('14', '1501', '1502',)
-        foa_codes = ('19', '20', '22')
         if for_code.startswith(mdhs_codes):
             return cls.MDHS
         elif for_code.startswith(mse_codes):
