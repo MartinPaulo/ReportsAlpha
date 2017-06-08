@@ -19,16 +19,16 @@ def _bind_to_server():
 
 def build_project_faculty(extract_db, load_db, **kwargs):
     """
-    Builds the table of projects 
-    
+    Builds the table of projects
+
     :return: None
-    
+
     TODO:
         * Log the projects that have changed faculty
         * Add the hooks that will be used to send required emails...
         * Also, we need to work out what to do if the faculties recorded for
           a project changed. Do we recalculate all our totals or just
-          add the totals to the new faculty from this point on (what we do 
+          add the totals to the new faculty from this point on (what we do
           now)?
     """
     logging.info('Building project faculty data for all projects')
@@ -37,7 +37,7 @@ def build_project_faculty(extract_db, load_db, **kwargs):
     projects_found = len(result_set)
     for row in result_set:
         project_id = row['tenant_uuid']
-        project_name = row['tenant_name']
+        project_name = row['tenant_name']  # TODO This should be description!
         chief_investigator = row['chief_investigator']
         contact_email = row['contact_email']
         for_code = row['field_of_research']
