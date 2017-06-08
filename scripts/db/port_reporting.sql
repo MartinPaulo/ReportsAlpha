@@ -769,3 +769,80 @@ WHERE created >= '2016-09-09'
 # we want to know the cell names that are in use
 SELECT DISTINCT cell_name
 FROM instance;
+
+# calculate the core hours for each project in a given date range (e.g.:
+# '2017-01-01' - '2017-03-31')
+SELECT
+  project.id                     AS project_id,
+  project_name                   AS project_name,
+  IFNULL(chief_investigator, '') AS chief_investigator,
+  contact_email                  AS owner,
+  i.vcpu_hours                   AS vcpu_hours
+FROM allocation
+  LEFT JOIN project ON allocation.project_id = project.id
+  LEFT JOIN (
+              SELECT
+                project_id,
+                ROUND(IFNULL(
+                          SUM(vcpus * TIMESTAMPDIFF(SECOND,
+                                                    # the start date, if created is < the start date
+                                                    IF(created < '2017-01-01', '2017-01-01', created),
+                                                    # the deleted date can be be before the end date, after the end date or null
+                                                    # so if deleted is null, take now else take the end date.
+                                                    # if that 'deleted' date is greater thant the end date,
+                                                    #   then take the end date
+                                                    #   else take the 'deleted' date (works if now < end date)
+                                                    IF(IF(deleted IS NULL, NOW(), deleted) > '2017-03-31' + INTERVAL 1 DAY,
+                                                       '2017-03-31' + INTERVAL 1 DAY, IF(deleted IS NULL, NOW(), deleted))))
+                          / 3600, 0)) AS vcpu_hours
+              FROM instance
+              WHERE project_id IS NOT NULL
+                    # where created before the end date
+                    AND created < '2017-03-31' + INTERVAL 1 DAY
+                    # and deleted after the start date
+                    AND (deleted IS NULL OR deleted > '2017-01-01')
+                    # i.e.: was active at any point during the start and end date
+              GROUP BY project_id
+            ) i ON i.project_id = allocation.project_id
+WHERE project.organisation LIKE '%melb%'
+      AND vcpu_hours > 0
+ORDER BY vcpu_hours DESC;
+
+# Return details for meg/aurin projects in a given date range (e.g.:
+# '2017-01-01' - '2017-03-31')
+SELECT
+  project_id,
+  display_name,
+  COUNT(*)              AS instances,
+  IFNULL(SUM(vcpus), 0) AS vcpus,
+  ROUND(IFNULL(
+            SUM(vcpus * TIMESTAMPDIFF(SECOND,
+                            # the start date, if created is < the start date
+                            IF(created < '2017-01-01', '2017-01-01',
+                               created),
+                            # the deleted date can be be before the end date, after the end date or null
+                            # so if deleted is null, take now else take the end date.
+                            # if that 'deleted' date is greater thant the end date,
+                            #   then take the end date
+                            #   else take the 'deleted' date (works if now < end date)
+                            IF(IF(deleted IS NULL, NOW(), deleted) >
+                               '2017-03-31' + INTERVAL 1 DAY,
+                               '2017-03-31' + INTERVAL 1 DAY,
+                               IF(deleted IS NULL, NOW(), deleted))))
+            / 3600, 0)) AS vcpu_hours,
+  quota_instances,
+  quota_vcpus,
+  quota_memory,
+  quota_volume_total
+FROM instance
+  LEFT JOIN project ON instance.project_id = project.id
+WHERE
+  (display_name REGEXP '^meg(-|_|PN)'
+   OR (display_name LIKE '%aurin%' AND organisation LIKE '%melb%'))
+  # where created before the end date
+  AND created < '2017-03-31' + INTERVAL 1 DAY
+  # and deleted after the start date
+  AND (deleted IS NULL OR deleted > '2017-01-01')
+# i.e.: was active at any point during the start and end date
+GROUP BY project_id
+ORDER BY display_name;
