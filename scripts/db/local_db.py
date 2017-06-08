@@ -200,7 +200,7 @@ class DB(object):
                  :contact_email, :for_code, :allocated_faculty);
         """
         self._db_cur.execute(update, {'project_id': project_id,
-                                      'name': project_name,
+                                      'name': project_name,  # TODO description
                                       'chief_investigator': chief_investigator,
                                       'contact_email': contact_email,
                                       'for_code': for_code,
