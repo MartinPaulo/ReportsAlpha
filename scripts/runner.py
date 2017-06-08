@@ -97,7 +97,7 @@ def main():
         nectar.build_used(**_args)
         nectar.build_private_cell_data(**_args)
         nectar.build_buyers_committee(**_args)
-
+        nectar.build_quarterly_usage(**_args)
         if False:
             read_national(load_db)
 

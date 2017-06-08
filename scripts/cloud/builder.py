@@ -1,5 +1,4 @@
 # coding=UTF-8
-import calendar
 import logging
 from datetime import date, timedelta
 
@@ -9,7 +8,7 @@ from django.core.mail import mail_admins
 from django.utils.dateparse import parse_date
 
 from reports.models import CloudPrivateCell, CloudQuarterly, \
-    CloudQuarterlyUsage
+    CloudQuarterlyUsage, CloudProjectFaculty
 from scripts.cloud.build_project_faculty import get_faculties_for
 from scripts.cloud.utility import date_range, Faculties, quarter_dates
 
@@ -294,7 +293,54 @@ def print_bc_percentages(extract_db, load_db, **kwargs):
             percentage = int(getattr(quarter, field.name)) / total * 100
             print('%7s, %5s, %5s' % (
                 field.name, int(getattr(quarter, field.name)), 2),
-                round(percentage, 2))
+                  round(percentage, 2))
             total_percentage += percentage
         # print the total percentage (should be 100, all going well)
         print('%s' % round(total_percentage, 2))
+
+
+def build_quarterly_usage(extract_db, load_db, **kwargs):
+    """
+    Prints the quarterly usage in core hours.
+    """
+    logging.info('Building quarterly core hours')
+    heading = 'Quarter'
+    faculties_list = Faculties.get_faculties_list()
+    for faculty in faculties_list:
+        heading += ', %s' % faculty
+    heading += ', Total'
+    print(heading)
+    for start_date, end_date in quarter_dates():
+        result_set = extract_db.get_core_hours(start_date, end_date)
+        totals = Faculties.get_new_totals()
+        percentage_totals = Faculties.get_new_totals()
+        for row in result_set:
+            project_id = row['project_id']
+            project_name = row['project_name']
+            try:
+                cpf = CloudProjectFaculty.objects.get(project_id=project_id)
+                faculty = cpf.allocated_faculty
+                totals[faculty] += row['vcpu_hours']
+            except CloudProjectFaculty.DoesNotExist:
+                logging.warning('%s with id %s does not exist' % (
+                    project_name, project_id))
+        grand_total = 0
+        for faculty, total in totals.items():
+            grand_total += total
+        total_percentage = 0
+        for faculty, total in totals.items():
+            percentage = (total * 100) / grand_total
+            percentage_totals[faculty] = percentage
+            total_percentage += percentage
+        line = '%s - %s' % (start_date, end_date)
+        print_totals = True # a hack to print totals or percentages
+        for faculty in faculties_list:
+            if print_totals:
+                line += ', %s' % totals[faculty]
+            else:
+                line += ', %.2f' % percentage_totals[faculty]
+        if print_totals:
+            line += ', %s' % grand_total
+        else:
+            line += ', %.2f' % total_percentage
+        print(line)
