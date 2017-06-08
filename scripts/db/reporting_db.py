@@ -2,10 +2,9 @@ import MySQLdb
 
 from reports_beta.settings import UOM_PRIVATE_CELL, UOM_CELL_NAMES
 from scripts.config import Configuration
-from scripts.db.source_db import BaseDB
 
 
-class DB(BaseDB):
+class DB:
     """
     Contains queries specific to the reporting database.
     """
@@ -25,6 +24,16 @@ class DB(BaseDB):
         self._db_connection.close()
 
     def get_in_both(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The count of users in UoM projects running instances in
+        both UoM and non UoM data centers on day_date.
+
+        Notes:
+            Instances started and stopped on the day are *included*.
+            Trial Projects are included.
+            This method is *slow*!
+        """
         query = """
             SELECT COUNT(DISTINCT r.created_by) AS in_both
             FROM instance l
@@ -51,6 +60,11 @@ class DB(BaseDB):
         return self._db_cur.fetchone()["in_both"]
 
     def get_all_outside(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The number of users in UoM projects who are running instances
+        outside of UoM data centers on day_date.
+        """
         query = """
             SELECT COUNT(DISTINCT created_by) AS uom_users_outside_uom
             FROM instance
@@ -72,6 +86,11 @@ class DB(BaseDB):
         return self._db_cur.fetchone()["uom_users_outside_uom"]
 
     def get_elsewhere_only(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The number of users in UoM projects who are running instances
+            only in data centers that do not belong to UoM on day_date.
+        """
         query = """
             SELECT COUNT(DISTINCT created_by) AS elsewhere_only
             FROM instance
@@ -102,6 +121,11 @@ class DB(BaseDB):
         return self._db_cur.fetchone()["elsewhere_only"]
 
     def get_uom_only(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The number of users in UoM projects who have run instances
+        only in the  UoM data centers on day_date.
+        """
         query = """
             SELECT COUNT(DISTINCT created_by) AS UoM_only
             FROM instance
@@ -132,6 +156,11 @@ class DB(BaseDB):
         return self._db_cur.fetchone()["UoM_only"]
 
     def get_count_of_others_at_uom(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The count of users who belong to non-UoM projects running
+        instances in UoM data centers on day_date
+        """
         query = """
             SELECT COUNT(DISTINCT created_by) AS others_at_uom
             FROM instance
@@ -155,7 +184,14 @@ class DB(BaseDB):
 
     def get_allocated_totals(self, day_date):
         """
+        :param day_date: The day up till which data is to be returned.
+        :return: The amount allocated in keystone for those projects whose
+        last modified date is less than or equal to the day_date.
+
         Notes:
+            Because these are allocations, personal projects are automatically
+            excluded (they don't go through the allocation process)
+
             The allocations table is used simply to filter the results by
             date.
 
@@ -180,7 +216,7 @@ class DB(BaseDB):
             has projects allocated to UoM that don't actually have allocations
             in the allocation table: further investigation is required...
 
-            Also, there are three projects that have no quota...
+            Also, there are several projects that have no quota...
         """
         self._db_cur.execute("""
             SELECT
@@ -198,6 +234,15 @@ class DB(BaseDB):
         return self._db_cur.fetchall()
 
     def get_used_data(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The sum of the the vcpu's being used by UoM projects
+        on the given day.
+
+        Notes:
+            Personal projects are excluded.
+            Instances started and stopped on the day are also excluded.
+        """
         self._db_cur.execute("""
             SELECT
               project_id,
@@ -228,6 +273,10 @@ class DB(BaseDB):
         return self._db_cur.fetchall()
 
     def get_top_twenty_projects(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The top twenty UoM projects by vcpu count on day_date.
+        """
         self._db_cur.execute("""
             SELECT
               %(day_date)s AS 'date',
@@ -356,6 +405,11 @@ class DB(BaseDB):
         return result
 
     def get_private_cell_data(self, day_date):
+        """
+        :param day_date: The day for which the query is to be run
+        :return: The projects using Melbourne's private cell on the given
+        day
+        """
         query = """
             SELECT
               count(*)   AS instances,
@@ -381,6 +435,14 @@ class DB(BaseDB):
         return self._db_cur.fetchall()
 
     def get_projects_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of projects active between the start and end dates
+        """
         query = """
           SELECT count(DISTINCT project_id) AS active
           FROM instance
@@ -396,6 +458,15 @@ class DB(BaseDB):
         return self._db_cur.fetchone()['active']
 
     def get_admins_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of all users active between the start and
+            end dates
+        """
         query = """
           SELECT COUNT(DISTINCT (u.email)) AS active
           FROM instance i
@@ -410,6 +481,15 @@ class DB(BaseDB):
         return self._db_cur.fetchone()['active']
 
     def get_uom_projects_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of UoM owned approved projects active between the
+            start and end dates
+        """
         query = """
           SELECT count(DISTINCT project_id) AS active
           FROM instance
@@ -428,6 +508,15 @@ class DB(BaseDB):
         return self._db_cur.fetchone()['active']
 
     def get_all_uom_projects_active(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of all UoM owned projects (includes personal ones)
+            active between the start and end dates
+        """
         query = """
           SELECT count(DISTINCT project_id) AS active
           FROM instance i
@@ -444,6 +533,15 @@ class DB(BaseDB):
         return self._db_cur.fetchone()['active']
 
     def get_projects_active_with_uom_participation(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of projects active between the start and
+            end dates that have UoM participants
+        """
         query = """
           SELECT count(DISTINCT project_id) AS active
           FROM instance i
@@ -461,6 +559,16 @@ class DB(BaseDB):
 
     def get_uom_users_active(self, from_date, to_date):
         """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            int: The count of UoM user active between the start and
+            end dates
+
+        Notes:
+
         We could combine the above and this into one: something along the lines
         of:
         SELECT
@@ -491,6 +599,15 @@ class DB(BaseDB):
         return self._db_cur.fetchone()['active']
 
     def get_email_of_active_uom_users(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            DictCursor: A list of the email addresses of UoM users who were
+            active between the start and end dates
+        """
         query = """
             SELECT DISTINCT u.email
             FROM instance i
@@ -507,6 +624,15 @@ class DB(BaseDB):
         return self._db_cur.fetchall()
 
     def get_core_hours(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            DictCursor: A list containing each projects core hours usage
+            between the start date and the end date
+        """
         query = """
             SELECT
               project.id                     AS project_id,
