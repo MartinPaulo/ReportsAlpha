@@ -51,3 +51,7 @@ db/add_hoc
 /scripts/custom/output
 /scripts/custom/input
 /scripts/custom/credentials.py
+/db/db.old.sqlite3
+/db/db.sqlite3
+/db/db.sqlite3.tmp
+Deploy.txt
