@@ -167,46 +167,6 @@ class DB(object):
         self._db_cur.execute(update, faculty_totals)
         self._db_connection.commit()
 
-    def save_faculty_data(self, project_id, project_name, chief_investigator,
-                          contact_email, for_code, faculty):
-        """
-        First fetches the existing faculty then if one is found returns if:
-           * there is no change in faculty
-           * the new faculty is Faculties.UNKNOWN
-        Finally either updates or inserts the new faculty data
-        """
-        query = """
-            SELECT allocated_faculty
-            FROM cloud_project_faculty
-            WHERE project_id=:project_id;
-        """
-        self._db_cur.execute(query, {'project_id': project_id})
-        row = self._db_cur.fetchone()
-        if row is not None:
-            if row[0] == faculty:
-                # unchanged, no need to update
-                return
-            # we don't want to overwrite a known faculty with an unknown one
-            if faculty == Faculties.UNKNOWN:
-                return
-            logging.warning("Project %s has changed faculties! Was %s, now %s",
-                            project_id, row[0], faculty)
-        update = """
-            INSERT OR REPLACE INTO cloud_project_faculty
-                (project_id, name, chief_investigator, 
-                 contact_email, for_code, allocated_faculty )
-            VALUES 
-                (:project_id, :name, :chief_investigator, 
-                 :contact_email, :for_code, :allocated_faculty);
-        """
-        self._db_cur.execute(update, {'project_id': project_id,
-                                      'name': project_name,  # TODO description
-                                      'chief_investigator': chief_investigator,
-                                      'contact_email': contact_email,
-                                      'for_code': for_code,
-                                      'allocated_faculty': faculty})
-        self._db_connection.commit()
-
     def get_faculty_abbreviations(self, project_id):
         sqlite3_query = "SELECT allocated_faculty " \
                         "FROM cloud_project_faculty " \

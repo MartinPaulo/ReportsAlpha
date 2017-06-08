@@ -59,9 +59,8 @@ class CloudProjectFaculty(models.Model):
                                                     "investigator's email")
     contact_email = models.CharField(max_length=75, blank=True, null=True,
                                      help_text="The applicant's email")
-    # TODO: The following is the project description
-    name = models.CharField(max_length=64, blank=True, null=True,
-                            help_text="The project name")
+    description = models.CharField(max_length=64, blank=True, null=True,
+                            help_text="The project description")
     for_code = models.CharField(max_length=6, blank=True, null=True,
                                 help_text="The highest weighted FOR code")
     allocated_faculty = models.CharField(max_length=7, blank=True, null=True,

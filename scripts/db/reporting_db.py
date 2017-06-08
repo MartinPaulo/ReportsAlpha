@@ -309,7 +309,7 @@ class DB(BaseDB):
                    ELSE field_of_research_1
                    END)       AS field_of_research,
                   end_date,
-                  description AS tenant_name,  # TODO This should be kept as description!
+                  description,
                   quota_instances, 
                   quota_vcpus, 
                   quota_memory, 

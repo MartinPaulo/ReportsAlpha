@@ -31,7 +31,6 @@ import django
 from docopt import docopt
 
 from scripts import __version__ as VERSION
-from scripts.cloud.build_project_faculty import build_project_faculty
 from scripts.cloud.uptime import read_national
 from scripts.db import local_db
 from scripts.db import reporting_db
@@ -86,9 +85,10 @@ def main():
     _args = {'load_db': load_db, 'start_day': start_day}
     if options['all'] or options['cloud']:
         _args['extract_db'] = reporting_db.DB()
-        # the import is done here as the django setup has to be performed
-        # first as the builder references a django based model
+        # these imports are done here as the django setup has to be performed
+        # first as the builders reference django based models
         from scripts.cloud import builder as nectar
+        from scripts.cloud.build_project_faculty import build_project_faculty
         nectar.test_db(**_args)
         build_project_faculty(**_args)
         nectar.build_active(**_args)

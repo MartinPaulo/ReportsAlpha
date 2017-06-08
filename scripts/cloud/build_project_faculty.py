@@ -3,6 +3,7 @@ import sys
 
 from ldap3 import Server, Connection
 
+from reports.models import CloudProjectFaculty
 from scripts.cloud.utility import Faculties
 
 ldap_connection = None
@@ -37,7 +38,7 @@ def build_project_faculty(extract_db, load_db, **kwargs):
     projects_found = len(result_set)
     for row in result_set:
         project_id = row['tenant_uuid']
-        project_name = row['tenant_name']  # TODO This should be description!
+        project_description = row['description']
         chief_investigator = row['chief_investigator']
         contact_email = row['contact_email']
         for_code = row['field_of_research']
@@ -65,12 +66,20 @@ def build_project_faculty(extract_db, load_db, **kwargs):
                 faculties.remove(Faculties.OTHER)
             if Faculties.MDHS in faculties:
                 faculties = [Faculties.MDHS]
-            # at this point, we'll just take the first in the list
+                # at this point, we'll just take the first in the list
         faculty = faculties.pop()
         if faculty != Faculties.UNKNOWN:
             faculty_members_found += 1
-        load_db.save_faculty_data(project_id, project_name, chief_investigator,
-                                  contact_email, for_code, faculty)
+        CloudProjectFaculty.objects.get_or_create(
+            project_id=project_id,
+            defaults={
+                'description': project_description,
+                'chief_investigator': chief_investigator,
+                'contact_email': contact_email,
+                'for_code': for_code,
+                'allocated_faculty': faculty,
+            }
+        )
     logging.info('Of %s projects, %s were found', projects_found,
                  faculty_members_found)
 

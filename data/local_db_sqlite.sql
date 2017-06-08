@@ -34,15 +34,6 @@ CREATE TABLE cloud_used
   Unknown INTEGER
 );
 
-CREATE TABLE cloud_project_faculty
-  -- which project belongs to which faculty
-(
-  project_id VARCHAR(32) PRIMARY KEY, -- the OpenStack project ID
-  contact_email VARCHAR(75),  -- the contact email taken from the allocation request
-  name VARCHAR(64),           -- the display name of the project
-  faculty_abbreviation VARCHAR(7) -- the faculty to which we've assigned the project
-);
-
 CREATE TABLE cloud_active_users
   -- a count of the users who are running in which data center on the given day
 (
