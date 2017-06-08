@@ -267,7 +267,7 @@ class DB(BaseDB):
 
         :notes:
             A join between the project and the user tables: ::
-            
+
                 SELECT count(*)
                 FROM project p
                   LEFT JOIN user u
@@ -280,13 +280,13 @@ class DB(BaseDB):
             are missing.
 
             If we change the join to only include personal tenancies: ::
-            
+
                 WHERE organisation LIKE '%melb%' AND personal = 1
 
             it returns 2076 rows, of which only 1 has a null email address
 
             If we change the join to exclude personal tenancies: ::
-                
+
                 WHERE organisation LIKE '%melb%' AND personal = 0
 
             it returns 427 rows, of which 426 have a null email address.
@@ -309,7 +309,7 @@ class DB(BaseDB):
                    ELSE field_of_research_1
                    END)       AS field_of_research,
                   end_date,
-                  description AS tenant_name,
+                  description AS tenant_name,  # TODO This should be kept as description!
                   quota_instances, 
                   quota_vcpus, 
                   quota_memory, 
@@ -468,7 +468,7 @@ class DB(BaseDB):
             count(DISTINCT created_by) AS creators
         FROM instance i
             LEFT JOIN user u ON i.created_by = u.id
-        WHERE u.email LIKE '%melb%'
+        WHERE u.email LIKE '%%melb%%'
             AND
          ((%(start)s <= deleted AND deleted < %(end)s + INTERVAL 1 DAY)
        OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
@@ -501,6 +501,48 @@ class DB(BaseDB):
                OR (%(start)s <= created AND created < %(end)s + INTERVAL 1 DAY)
                OR ((created < %(start)s) AND
                    (active OR %(end)s + INTERVAL 1 DAY <= deleted)));
+        """
+        self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
+                                     'end': to_date.strftime("%Y-%m-%d")})
+        return self._db_cur.fetchall()
+
+    def get_core_hours(self, from_date, to_date):
+        query = """
+            SELECT
+              project.id                     AS project_id,
+              project_name                   AS project_name,
+              IFNULL(chief_investigator, '') AS ci,
+              contact_email                  AS owner,
+              i.vcpu_hours                   AS vcpu_hours
+            FROM allocation
+              LEFT JOIN project ON allocation.project_id = project.id
+              LEFT JOIN (
+                  SELECT
+                    project_id,
+                    ROUND(IFNULL(
+                              SUM(vcpus * TIMESTAMPDIFF(SECOND,
+                                        # the start date, if created is < the start date
+                                        IF(created < %(start)s, %(start)s, created),
+                                        # the deleted date can be be before the end date, after the end date or null
+                                        # so if deleted is null, take now else take the end date.
+                                        # if that 'deleted' date is greater thant the end date,
+                                        #   then take the end date
+                                        #   else take the 'deleted' date (works if now < end date)
+                                        IF(IF(deleted IS NULL, NOW(), deleted) > %(end)s + INTERVAL 1 DAY,
+                                           %(end)s + INTERVAL 1 DAY, IF(deleted IS NULL, NOW(), deleted))))
+                              / 3600, 0)) AS vcpu_hours
+                  FROM instance
+                  WHERE project_id IS NOT NULL
+                        # where created before the end date
+                        AND created < %(end)s + INTERVAL 1 DAY
+                        # and deleted after the start date
+                        AND (deleted IS NULL OR deleted > %(start)s)
+                        # i.e.: was active at any point during the start and end date
+                  GROUP BY project_id
+                        ) i ON i.project_id = allocation.project_id
+            WHERE project.organisation LIKE '%%melb%%'
+                  AND vcpu_hours > 0
+            ORDER BY vcpu_hours DESC;
         """
         self._db_cur.execute(query, {'start': from_date.strftime("%Y-%m-%d"),
                                      'end': to_date.strftime("%Y-%m-%d")})

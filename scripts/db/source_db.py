@@ -197,3 +197,14 @@ class BaseDB(metaclass=ABCMeta):
             active between the start and end dates
         """
 
+    @abstractmethod
+    def get_core_hours(self, from_date, to_date):
+        """
+        Args:
+            from_date (date): The start date
+            to_date (date): The end date
+
+        Returns:
+            DictCursor: A list containing each projects core hours usage
+            between the start date and the end date
+        """
