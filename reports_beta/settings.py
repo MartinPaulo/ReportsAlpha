@@ -75,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'sourcerevision.context_processors.source_revision',
+                'reports_beta.context_processors.from_settings',
             ],
         },
     },
@@ -247,6 +248,10 @@ VAULT_MARKET_CODES = (
 
 STORAGE_PRODUCT_CODES = \
     COMPUTE_PRODUCT_CODES + MARKET_PRODUCT_CODES + VAULT_MARKET_CODES
+
+
+ENVIRONMENT_NAME="Development"
+ENVIRONMENT_COLOR="gray"
 
 # From:
 # http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django

@@ -56,10 +56,14 @@ MANAGERS = (
 
 DATABASES = {
     'default': {
-        #'ENGINE': 'django.db.backends.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': os.path.join(BASE_DIR, 'db', 'db.sqlite3'),
     }
 }
+
+# Change these to be appropriate for the environment
+ENVIRONMENT_NAME="Production"
+ENVIRONMENT_COLOR="red"
 
 # set to wherever you want your static files to live
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
