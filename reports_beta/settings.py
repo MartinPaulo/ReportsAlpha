@@ -250,8 +250,8 @@ STORAGE_PRODUCT_CODES = \
     COMPUTE_PRODUCT_CODES + MARKET_PRODUCT_CODES + VAULT_MARKET_CODES
 
 
-ENVIRONMENT_NAME="Development"
-ENVIRONMENT_COLOR="gray"
+ENVIRONMENT_NAME="Production"
+ENVIRONMENT_COLOR="red"
 
 # From:
 # http://stackoverflow.com/questions/1626326/how-to-manage-local-vs-production-settings-in-django
