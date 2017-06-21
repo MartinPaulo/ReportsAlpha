@@ -19,9 +19,9 @@ from .views import index
 
 urlpatterns = [
     url('^$', index, name='index'),
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    url(r'^uom_admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^reports/', include('reports.urls')),
-    url(r'^admin/', admin.site.urls),
+    url(r'^uom_admin/', admin.site.urls),
     url(r'^contact/', include('contact.urls')),
     url('^', include('django.contrib.auth.urls')),
     url('^registration/', include('registration.urls')),
