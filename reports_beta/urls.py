@@ -23,9 +23,9 @@ admin.site.site_title = 'ResPlat Reporting'
 urlpatterns = [
     url('^$', index, name='index'),
     url(r'^uom_admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^reports/', include('reports.urls', namespace='reports')),
+    url(r'^reports/', include('reports.urls')),
     url(r'^uom_admin/', admin.site.urls),
-    url(r'^contact/', include('contact.urls', namespace='contact')),
+    url(r'^contact/', include('contact.urls')),
     url('^', include('django.contrib.auth.urls', namespace='auth')),
     url('^registration/', include('registration.urls')),
 ]
