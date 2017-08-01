@@ -1,13 +1,13 @@
 <nav id="iNav">
     <ul>
         <li><a href="/">⌂ Home</a></li>
-        <li><a href="/reports/search">Search</a></li>
-        <li><a href="/contact">Contact Us</a></li>
-        <li><a href="/reports/about">About</a></li>
+        <li><a href="{% url 'reports:search' %}">Search</a></li>
+        <li><a href="{% url 'contact:contact' %}">Contact Us</a></li>
+        <li><a href="{% url 'reports:about' %}">About</a></li>
         {% if user.is_authenticated %}
-            <li><a href="/logout/?next=/">Logout</a></li>
+            <li><a href="{% url 'auth:logout' %}?next=/">Logout</a></li>
         {% else %}
-            <li><a href="/login">Login</a></li>
+            <li><a href="{% url 'auth:login' %}">Login</a></li>
         {% endif %}
     </ul>
 </nav>

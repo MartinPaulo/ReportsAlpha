@@ -4,13 +4,13 @@
 {% block content %}
     <ul>
         <li>
-            <a href="reports/?set=cloud">Cloud Reports</a>
+            <a href="{% url 'reports:reports' %}?set=cloud">Cloud Reports</a>
         </li>
         <li>
-            <a href="reports/?set=storage">Storage Reports</a>
+            <a href="{% url 'reports:reports' %}?set=storage">Storage Reports</a>
         </li>
         <li>
-            <a href="reports/">All Reports</a>
+            <a href="{% url 'reports:reports' %}">All Reports</a>
         </li>
         {% if user.is_superuser %}
             <li>
