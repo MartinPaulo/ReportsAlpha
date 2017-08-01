@@ -42,7 +42,9 @@
                 {# The line below should have no spaces in it #}
                 {# At the moment a hacky work around to hide it if no graph #}
                 {# is drawn on the uptime report #}
+                {# @formatter:off #}
                 <div class="chart-wrapper"><svg></svg></div>
+                {# @formatter:on #}
                 <div id="extra_link"></div>
             </div>
         </section>
@@ -62,7 +64,7 @@
     <script src="{% static "/reports/js/charts/uptime_bullet.js" %}"></script>
     <script src="{% static "/reports/js/charts/uptime_history.js" %}"></script>
     <script src="{% static "/reports/js/spin.js" %}"></script>
-    <script src="{% static "/reports/js" %}/{{ report.d3_file_name }}"></script>
+    <script src="{% static '/reports/js/'|add:report.d3_file_name %}"></script>
     <script>
         report.d3.render();
     </script>
