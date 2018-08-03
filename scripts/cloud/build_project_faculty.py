@@ -4,18 +4,7 @@ import sys
 from ldap3 import Server, Connection
 
 from reports.models import CloudProjectFaculty
-from scripts.cloud.utility import Faculties
-
-ldap_connection = None
-
-
-def _bind_to_server():
-    global ldap_connection
-    ldap_server = Server('centaur.unimelb.edu.au')
-    ldap_connection = Connection(ldap_server)
-    if not ldap_connection.bind():
-        print("Could not bind to LDAP server")
-        sys.exit(1)
+from scripts.cloud.utility import Faculties, LDAP
 
 
 def build_project_faculty(extract_db, load_db, **kwargs):
@@ -91,21 +80,5 @@ def get_faculties_for(uom_email_address):
              as they are returned from the LDAP system
     :rtype: list
     """
-    result = None
-    if uom_email_address:
-        if not ldap_connection:
-            _bind_to_server()
-        query = '(&(objectclass=person)(mail=%s))' % uom_email_address
-        ldap_connection.search('o=unimelb', query,
-                               attributes=['department',
-                                           'departmentNumber',
-                                           'auEduPersonSubType'])
-        if len(ldap_connection.entries) > 0:
-            department_numbers = []
-            for entry in ldap_connection.entries:
-                if hasattr(entry, 'departmentNumber'):
-                    department_numbers.extend(entry.departmentNumber)
-            result = Faculties.get_from_departments(department_numbers)
-    if not result:
-        result = [Faculties.UNKNOWN]
-    return result
+    ldap = LDAP()
+    return ldap.find_faculty(uom_email_address)
