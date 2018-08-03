@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'registration',
-    'contact'
+    'contact',
+    'scripts'
     # 'reports',
 ]
 
@@ -265,10 +266,8 @@ except ImportError as e:
 # debug flag
 if DEBUG:
     logging.warning('Overwriting logging output files...')
-    LOGGING['handlers']['production_logfile'][
-        'filename'] = '/tmp/flow_reports_production.log'
-    LOGGING['handlers']['development_logfile'][
-        'filename'] = '/tmp/flow_reports_dev.log'
+    LOGGING['handlers']['production_logfile']['filename'] = '/tmp/flow_reports_production.log'
+    LOGGING['handlers']['development_logfile']['filename'] = '/tmp/flow_reports_dev.log'
     # By default root is set at WARNING: hence my reports loggers won't
     # show anything at a lower level :(
     LOGGING['root'] = {'level': 'DEBUG'}
