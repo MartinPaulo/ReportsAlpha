@@ -60,7 +60,7 @@ class CloudProjectFaculty(models.Model):
     contact_email = models.CharField(max_length=75, blank=True, null=True,
                                      help_text="The applicant's email")
     description = models.CharField(max_length=64, blank=True, null=True,
-                            help_text="The project description")
+                                   help_text="The project description")
     for_code = models.CharField(max_length=6, blank=True, null=True,
                                 help_text="The highest weighted FOR code")
     allocated_faculty = models.CharField(max_length=7, blank=True, null=True,
@@ -400,6 +400,16 @@ class CloudQuarterly(CloudTotalsByFaculty):
         db_table = 'cloud_quarterly'
 
 
+class CloudQuarterlyCoreHours(CloudTotalsByFaculty):
+    """
+    Contains the quarterly number of core hours used by faculty
+    Note that the date column here is the date of the quarter end
+    """
+
+    class Meta:
+        db_table = 'cloud_quarterly_core_hours'
+
+
 class CloudQuarterlyUsage(models.Model):
     """
     Contains the quarterly usage figures for the research cloud
@@ -426,9 +436,9 @@ class CloudQuarterlyUsage(models.Model):
                                             help_text="The count of projects "
                                                       "active with UoM users")
     all_users_active = models.IntegerField(blank=False, null=False,
-                                            default=0,
-                                            help_text="The count of all users "
-                                                      "active")
+                                           default=0,
+                                           help_text="The count of all users "
+                                                     "active")
     uom_users_active = models.IntegerField(blank=False, null=False,
                                            default=0,
                                            help_text="The total count of UoM "
