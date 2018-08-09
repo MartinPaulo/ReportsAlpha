@@ -1,0 +1,9 @@
+Period	Faculty	Storage Used	(%)(#){% spaceless %}
+{% comment 'Along the lines of: %}
+2017Q2	ABP	0
+2017Q2	FoA	0.02
+2017Q2	FBE	0.01
+{% endcomment %}
+{% endspaceless %}
+{% for row in storage_results %}{{row.0}}	{{row.1}}	{{row.2}}	{{row.3|floatformat:2}}
+{% endfor %}

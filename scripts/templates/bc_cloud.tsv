@@ -1,0 +1,31 @@
+Period	Metric	Cloud Projects (#){% spaceless %}
+{% comment 'Along the lines of: %}
+2018Q2	Projects active	2209
+2018Q2	Unimelb-owned projects active	385
+2018Q2	UOM users active in projects	665
+{% endcomment %}
+{% endspaceless %}
+{{quarter}}	Projects active	{{total_projects_active}}
+{{quarter}}	Unimelb-owned projects active	{{uom_projects_active}}
+{{quarter}}	UOM users active in projects	{{uom_users_active}}
+
+
+Period	Faculty	Cloud Hours	(%){% spaceless %}
+{% comment 'Along the lines of: %}
+2018Q2	ABP	0.3
+2018Q2	FBE	1.05
+2018Q2	FoA	0.5
+{% endcomment %}
+{% endspaceless %}
+{% for row in cloud_hours %}{{row.0}}	{{row.1}}	{{row.2}}	{{row.3|floatformat:2}}
+{% endfor %}
+
+Period	Faculty	Cloud Users	(%){% spaceless %}
+{% comment 'Along the lines of: %}
+2018Q2	ABP	0.8
+2018Q2	FBE	2.23
+2018Q2	FoA	1.43
+{% endcomment %}
+{% endspaceless %}
+{% for row in cloud_users %}{{row.0}}	{{row.1}}	{{row.2}}	{{row.3|floatformat:2}}
+{% endfor %}
