@@ -404,6 +404,8 @@ class Faculties(Enum):
     @classmethod
     def get_from_for_code(cls, for_code):
         """
+        ToDo: Jared says you can't look up departments from FOR codes.
+              Retire this method?
         :return: Faculty that best matches the FOR code argument
 
         :param for_code: str giving the FOR code
