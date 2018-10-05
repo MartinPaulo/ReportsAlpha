@@ -76,7 +76,6 @@ def users_for_quarter(users_file_path):
     users = dict()
     with users_file_path.open(mode='r') as infile:
         reader = csv.DictReader(infile, delimiter="\t")
-        next(reader)  # skip header row
         for row in reader:
             user = dict()
             for key in row.keys():
@@ -108,8 +107,8 @@ def total_project_job_counts(input_file_name, allocated_projects):
             split = line.split()
             project_name = split[1]
             if project_name in allocated_projects:
-                job_count = split[3]
-                total_job_count += int(job_count)
+                job_count = int(split[3])
+                total_job_count += job_count
     return total_job_count
 
 
@@ -203,7 +202,7 @@ if __name__ == "__main__":
                 for faculty, total in faculty_totals.items():
                     grand_total += total
                     hpc_core_hours['hpc_hours'].append(
-                        (faculty.value, get_hours_and_minutes(total)))
+                        (current_quarter, faculty.value, get_hours_and_minutes(total)))
                 hpc_core_hours['hpc_total_core_hours'] = str(
                     get_hours_and_minutes(grand_total))
                 hpc_core_hours['quarter'] = current_quarter
