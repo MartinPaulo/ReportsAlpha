@@ -5,6 +5,7 @@ Lists the storage collections per year, giving their allocation and usage
 import sys
 import time
 from collections import defaultdict
+from datetime import datetime
 
 import psycopg2
 import psycopg2.extras
@@ -38,6 +39,12 @@ class StorageDB:
         self._db_cur = self._db_connection.cursor(
             cursor_factory=psycopg2.extras.RealDictCursor)
         self.test_connection()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close_connection()
 
     def __del__(self):
         self.close_connection()
@@ -187,76 +194,80 @@ def as_empty_string_if_null(target):
 
 
 db = StorageDB()
-owners = dict()
-contacts = db.get_contacts()
-for contact in contacts:
-    # There is more than one contact for some of the projects...
-    if not owners.get(contact['id'], None):
-        details = (as_empty_string_if_null(contact['first_name']),
-                   as_empty_string_if_null(contact['last_name']),
-                   as_empty_string_if_null(contact['email_address']),
-                   as_empty_string_if_null(contact['business_email_address']))
-        owners[contact['id']] = details
-faculties = dict()
-sub_orgs = db.get_sub_organizations()
-for org in sub_orgs:
-    if faculties.get(org['project_id'], None):
-        print("Error: There is more than one faculty for %s %s" % (
-            org['project_id'], org['faculty']), file=sys.stderr)
-        sys.exit(2)
-    faculties[org['project_id']] = org['faculty']
+with db:
+    owners = dict()
+    contacts = db.get_contacts()
+    for contact in contacts:
+        # There is more than one contact for some of the projects...
+        if not owners.get(contact['id'], None):
+            details = (as_empty_string_if_null(contact['first_name']),
+                       as_empty_string_if_null(contact['last_name']),
+                       as_empty_string_if_null(contact['email_address']),
+                       as_empty_string_if_null(
+                           contact['business_email_address']))
+            owners[contact['id']] = details
+    faculties = dict()
+    sub_orgs = db.get_sub_organizations()
+    for org in sub_orgs:
+        faculties_for_project = faculties.get(org['project_id'], None)
+        if faculties_for_project:
+            continue # no need to add this new faculty?
+        #     raise ValueError("There is more than one faculty for %s : %s" % (
+        #             org['project_id'], faculties_for_project))
+        faculties[org['project_id']] = org['faculty']
 
-o = '{faculty!s}, {collection_id!s}, {collection_name!s}, ' \
-    '{name!s}, {email_address!s},  {business_email_address!s}, ' \
-    '{allocated!s}, {used!s}'
-out_file = "output/storage_%s.txt" % time.strftime("%Y%m%d-%H%M%S")
-with open(out_file, "w") as output:
-    for year in [2014, 2015, 2016, 2017]:
-        output.write('='*80 + '\n')
-        output.write('Year: %s\n' % year)
-        output.write('='*80 + '\n')
-        output.write('\n')
-        output.write(o.format(**{
-            'faculty': 'Faculty',
-            'collection_id': 'Collection ID',
-            'collection_name': 'Collection Name',
-            'name': 'Custodian Name',
-            'email_address': 'Email',
-            'business_email_address': 'Work Email',
-            'allocated': 'Allocated',
-            'used': 'Used',
-        }) + '\n')
-        allocated = db.get_allocated(year)
-        used_index = 0
-        by_faculty = defaultdict(list)
-        for allocation in allocated:
-            collection_id = allocation['collection_id']
-            collection_name = allocation['name'].strip()
-            allocated = allocation['allocated']
+    o = '{faculty!s}, {collection_id!s}, {collection_name!s}, ' \
+        '{name!s}, {email_address!s},  {business_email_address!s}, ' \
+        '{allocated!s}, {used!s}'
+    out_file = "output/storage_%s.txt" % time.strftime("%Y%m%d-%H%M%S")
+    with open(out_file, "w") as output:
+        # for the last 4 years...
+        for year in [datetime.now().year - i for i in range(3, -1, -1)]:
+            output.write('=' * 80 + '\n')
+            output.write('Year: %s\n' % year)
+            output.write('=' * 80 + '\n')
+            output.write('\n')
+            output.write(o.format(**{
+                'faculty': 'Faculty',
+                'collection_id': 'Collection ID',
+                'collection_name': 'Collection Name',
+                'name': 'Custodian Name',
+                'email_address': 'Email',
+                'business_email_address': 'Work Email',
+                'allocated': 'Allocated',
+                'used': 'Used',
+            }) + '\n')
+            allocated = db.get_allocated(year)
+            used_index = 0
+            by_faculty = defaultdict(list)
+            for allocation in allocated:
+                collection_id = allocation['collection_id']
+                collection_name = allocation['name'].strip()
+                allocated = allocation['allocated']
 
-            faculty = faculties.get(collection_id)
-            if not faculty:
-                print("Error: No faculty found: %s %s" % (
-                    collection_id, collection_name), file=sys.stderr)
-                sys.exit(1)
-            (first_name, last_name, email_address,
-             business_email_address) = owners.get(collection_id,
-                                                  ('', '', '', ''))
-            used = db.get_used(year, collection_id)
-            total_used = used['used'] if used and used['used'] else 0
-            collection = {'collection_id': collection_id,
-                          'collection_name': collection_name,
-                          'faculty': faculty,
-                          'name': '{0} {1}'.format(first_name,
-                                                   last_name).strip(),
-                          'email_address': email_address,
-                          'business_email_address': business_email_address,
-                          'allocated': allocated,
-                          'used': total_used, }
-            by_faculty[faculty].append(collection)
-        for faculty in sorted(by_faculty):
-            for collection in by_faculty[faculty]:
-                output.write(o.format(**collection) + '\n')
-        output.write('\n')
+                faculty = faculties.get(collection_id)
+                if not faculty:
+                    print("Error: No faculty found: %s %s" % (
+                        collection_id, collection_name), file=sys.stderr)
+                    sys.exit(1)
+                (first_name, last_name, email_address,
+                 business_email_address) = owners.get(collection_id,
+                                                      ('', '', '', ''))
+                used = db.get_used(year, collection_id)
+                total_used = used['used'] if used and used['used'] else 0
+                collection = {'collection_id': collection_id,
+                              'collection_name': collection_name,
+                              'faculty': faculty,
+                              'name': '{0} {1}'.format(first_name,
+                                                       last_name).strip(),
+                              'email_address': email_address,
+                              'business_email_address': business_email_address,
+                              'allocated': allocated,
+                              'used': total_used, }
+                by_faculty[faculty].append(collection)
+            for faculty in sorted(by_faculty):
+                for collection in by_faculty[faculty]:
+                    output.write(o.format(**collection) + '\n')
+            output.write('\n')
 
 db.close_connection()
