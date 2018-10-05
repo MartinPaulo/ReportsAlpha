@@ -3,7 +3,8 @@ Period	Metric	HPC Value
 {{quarter}}	Jobs and job arrays	{{hpc_job_count}}
 
 Period	Faculty	HPC Projects (#){% spaceless %}
-{% comment 'Along the lines of: %}
+{% comment %}
+Along the lines of:
 2018Q2	ABP	1
 2018Q2	Bio 21	1
 {% endcomment %}
@@ -12,10 +13,11 @@ Period	Faculty	HPC Projects (#){% spaceless %}
 {% endfor %}
 
 Period	Faculty	HPC Hours (hrs){% spaceless %}
-{% comment 'Along the lines of: %}
+{% comment %}
+Along the lines of:
 2018Q2	ABP	11
 2018Q2	Bio 21	71310
 {% endcomment %}
 {% endspaceless %}
-{% for row in hpc_hours %}{{{row.0}}	{{row.1}}	{{row.2}}
+{% for row in hpc_hours %}{{row.0}}	{{row.1}}	{{row.2}}
 {% endfor %}
