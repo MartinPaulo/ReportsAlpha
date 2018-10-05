@@ -209,7 +209,7 @@ for start_date, end_date, abbreviation in quarter_dates(
     for faculty, total in faculty_totals.items():
         percentage = round(total / quarter_total * 100, 2)
         results['storage_results'].append(
-            (abbreviation, faculty, total, percentage))
+            (abbreviation, faculty.value, total, percentage))
         total_percentage += percentage
     result += t.render(results)
     print()
