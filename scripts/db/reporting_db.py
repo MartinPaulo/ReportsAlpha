@@ -21,7 +21,8 @@ class DB:
         return self._db_cur.execute(query, params)
 
     def __del__(self):
-        self._db_connection.close()
+        if self._db_connection:
+            self._db_connection.close()
 
     def get_in_both(self, day_date):
         """
@@ -442,6 +443,11 @@ class DB:
 
         Returns:
             int: The count of projects active between the start and end dates
+
+        Notes:
+            The number of active projects is given by the number of of projects
+            that started, deleted or ran instances between the from_date and
+            the to_date argument values.
         """
         query = """
           SELECT count(DISTINCT project_id) AS active
@@ -480,15 +486,21 @@ class DB:
                                      'end': to_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchone()['active']
 
-    def get_uom_projects_active(self, from_date, to_date):
+    def get_approved_uom_projects_active(self, from_date, to_date):
         """
         Args:
             from_date (date): The start date
             to_date (date): The end date
 
         Returns:
-            int: The count of UoM owned approved projects active between the
-            start and end dates
+            int: The count of UoM non personal approved projects active between
+            the from_date and to_date arguments
+
+        Notes:
+            The number of active projects is given by the number of non
+            personal projects belonging to the university of melbourne
+            that started, deleted or ran instances between the from_date and
+            the to_date argument values.
         """
         query = """
           SELECT count(DISTINCT project_id) AS active
@@ -532,7 +544,7 @@ class DB:
                                      'end': to_date.strftime("%Y-%m-%d")})
         return self._db_cur.fetchone()['active']
 
-    def get_projects_active_with_uom_participation(self, from_date, to_date):
+    def get_all_projects_active_with_uom_participation(self, from_date, to_date):
         """
         Args:
             from_date (date): The start date
