@@ -219,6 +219,8 @@ CELL_NAMES = {'nectar!sa-cw',
               # 'nectar!tas!tas-m', 'nectar!tas!tas-s',
               'NULL'} | UOM_CELL_NAMES
 
+# ToDo: this is broken, as it doesn't track any database changes. Fix?
+# can wait till we have our own database with no monash codes...
 STORAGE_PRODUCT_TYPES = {
     'Vault.Monash', 'Vault.Melbourne.Object', 'Market.Monash.Object',
     'Market.Monash.File', 'Market.Monash', 'Market.Melbourne.Mediaflux',

@@ -24,7 +24,7 @@ import logging
 import os
 import random
 import sys
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from operator import add, sub
 
 import django
@@ -82,7 +82,9 @@ def main():
     load_db = local_db.DB()
     # A short hand that stops us from having to type out repeated arguments
     # Indicates a smell, methinks.
-    _args = {'load_db': load_db, 'start_day': start_day}
+    # _args['start_day'] = date(year=2018, month=5, day=1)
+
+    _args = {'load_db': load_db, 'start_day': date(year=2018, month=5, day=1), 'end_day': date.today()}
     if options['all'] or options['cloud']:
         _args['extract_db'] = reporting_db.DB()
         # these imports are done here as the django setup has to be performed
@@ -90,35 +92,37 @@ def main():
         from scripts.cloud import builder as nectar
         from scripts.cloud.build_project_faculty import build_project_faculty
         nectar.test_db(**_args)
-        build_project_faculty(**_args)
-        nectar.build_active(**_args)
-        nectar.build_top_twenty(**_args)
-        nectar.build_faculty_allocated(**_args)
-        nectar.build_used(**_args)
-        nectar.build_private_cell_data(**_args)
+        # # build_project_faculty(**_args)
+        # nectar.build_active(**_args)
+        # nectar.build_top_twenty(**_args)
+        # nectar.build_faculty_allocated(**_args)
+        # nectar.build_used(**_args)
+        # nectar.build_private_cell_data(**_args)
         nectar.build_buyers_committee(**_args)
-        nectar.build_quarterly_usage(**_args)
-        if False:
-            read_national(load_db)
+        nectar.get_quarterly_users_and_percentages(**_args)
+        nectar.get_quarterly_cpu_hours(**_args)
+        # if False:
+        #     read_national(load_db)
 
-        unknown_source = FakeCloudCapacityData()
-        nectar.build_capacity(unknown_source, load_db, start_day)
+        # unknown_source = FakeCloudCapacityData()
+        # nectar.build_capacity(unknown_source, load_db, start_day)
 
     if options['all'] or options['storage']:
         vicnode_source_db = vicnode_db.DB()
         # replace the extract database with vicnodes, but otherwise keep the
         # arguments the same.
         _args['extract_db'] = vicnode_source_db
+        _args['start_day'] = date(year=2018, month=5, day=1)
         try:
-            vicnode.test_db(**_args)
-            vicnode.build_allocated(**_args)
-            vicnode.build_allocated_by_faculty(**_args)
-            vicnode.build_used(**_args)
+            # vicnode.test_db(**_args)
+            # vicnode.build_allocated(**_args)
+            # vicnode.build_allocated_by_faculty(**_args)
+            # vicnode.build_used(**_args)
             vicnode.build_used_by_faculty(**_args)
-            vicnode.build_headroom_unused(**_args)
-            vicnode.build_headroom_unused_by_faculty(**_args)
-            vicnode.build_capacity(**_args)
-            vicnode.build_headroom_unallocated(**_args)
+            # vicnode.build_headroom_unused(**_args)
+            # vicnode.build_headroom_unused_by_faculty(**_args)
+            # vicnode.build_capacity(**_args)
+            # vicnode.build_headroom_unallocated(**_args)
         finally:
             vicnode_source_db.close_connection()
 

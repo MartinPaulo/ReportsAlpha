@@ -65,6 +65,8 @@ class DB(object):
     def close_connection(self):
         if self._server:
             logging.info("Closing the VicNode DB connection")
+            # if the connection was not established, there will be no close()
+            # attribute...
             self._db_connection.close()
             logging.info("Stopping the ssh tunnel")
             self._server.stop()

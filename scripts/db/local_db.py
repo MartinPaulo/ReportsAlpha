@@ -3,12 +3,11 @@ We use sqlite to store our aggregated data in. We do this for the deployment
 convenience. For the time being this should be ok: we have a very low volume
 website, with a relatively small amount of sql queries being fired.
 """
+import codecs
 import logging
 import sqlite3
 from datetime import datetime, date
 from decimal import Decimal
-
-import codecs
 
 from scripts.cloud.utility import Faculties
 from scripts.config import Configuration
@@ -28,13 +27,14 @@ def float2decimal(val):
 sqlite3.register_converter("decimal", float2decimal)
 
 ALLOWED_COLUMN_NAMES = {'date', 'computational', 'vault', 'market',
-                        Faculties.FOA, Faculties.VAS, Faculties.FBE,
-                        Faculties.MSE, Faculties.MGSE, Faculties.MDHS,
-                        Faculties.FOS, Faculties.ABP, Faculties.MLS,
-                        Faculties.VCAMCM,
-                        Faculties.OTHER, Faculties.OTHER.lower(),
-                        Faculties.UNKNOWN, Faculties.UNKNOWN.lower(),
-                        'external', 'services',
+                        Faculties.FOA.value, Faculties.VAS.value,
+                        Faculties.FBE.value, Faculties.MSE.value,
+                        Faculties.MGSE.value, Faculties.MDHS.value,
+                        Faculties.FOS.value, Faculties.ABP.value,
+                        Faculties.MLS.value, Faculties.VCAMCM.value,
+                        Faculties.OTHER.value, Faculties.OTHER.name.lower(),
+                        Faculties.UNKNOWN.value,
+                        Faculties.UNKNOWN.name.lower(), 'external', 'services',
                         # following are cloud_capacity
                         'nectar_contribution', 'uom_contribution',
                         'co_contribution'}
@@ -72,8 +72,7 @@ class DB(object):
         """
         for key in totals.keys():
             if key not in ALLOWED_COLUMN_NAMES:
-                raise ColumnNameNotAllowed(
-                    "Column name %s is forbidden " % key)
+                raise ColumnNameNotAllowed(f'Column name: {key} is forbidden')
 
     def __init__(self):
         self._db_connection = sqlite3.connect(
@@ -158,6 +157,10 @@ class DB(object):
         return self.get_max_date('cloud_used')
 
     def save_used_data(self, faculty_totals):
+        """
+        :param faculty_totals:
+        :return: None
+        """
         self._ensure_sanitized(faculty_totals)
         columns = ', '.join(faculty_totals.keys())
         value_placeholder = ', '.join(

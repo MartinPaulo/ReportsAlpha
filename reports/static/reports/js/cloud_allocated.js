@@ -99,7 +99,7 @@ report.d3 = function () {
             nv.utils.windowResize(chart.update);
 
             // should we record the allocation domain? (only need to do this first time round)
-            if (!allocationDomain && source.toLowerCase() == ALLOCATED_BUTTON_CAPTION.toLowerCase()) {
+            if (!allocationDomain && source.toLowerCase() === ALLOCATED_BUTTON_CAPTION.toLowerCase()) {
                 allocationDomain = chart.yAxis.scale().domain();
             }
 

@@ -16,3 +16,4 @@ django-inspectional-registration
 markdown
 docopt
 gnocchiclient
+sphinx

@@ -185,8 +185,9 @@ def _build_used_by_faculty_market(extract_db, load_db, start_day,
 
 def _build_used_by_faculty_vault(extract_db, load_db, start_day,
                                  end_day=date.today()):
-    if not start_day:
-        start_day = load_db.get_storage_used_by_faculty_vault_last_run_date()
+    last_run_day = load_db.get_storage_used_by_faculty_vault_last_run_date()
+    if not start_day or start_day < last_run_day:
+        start_day = last_run_day
     logging.info("Building storage vault used by faculty from %s till %s",
                  start_day, end_day)
     for day_date in date_range(start_day, end_day):
