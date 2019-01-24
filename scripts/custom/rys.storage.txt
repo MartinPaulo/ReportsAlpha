@@ -1,0 +1,42 @@
+-- COMPUTE_PRODUCT_CODES = (
+--     1,  # Computational.Melbourne
+--     4,  # Market.Melbourne
+--     23,  # Market.Melbourne.Mediaflux
+--     24,  # Market.Melbourne.Gluster
+--     10,  # Vault.Melbourne.Object
+-- )
+
+SELECT
+  sum(used_capacity)            AS used,
+  CASE
+  WHEN storage_product_id IN (1)
+    THEN 'computational'
+  WHEN storage_product_id IN (4)
+    THEN 'market'
+  WHEN storage_product_id IN (10)
+    THEN 'vault'
+  WHEN storage_product_id IN (23)
+    THEN 'market.mediaflux'
+  WHEN storage_product_id IN (24)
+    THEN 'market.gluster'
+  ELSE 'unknown' END            AS product,
+  TIMESTAMP 'yesterday' :: DATE AS on_date
+FROM applications_ingest t1
+WHERE storage_product_id IN (1, 4, 10, 23, 24)
+      -- and this is the last record
+      AND extraction_date = (
+  SELECT MAX(extraction_date)
+  FROM applications_ingest t2
+  WHERE t2.collection_id = t1.collection_id
+        AND t2.storage_product_id = t1.storage_product_id
+        AND t2.extraction_date <= TIMESTAMP 'yesterday'
+)
+GROUP BY product; -- GiB's ?
+
+https://www.postgresql.org/docs/current/static/datatype-datetime.html#AEN6039
+
+So there are timestamp convenience shortcuts, such as:
+yesterday
+today
+tomorrow
+now
