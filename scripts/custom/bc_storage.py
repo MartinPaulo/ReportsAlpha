@@ -55,7 +55,7 @@ class DB:
     def get_contacts(self):
         """
         Returns: every project name and it's chief investigator (can be more
-        than one).
+        than one?).
         """
         query = """
             SELECT
@@ -205,7 +205,7 @@ for start_date, end_date, abbreviation in quarter_dates(
                 faculty = Faculties.UNKNOWN
         faculty_totals[faculty] += storage_used
         quarter_total += storage_used
-        time.sleep(0.1)
+        # time.sleep(0.1)
     for faculty, total in faculty_totals.items():
         percentage = round(total / quarter_total * 100, 2)
         results['storage_results'].append(
