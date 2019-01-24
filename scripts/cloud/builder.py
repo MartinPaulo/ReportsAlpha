@@ -263,6 +263,12 @@ def _build_cpu_hours(extract_db, start_date, end_date):
     )
 
 
+def _get_value(dict, key):
+    if key in dict:
+        return dict[key]
+    return 0
+
+
 def _build_users_faculties(extract_db, start_date, end_date):
     user_totals = Faculties.get_new_totals()
     active_uom_users = extract_db.get_email_of_active_uom_users(start_date,
@@ -274,18 +280,18 @@ def _build_users_faculties(extract_db, start_date, end_date):
     CloudQuarterly.objects.update_or_create(
         date=end_date.strftime("%Y-%m-%d"),
         defaults={
-            'foa': user_totals['FoA'],
-            'vas': user_totals['VAS'],
-            'fbe': user_totals['FBE'],
-            'mse': user_totals['MSE'],
-            'mgse': user_totals['MGSE'],
-            'mdhs': user_totals['MDHS'],
-            'fos': user_totals['FoS'],
-            'abp': user_totals['ABP'],
-            'mls': user_totals['MLS'],
-            'vcamcm': user_totals['VCAMCM'],
-            'services': user_totals['Other'],
-            'unknown': user_totals['Unknown']
+            'foa': _get_value(user_totals, 'FoA'),
+            'vas': _get_value(user_totals, 'VAS'),
+            'fbe': _get_value(user_totals, 'FBE'),
+            'mse': _get_value(user_totals, 'MSE'),
+            'mgse': _get_value(user_totals, 'MGSE'),
+            'mdhs': _get_value(user_totals, 'MDHS'),
+            'fos': _get_value(user_totals, 'FoS'),
+            'abp': _get_value(user_totals, 'ABP'),
+            'mls': _get_value(user_totals, 'MLS'),
+            'vcamcm': _get_value(user_totals, 'VCAMCM'),
+            'services': _get_value(user_totals, 'Other'),
+            'unknown': _get_value(user_totals, 'Unknown')
         }
     )
 
@@ -317,6 +323,7 @@ def _build_activity_figures(extract_db, start_date, end_date):
         uom_users_active=uom_users_active
     )
 
+
 def _get_quarter_abbreviation(quarter_end_date):
     """
     By working out the quarter abbreviation from the date value here
@@ -330,6 +337,7 @@ def _get_quarter_abbreviation(quarter_end_date):
     d = date(*[int(x) for x in quarter_end_date.split('-')])
     return f'{d.year}{quarter_d[d.month]}'
 
+
 def get_quarterly_users_and_percentages(start_day, end_day, **kwargs):
     """
     returns the contents of the cloud_quarterly table with percentages
@@ -337,9 +345,8 @@ def get_quarterly_users_and_percentages(start_day, end_day, **kwargs):
     logging.info('Fetching quarterly usage percentages from database')
     quarters = CloudQuarterly.objects.filter(
         date__gte=start_day,
-        date__lte=end_day).order_by(
-        '-date')[:1]
-    quarter_d = {3: 'Q1', 6: 'Q2', 9: 'Q3', 12: 'Q4'}
+        date__lte=end_day).order_by('-date')[:1]
+    # quarter_d = {3: 'Q1', 6: 'Q2', 9: 'Q3', 12: 'Q4'}
     result = dict()
     result['cloud_users'] = []
     result['total_projects_active'] = 0
@@ -357,7 +364,10 @@ def get_quarterly_users_and_percentages(start_day, end_day, **kwargs):
         for field in fields:
             if field.name is 'unknown' or field.name is 'date':
                 continue
-            percentage = int(getattr(quarter, field.name)) / total * 100
+            if total > 0:
+                percentage = int(getattr(quarter, field.name)) / total * 100
+            else:
+                percentage = 0
             result['cloud_users'].append((
                 quarter_header,  # quarter abbreviation
                 field.name.upper(),  # faculty
@@ -381,7 +391,8 @@ def get_quarterly_cpu_hours(start_day, end_day, **kwargs):
         date__lte=end_day).order_by(
         '-date')[:1]
     fields = CloudQuarterlyCoreHours._meta.get_fields()
-    assert len(quarters) == 1
+    print(len(quarters))
+    # assert len(quarters) == 1
     quarter = quarters.first()
     # sum the faculty totals for a grand total
     total = 0

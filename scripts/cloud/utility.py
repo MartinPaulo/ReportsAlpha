@@ -113,9 +113,13 @@ class Faculties(Enum):
             'economcis': cls.FBE,
             'fbe': cls.FBE,
             'sir peter mac dept of oncology': cls.MDHS,
+            'dmi': cls.MDHS,
+            'melbourne school of population and global health': cls.MDHS,
+            'victorian comprehensive cancer center,  level 10': cls.MDHS,
             'software engineering': cls.MSE,
             'chemistry': cls.FOS,
             'engineering': cls.MSE,
+            'crc': cls.MSE,
             'cluster cloud computing': cls.MSE,
             'school of engineering': cls.MSE,
             'computer': cls.MSE,
@@ -168,6 +172,7 @@ class Faculties(Enum):
             'department of engineering': cls.MSE,
             'chemical& biomolecular engineering': cls.MSE,
             'physics': cls.FOS,
+            'school of physic': cls.FOS,
             'engneering': cls.MSE,
             'school of biosciences': cls.FOS,
             'mspgh (centre for epidemiology and biostatistics)': cls.FOS,
@@ -190,6 +195,7 @@ class Faculties(Enum):
             'computer and information system': cls.MSE,
             'biomedical engineering': cls.MDHS,
             'chemical and biomolecular engineering': cls.MDHS,
+            'cis school': cls.MSE,
             'computing': cls.MSE,
             'biological sciences': cls.MDHS,
             'mit': cls.MSE,
@@ -229,6 +235,7 @@ class Faculties(Enum):
             'faculty of veterinary and agricultural sciences': cls.FOS,
             'infrastructure services': cls.OTHER,
             'infrastructure': cls.OTHER,
+            'infrasture': cls.OTHER,
             'research platform services': cls.OTHER,
             'eee': cls.MSE,
             # electrical and electronic engineering
@@ -252,6 +259,7 @@ class Faculties(Enum):
             'centre for epidemiology and biostatistics': cls.MDHS,
             'melbourne institute of applied economic and social research': cls.FBE,
             'accounting': cls.FBE,
+            'planning': cls.ABP,
             'architecture': cls.ABP,
             'ie': cls.MSE,
             'melbourne institute': cls.FBE,
@@ -260,6 +268,10 @@ class Faculties(Enum):
             'mspgh': cls.MDHS,
             # quantitative and applied ecology group
             'quaeco': cls.FOS,
+            'fvas': cls.VAS,  # Faculty of Veterinary Science
+            'mbc': cls.MDHS,
+            'grattan institute': cls.FOA,
+
         }
         department_lower = department.lower()
         try:
@@ -268,6 +280,8 @@ class Faculties(Enum):
             # its a string we haven't seen before...
             # so some hail mary broad strokes
             if 'florey' in department_lower:
+                faculty = cls.MDHS
+            elif 'mbc' in department_lower: # Melbourne Brain Centre
                 faculty = cls.MDHS
             elif 'chemical' in department_lower:
                 faculty = cls.MSE
@@ -333,9 +347,9 @@ class Faculties(Enum):
         result = set()
         if len(department):
             result.add(cls.get_from_department(department))
-            if cls.UNKNOWN in result:
-                print(
-                    f"Department not found: '{department.lower()}': '', user: {user_name}''")
+            # if cls.UNKNOWN in result:
+            #     print(
+            #         f"Department not found: '{department.lower()}': '', user: {user_name}''")
         else:
             result.add(cls.UNKNOWN)
         return result.pop()
@@ -364,6 +378,7 @@ class Faculties(Enum):
         #     ('7890', cls.FOS)  # Bio21 Institute
         # ]
         result = []  # we don't use a set, as we want to preserve the ordering
+        # print(department_numbers)
         for department_number in department_numbers:
             # # assert (not department_number.lower().endswith('h')), \
             # #     f"Department {department_number} ends with 'H'"
@@ -399,7 +414,15 @@ class Faculties(Enum):
             else:
                 _append(result, cls.OTHER)
         # we are going to preference the most common faculty
-        return Counter(result).most_common()[0][0]
+        # print(result)
+        try:
+            common_ = Counter(result).most_common()[0][0]
+            return common_
+        except Exception as e:
+
+            print(f'deps: {department_numbers}')
+            print(f'res: {result}')
+            return cls.UNKNOWN
 
     @classmethod
     def get_from_for_code(cls, for_code):
@@ -537,7 +560,8 @@ class LDAP:
                     department_numbers.extend(entry.departmentNumber)
                 if hasattr(entry, 'displayName'):
                     display_names.extend(entry.displayName)
-            display_name = None
             display_name = display_names[0]
+            if len(department_numbers) == 0:
+                print(f'Unfound email: {email}')
             faculty = Faculties.get_from_departments(department_numbers)
             return faculty, display_name
