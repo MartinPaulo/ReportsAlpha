@@ -220,6 +220,7 @@ class Faculties(Enum):
             'student': cls.UNKNOWN,
             'master of it': cls.MSE,
             'cs': cls.MSE,
+            'cis (information technology)': cls.MSE,
             'ict': cls.MSE,
             'cis': cls.MSE,
             'florey neuroscience institutes': cls.MDHS,
@@ -233,6 +234,7 @@ class Faculties(Enum):
             'melbourne school of psychological sciences': cls.MDHS,
             'school of ecosystem and forest sciences, faculty of science': cls.FOS,
             'faculty of veterinary and agricultural sciences': cls.FOS,
+            'faculty of architecture building and planning,': cls.ABP,
             'infrastructure services': cls.OTHER,
             'infrastructure': cls.OTHER,
             'infrasture': cls.OTHER,
@@ -271,7 +273,7 @@ class Faculties(Enum):
             'fvas': cls.VAS,  # Faculty of Veterinary Science
             'mbc': cls.MDHS,
             'grattan institute': cls.FOA,
-
+            'university services': cls.OTHER,
         }
         department_lower = department.lower()
         try:
@@ -342,14 +344,17 @@ class Faculties(Enum):
         return faculty
 
     @classmethod
-    def get_faculty_from_department(cls, department, user_name):
+    def get_faculty_from_department(cls, department, user_email):
         # should be changed to deal with list of departments?
         result = set()
-        if len(department):
+        if 'unimelb' not in user_email:
+            result.add(cls.EXTERNAL)
+        elif len(department):
             result.add(cls.get_from_department(department))
-            # if cls.UNKNOWN in result:
-            #     print(
-            #         f"Department not found: '{department.lower()}': '', user: {user_name}''")
+            if cls.UNKNOWN in result:
+                print(
+                    f"Department not found: '{department.lower()}': '', "
+                    f"user email: {user_email}''")
         else:
             result.add(cls.UNKNOWN)
         return result.pop()
